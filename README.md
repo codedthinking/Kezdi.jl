@@ -1,7 +1,7 @@
 # Kezdi.jl
-An umbrella of Julia packages for data analysis, in loving memory of Gábor Kézdi.
+An umbrella of Julia packages for data analysis, in loving memory of [Gábor Kézdi](https://kezdigabor.life/).
 
-Uses CSV, Chain, DataFrameMacros, DataFrames, Distributions, FixedEffectModels, LinearAlgebra, StatFiles, Statistics.
+Uses [CSV](https://csv.juliadata.org/stable/), [Chain](https://github.com/jkrumbiegel/Chain.jl), [DataFrameMacros](https://github.com/jkrumbiegel/DataFrameMacros.jl), [DataFrames](https://dataframes.juliadata.org/stable/), [Distributions](https://juliastats.org/Distributions.jl/stable/), [FixedEffectModels](https://github.com/FixedEffects/FixedEffectModels.jl), [LinearAlgebra](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/), [StatFiles](https://github.com/queryverse/StatFiles.jl), [Statistics](https://docs.julialang.org/en/v1/stdlib/Statistics/).
 
 Exports all names defined in the packages.
 
