@@ -12,9 +12,8 @@ using Reexport
 @reexport using StatFiles
 @reexport using Statistics
 
-# check for macro hygene
 macro regress(df, formula)
-	:(reg($df, @formula($formula)))
+	esc(:(reg($df, @formula($formula))))
 end
 
 macro regress(df, y, xs...)
@@ -23,7 +22,7 @@ macro regress(df, y, xs...)
 		y,
 		Expr(:call, :+, xs...)
 	)
-	:(reg($df, @formula($formula)))
+	esc(:(reg($df, @formula($formula))))
 end
 
 @doc """
@@ -40,6 +39,12 @@ and
 both evaluate to
 ```
 reg(df, @formula(price ~ 1 + quantity + fe(country))
+```
+The macro can also be used within a [chain](https://github.com/jkrumbiegel/Chain.jl):
+```
+@chain df begin
+    @regress price quantity fe(country)
+end
 ```
 """
 
