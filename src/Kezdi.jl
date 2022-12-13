@@ -26,7 +26,7 @@ macro regress(df, y, xs...)
 	:(reg($df, @formula($formula)))
 end
 
-@doc"""
+@doc """
 Exports all names defined in the packages.
 
 `@regress` macro defines new syntax for regressions:
