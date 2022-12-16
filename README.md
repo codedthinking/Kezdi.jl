@@ -12,25 +12,25 @@ Uses [CSV](https://csv.juliadata.org/stable/), [Chain](https://github.com/jkrumb
 Exports all names defined in the packages.
 
 `@regress` macro defines new syntax for regressions:
-```
+```julia
 using Kezdi
 df = DataFrame(price=..., quantity=..., country=...)
 @regress df price ~ 1 + quantity + fe(country)
 ```
 and 
-```
+```julia
 using Kezdi
 df = DataFrame(price=..., quantity=..., country=...)
 @regress df price quantity fe(country)
 ```
 both evaluate to
-```
+```julia
 using Kezdi
 df = DataFrame(price=..., quantity=..., country=...)
 reg(df, @formula(price ~ 1 + quantity + fe(country))
 ```
 The macro can also be used within a [chain](https://github.com/jkrumbiegel/Chain.jl) and pipe:
-```
+```julia
 @chain df begin
     @regress price quantity fe(country)
 end
