@@ -7,5 +7,9 @@
 ```
 
 ```@docs
+@drop_if
+```
+
+```@docs
 @regress
 ```

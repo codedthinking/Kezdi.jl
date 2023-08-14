@@ -1,5 +1,5 @@
 module Kezdi
-export @regress, @keep_if
+export @regress, @keep_if, @drop_if
 
 using Reexport
 @reexport using Tidier
@@ -116,6 +116,34 @@ julia> @chain df begin
 """
 macro keep_if(df, expr)
 	return esc(:(@filter($df, $expr)))
+end
+
+"""
+	@drop_if(df, expr)
+
+Drops rows of a DataFrame that satisfy a condition.
+
+# Arguments
+- `df`: A DataFrame.
+- `expr`: transformation that produce a vector containing `true` or `false`.
+
+# Examples
+```jldoctest 
+julia> df = DataFrame(a = repeat('a':'e'), b = 1:5, c = 11:15);
+
+julia> @chain df begin
+       @drop_if b >= mean(b)
+       end
+2×3 DataFrame
+ Row │ a     b      c     
+     │ Char  Int64  Int64 
+─────┼────────────────────
+   1 │ a         1     11
+   2 │ b         2     12
+```
+"""
+macro drop_if(df, expr)
+	return esc(:(@filter($df, !$expr)))
 end
 
 @doc """
