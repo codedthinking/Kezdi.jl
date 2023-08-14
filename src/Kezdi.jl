@@ -205,16 +205,36 @@ macro keep(df, exprs...)
 	return esc(:(@select($df, $(exprs...))))
 end
 
-macro drop(df, exprs...)
-	# Start building the expression for the negated selection
-	select_expr = :( @select $df )
-		
-	# Add each negated column to the expression
-	for expr in exprs
-		push!(select_expr.args, :(-$(esc(expr))))
-	end
+"""
+	@drop(df, exprs...)
 
-	return esc(select_expr)
+Drops columns of a DataFrame.
+
+# Arguments
+- `df`: A DataFrame.
+- `exprs...`: column names.
+
+# Examples
+```jldoctest
+julia> df = DataFrame(a = repeat('a':'e'), b = 1:5, c = 11:15);
+
+julia> @chain df begin
+	@drop a b
+	end
+5×1 DataFrame
+ Row │ c     
+     │ Int64 
+─────┼───────
+   1 │    11
+   2 │    12
+   3 │    13
+   4 │    14
+   5 │    15
+```
+"""
+macro drop(df, exprs...)
+    negated_exprs = Cols(Not([:($expr) for expr in exprs]...))
+    return esc(:(select($df, $negated_exprs)))
 end
 
 
