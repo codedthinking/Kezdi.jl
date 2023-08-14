@@ -1,5 +1,5 @@
 module Kezdi
-export @regress, @keep_if, @drop_if
+export @regress, @keep_if, @drop_if, @keep, @drop
 
 using Reexport
 @reexport using Tidier
@@ -173,5 +173,49 @@ The macros can also be used within a [chain](https://github.com/jkrumbiegel/Chai
     @regress price quantity fe(country)
 end
 """
+
+"""
+	@keep(df, exprs...)
+
+Keeps only columns of a DataFrame.
+
+# Arguments
+- `df`: A DataFrame.
+- `exprs...`: column names.
+
+# Examples
+```jldoctest
+julia> df = DataFrame(a = repeat('a':'e'), b = 1:5, c = 11:15);
+
+julia> @chain df begin
+       @keep a b
+       end
+5×2 DataFrame
+ Row │ a     b     
+     │ Char  Int64 
+─────┼─────────────
+   1 │ a         1
+   2 │ b         2
+   3 │ c         3
+   4 │ d         4
+   5 │ e         5
+```
+"""
+macro keep(df, exprs...)
+	return esc(:(@select($df, $(exprs...))))
+end
+
+macro drop(df, exprs...)
+	# Start building the expression for the negated selection
+	select_expr = :( @select $df )
+		
+	# Add each negated column to the expression
+	for expr in exprs
+		push!(select_expr.args, :(-$(esc(expr))))
+	end
+
+	return esc(select_expr)
+end
+
 
 end # module
