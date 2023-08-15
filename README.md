@@ -11,35 +11,35 @@ Uses [Tidier](https://tidierorg.github.io/Tidier.jl/dev/), [CSV](https://csv.jul
 
 Exports all names defined in the packages.
 
-`@keep_if` macro keeps only rows of a DataFrame that satisfy a condition:
-```
-@keep_if df price > 0
-```
+## Example
+```jldoctest
+using Kezdi
+using RDatasets
 
-`@regress` macro defines new syntax for regressions:
-```julia
-using Kezdi
-df = DataFrame(price=..., quantity=..., country=...)
-@regress df price ~ 1 + quantity + fe(country)
-```
-and 
-```julia
-using Kezdi
-df = DataFrame(price=..., quantity=..., country=...)
-@regress df price quantity fe(country)
-```
-both evaluate to
-```julia
-using Kezdi
-df = DataFrame(price=..., quantity=..., country=...)
-reg(df, @formula(price ~ 1 + quantity + fe(country))
-```
-The macros can also be used within a [chain](https://github.com/jkrumbiegel/Chain.jl):
-```julia
-@chain df begin
-    @keep_if price > 0
-    @regress price quantity fe(country)
+movies = dataset("ggplot2", "movies")
+
+@chain movies begin
+	@drop_if ismissing(Budget) || Budget == 0
+	@generate ln_budget = log(Budget)
+	@generate above_7 = Rating > 7.0
+	@regress ln_budget above_7 fe(Year)
 end
+
+# output
+
+terms = StatsModels.terms
+                            FixedEffectModel                            
+========================================================================
+Number of obs:                 5181  Converged:                     true
+dof (model):                      1  dof (residuals):               5087
+R²:                           0.164  R² adjusted:                  0.149
+F-statistic:                65.0919  P-value:                      0.000
+R² within:                    0.013  Iterations:                       1
+========================================================================
+          Estimate  Std. Error    t-stat  Pr(>|t|)  Lower 95%  Upper 95%
+────────────────────────────────────────────────────────────────────────
+above_7  -0.653116   0.0809519  -8.06795    <1e-15  -0.811817  -0.494416
+========================================================================
 ```
 
 ## Naming
