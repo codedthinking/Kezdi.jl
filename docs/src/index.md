@@ -33,6 +33,10 @@ Kezdi
 @replace
 ```
 
+```@docs
+@egen
+```
+
 ## Statistics
 
 ```@docs

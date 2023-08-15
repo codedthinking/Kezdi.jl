@@ -47,7 +47,7 @@ above_7  -0.653116   0.0809519  -8.06795    <1e-15  -0.811817  -0.494416
 Kezdi.jl is named in loving memory of [Gábor Kézdi](https://kezdigabor.life/).
 """
 module Kezdi
-export @regress, @keep_if, @drop_if, @keep, @drop, @generate, @replace
+export @regress, @keep_if, @drop_if, @keep, @drop, @generate, @replace, @egen
 
 using Reexport
 @reexport using Tidier
@@ -362,6 +362,15 @@ julia> @chain df begin
 ```
 """
 macro generate(df, expr)
+	return esc(:(@mutate($df, $expr)))
+end
+
+"""
+	@egen(df, expr)
+
+Generates a new column of a DataFrame. An alias for [`@generate`](@ref), does not check if the column already exists.
+"""
+macro egen(df, expr)
 	return esc(:(@mutate($df, $expr)))
 end
 
