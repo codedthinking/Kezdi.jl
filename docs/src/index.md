@@ -1,5 +1,9 @@
 # Kezdi.jl Documentation
 
+```@docs
+Kezdi
+```
+
 ## Data manipulation
 
 ### Filtering columns
@@ -18,6 +22,15 @@
 
 ```@docs
 @drop_if
+```
+
+### Modifying columns
+```@docs
+@generate
+```
+
+```@docs
+@replace
 ```
 
 ## Statistics

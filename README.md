@@ -1,5 +1,5 @@
 # Kezdi.jl
-An umbrella of Julia packages for data analysis, in loving memory of [Gábor Kézdi](https://kezdigabor.life/).
+An umbrella of Julia packages for data analysis, with a focus on economics.
 
 To install,
 ```julia
@@ -41,3 +41,6 @@ The macros can also be used within a [chain](https://github.com/jkrumbiegel/Chai
     @regress price quantity fe(country)
 end
 ```
+
+## Naming
+Kezdi.jl is named in loving memory of [Gábor Kézdi](https://kezdigabor.life/).
