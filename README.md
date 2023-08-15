@@ -12,7 +12,7 @@ Uses [Tidier](https://tidierorg.github.io/Tidier.jl/dev/), [CSV](https://csv.jul
 Exports all names defined in the packages.
 
 ## Example
-```jldoctest
+```julia
 using Kezdi
 using RDatasets
 
