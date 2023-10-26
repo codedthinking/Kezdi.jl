@@ -57,6 +57,19 @@ using Reexport
 @reexport using FixedEffectModels
 @reexport using LinearAlgebra
 @reexport using StatFiles
+using MacroTools
+
+function if_parser(df, xs)
+   if @capture(xs[end], @if condition_)
+      xs = xs[1:end-1]
+      # expression to filter the dataframe
+      # escape the RHS of the assignment, but no the LHS
+      expr = :(_sdf = @filter($df, $condition))      
+   else
+      expr = :(_sdf = $df)
+   end
+   return (esc(expr), xs)
+end
 
 """
 	@regress(df, formula)
@@ -108,13 +121,34 @@ macro regress(df, formula)
 	esc(:(reg($df, @formula($formula))))
 end
 
+"""
+julia> @regress df c b @if b >= 3
+         FixedEffectModel                               
+==============================================================================
+Number of obs:                       3  Converged:                        true
+dof (model):                         1  dof (residuals):                     1
+R²:                              1.000  R² adjusted:                     1.000
+F-statistic:                2.98974e27  P-value:                         0.000
+==============================================================================
+Estimate   Std. Error      t-stat  Pr(>|t|)  Lower 95%  Upper 95%
+──────────────────────────────────────────────────────────────────────────────
+b                 1.0  1.82887e-14  5.46785e13    <1e-99        1.0        1.0
+(Intercept)      10.0  7.46634e-14  1.33935e14    <1e-99       10.0       10.0
+==============================================================================
+"""
 macro regress(df, y, xs...)
-	@show terms
+   # parse the if condition
+   filter_expr, xs = if_parser(df, xs)
+   # create the formula 
 	formula = Expr(:call, :~,
 		y,
 		Expr(:call, :+, xs...)
 	)
-	esc(:(reg($df, @formula($formula))))
+   # build reg(_sdf, @formula($formula)) expression
+   formula_expr = macroexpand(Main, :(@formula($formula)))
+   reg_expr = Expr(:call, :reg, esc(:(_sdf)), :($formula_expr))
+   # combine filter_condition and regression into a list of expressions
+   Expr(:block, filter_expr, reg_expr)
 end
 
 """
