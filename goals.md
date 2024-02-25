@@ -35,8 +35,10 @@ should look for `y` in the dataframe, `x` in the dataframe, but if not found, th
 - tabulate
 - table
 - summarize
+- display (shall we replace by print?)
 
-### Curated statistical command
+### Curated statistical commands
+Based on actual frequency of usage. 
 
 ## Architecture
 ### Multichannel communication
