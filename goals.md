@@ -28,8 +28,12 @@ should look for `y` in the dataframe, `x` in the dataframe, but if not found, th
 - collapse
 - merge
 - join
+- cross
 - append
 - reshape
+
+### File and df operations
+How to interact with different DataFrames? The default is to work on a single df, but how to do `merge`, `append`, `join` and `cross`.
 
 ### Side effect commands
 - tabulate
