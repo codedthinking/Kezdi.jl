@@ -46,7 +46,7 @@ Based on actual frequency of usage.
 
 ## Architecture
 ### Multichannel communication
-Stata has effectively multichannel communication between statements. Each statement manipulates the dataframe (channel 1), but can return values in `r()` or `e()` (two more channels). They can also have other side effects.
+Stata has effectively multichannel communication between statements. Each statement manipulates the dataframe (channel 1), but can return values in `r()` or `e()` or `_b` (two more channels). They can also have other side effects.
 
 We may need to implement multi-channel piping (coroutines?) to bring back this feeling to users.
 
