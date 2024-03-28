@@ -34,7 +34,16 @@ function get_paged_data(url::String)
     return repo_list
 end
 
+function get_tree_sha(url::String)
+    r = HTTP.get(url, headers=CREDENTIALS)
+    body = JSON3.read(r.body)
+    return body[:commit][:sha]
+end
 
-repo_list_url = "http://api.github.com/orgs/restud-replication-packages/repos"
-repos = get_paged_data(repo_list_url)
-println(repos)
+
+
+
+for repo in repos
+    repo_branch_url = "http://api.github.com/repos/restud-replication-packages/$(repo.name)/branches/$(repo.default_branch)"
+    sha = get_tree_sha(repo_branch_url)
+end
