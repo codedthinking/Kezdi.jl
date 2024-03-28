@@ -40,10 +40,25 @@ function get_tree_sha(url::String)
     return body[:commit][:sha]
 end
 
+function get_paths(url::String)
+    r = HTTP.get(url, headers=CREDENTIALS)
+    body = JSON3.read(r.body)
+    tree = body[:tree]
+    return extract_paths(tree)
+end
 
+function extract_paths(tree::JSON3.Array)
+    paths = [
+        path[:path] 
+        for path in tree if endswith(path[:path], ".do") 
+        ]
+    return paths
+end
 
 
 for repo in repos
     repo_branch_url = "http://api.github.com/repos/restud-replication-packages/$(repo.name)/branches/$(repo.default_branch)"
     sha = get_tree_sha(repo_branch_url)
+    tree_url = "http://api.github.com/repos/restud-replication-packages/$(repo.name)/git/trees/$(sha)?recursive=1"
+    tree = get_paths(tree_url)
 end
