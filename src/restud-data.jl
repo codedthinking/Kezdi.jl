@@ -1,8 +1,4 @@
-# TODO: 
-#1. get tree of repo, the api says it can be queried by branch and can be done recursively
-#2. get .do file paths from tree
-
-using HTTP, JSON3
+using HTTP, JSON3, Base64
 GITHUB_TOKEN = readline(open(".github_token", "r"))
 
 CREDENTIALS = [
@@ -11,7 +7,7 @@ CREDENTIALS = [
     "X-GitHub-Api-Version" => "2022-11-28",
     ]
 
-function get_paged_data(url::String)
+function get_repos(url::String)
     next_pattern = r"rel=\"next\""
     link_pattern = r".*<(.+)>; rel=\"next\".*"
     page_remains = true
@@ -55,10 +51,30 @@ function extract_paths(tree::JSON3.Array)
     return paths
 end
 
-
-for repo in repos
-    repo_branch_url = "http://api.github.com/repos/restud-replication-packages/$(repo.name)/branches/$(repo.default_branch)"
-    sha = get_tree_sha(repo_branch_url)
-    tree_url = "http://api.github.com/repos/restud-replication-packages/$(repo.name)/git/trees/$(sha)?recursive=1"
-    tree = get_paths(tree_url)
+function get_dofile(url::String)
+    r = HTTP.get(url, headers=CREDENTIALS)
+    body = JSON3.read(r.body)
+    script = String(base64decode(body[:content]))
+    return script
 end
+
+function write_file(script::String, name::AbstractString)
+    open(name, "w") do file
+        write(file, script)
+    end
+end
+
+
+## A simple example
+repo_list_url = "http://api.github.com/orgs/restud-replication-packages/repos"
+repos = get_repos(repo_list_url)
+repo = (repos[:name][1], repos[:default_branch][1])
+repo_branch_url = "http://api.github.com/repos/restud-replication-packages/$(repo[1])/branches/$(repo[2])"
+sha = get_tree_sha(repo_branch_url)
+tree_url = "http://api.github.com/repos/restud-replication-packages/$(repo[1])/git/trees/$(sha)?recursive=1"
+dofiles = get_paths(tree_url)
+dofile = dofiles[1]
+dofile = replace(dofile, r" " => s"%20")
+file_url = "http://api.github.com/repos/restud-replication-packages/$(repo[1])/contents/$dofile"
+file = get_dofile(file_url)
+write_file(file, last(split(dofile, "/")))
