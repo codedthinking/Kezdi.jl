@@ -28,8 +28,12 @@ should look for `y` in the dataframe, `x` in the dataframe, but if not found, th
 - collapse
 - merge
 - join
+- cross
 - append
 - reshape
+
+### File and df operations
+How to interact with different DataFrames? The default is to work on a single df, but how to do `merge`, `append`, `join` and `cross`.
 
 ### Side effect commands
 - tabulate
@@ -42,7 +46,7 @@ Based on actual frequency of usage.
 
 ## Architecture
 ### Multichannel communication
-Stata has effectively multichannel communication between statements. Each statement manipulates the dataframe (channel 1), but can return values in `r()` or `e()` (two more channels). They can also have other side effects.
+Stata has effectively multichannel communication between statements. Each statement manipulates the dataframe (channel 1), but can return values in `r()` or `e()` or `_b` (two more channels). They can also have other side effects.
 
 We may need to implement multi-channel piping (coroutines?) to bring back this feeling to users.
 
