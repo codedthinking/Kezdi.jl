@@ -62,6 +62,15 @@ function parse_expr(expr::Expr; depth::Int64=0)::Vector{Node}
     return args
 end
 
+function switch_tuple(args::Vector{Node})::Vector{Node}
+    for (i,arg) in enumerate(args)
+        if arg.type == :tuple && arg.content == args[i+1].content
+            args[i] = args[i+1]
+            args[i+1] = arg
+        end
+    end
+    return args
+end
 
 function construct_calls(nodes::Vector{Node})::Vector{Union{Expr, Symbol, Int64}}
     if isempty(nodes)
@@ -120,55 +129,51 @@ function construct_calls(nodes::Vector{Node})::Vector{Union{Expr, Symbol, Int64}
     return calls
 end
 
-function transition(state::Vector{Int64},arg::Node)
+function transition(state::Int64,arg::Node)
     ## from command to condition
-    if arg.type == :macrocall && arg.content == Symbol("@if") && state == [1,0,0] 
-        state[1] = 0
-        state[2] = 1
+    if arg.type == :macrocall && arg.content == Symbol("@if") && state == 1
+        state = 2
         @debug"Stepping out of command at $arg"
         @debug"Stepping into condition at $arg"
     end
     ## from command to option
-    if state == [1,0,0] && arg.type == :call
-        state[1] = 0
-        state[3] = 1
+    if state == 1 && arg.type == :tuple
+        state = 3
         @debug"Stepping out of command at $arg"
         @debug"Stepping into options at $arg"
     end
     ## from condition to option
-    if state == [0,1,0] && arg.type == :call && !in(arg.content, SYMBOLS) 
-        state[2] = 0
-        state[3] = 1
+    if state == 2 && arg.type == :tuple && !in(arg.content, SYMBOLS) 
+        state = 3
         @debug"Stepping out of condition at $arg"
         @debug"Stepping into options at $arg"
     end
+    return state
 end
 
 function transpile(exprs::Tuple, command::Symbol)::Command
     ast = parse(exprs)
+    ast = switch_tuple(ast)
+    @info "AST is $ast"
     arguments = Vector{Node}()
     options = Vector{Node}()
     condition = Vector{Node}()
-    opt_values = []
-    cond_values = []
-    state = [1,0,0]
+    state = 1
     @debug"Starting in command"
     for arg in ast
-        transition(state, arg)
-        if state == [1,0,0]
+        state = transition(state, arg)
+        if state == 1
             if arg.type in [:call, Symbol, Int64]
                 push!(arguments, arg)
             end
         end
-        if state == [0,1,0]
+        if state == 2
             if arg.type in [:call, Symbol, Int64] && arg.content != Symbol("@if")
-                push!(cond_values, arg.content)
-                condition = push!(condition, arg)
+                push!(condition, arg)
             end
         end
-        if state == [0,0,1]
-            if arg.type in [:call ,Symbol, Int64]
-                push!(opt_values, arg.content)
+        if state == 3
+            if arg.type in [:call, :macrocall, Symbol, Int64]
                 push!(options, arg)
             end
         end
@@ -189,6 +194,6 @@ macro dummy(exprs...)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    cmd = @dummy a b @if d == 1, cluster(z) whatever drop(x) peek pipe(y,x)
+    cmd = @dummy a b @if d == 1 && c == 0, cluster(z) whatever drop(x) peek pipe(y,x)
     println(cmd)
 end
