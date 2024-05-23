@@ -6,12 +6,13 @@ TEST_CASES = [
     (ex="@generate d = 1", command=:generate, arguments=[:d], condition=[], options=[]),
     (ex="@summarize d", command=:summarize, arguments=[:d], condition=[], options=[]),
     (ex="@regress y x, robust", command=:regress, arguments=[:y, :x], condition=[], options=[:robust]),
-    (ex="@regress y x, absorb(country)", command=:regress, arguments=[:y, :x], condition=[], options=[:absorb, :country]),
+    (ex="@regress y x, absorb(country)", command=:regress, arguments=[:y, :x], condition=[], options=[:(absorb(country))]),
     (ex="@regress y log(x), robust", command=:regress, arguments=[:y, :log, :x], condition=[], options=[:robust]),
     (ex="@summarize x, detail", command=:summarize, arguments=[:x], condition=[], options=[:detail]),
-    (ex="@summarize x @if x < 0", command=:summarize, arguments=[:x], condition=[:<, :x, 0], options=[]),
+    (ex="@summarize x @if x < 0", command=:summarize, arguments=[:x], condition=[:(x < 0)], options=[]),
     (ex="@summarize x @if ln(x) < 0", command=:summarize, arguments=[:x], condition=[:<, :ln, :x, 0], options=[]),
-    (ex="@summarize x @if x < 0, detail", command=:summarize, arguments=[:x], condition=[:<, :x, 0], options=[:detail]),
+    (ex="@summarize x @if x < 0, detail", command=:summarize, arguments=[:x], condition=[:(x < 0)], options=[:detail]),
+    (ex="@summarize x @if x < 0 && y > 0", command=:summarize, arguments=[:x], condition=[:&&, [:<, :x, 0], [:>, :y, 0]], options=[:detail]),   
     (ex="@summarize x @if x < 0 && y > 0, detail", command=:summarize, arguments=[:x], condition=[:&&, [:<, :x, 0], [:>, :y, 0]], options=[:detail]),   
 ]
 
@@ -42,7 +43,8 @@ end
         if length(case.condition) > 0
             expressions = preprocess(case.ex)
             command = transpile(expressions, case.command)
-            @test command.condition.condition == case.condition
+            @warn typeof(command.condition.condition)
+            @test command.condition.condition == tuple(case.condition...)
         end
     end
 end
@@ -52,7 +54,7 @@ end
         if length(case.options) > 0
             expressions = preprocess(case.ex)
             command = transpile(expressions, case.command)
-            @test command.options.options == case.options
+            @test command.options.options == tuple(case.options...)
         end
     end
 end
