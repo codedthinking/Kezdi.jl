@@ -28,6 +28,7 @@ function preprocess(command::AbstractString)::Tuple
     return eval(Meta.parse(new_command))
 end
 
+@testset "All tests" begin
 @testset "Arguments are parsed" begin
     @testset "$(case.ex)" for case in TEST_CASES
         expressions = preprocess(case.ex)
@@ -41,7 +42,7 @@ end
         if length(case.condition) > 0
             expressions = preprocess(case.ex)
             command = transpile(expressions, case.command)
-            @info command
+            @test command.condition.condition == case.condition
         end
     end
 end
@@ -51,7 +52,8 @@ end
         if length(case.options) > 0
             expressions = preprocess(case.ex)
             command = transpile(expressions, case.command)
-            @info command
+            @test command.options.options == case.options
         end
     end
 end
+end # testset
