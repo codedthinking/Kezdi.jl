@@ -81,17 +81,17 @@ function construct_calls(nodes::Vector{Node})::Vector{Union{Expr, Symbol, Int64}
     in_call = false
     prev_pos = 0
     for level in syntax_levels
-        @info "Processing level $level"
+        @debug"Processing level $level"
         call_level = []
         function_call = nothing
         call_args = [node for node in nodes if node.level == level]
         for arg in call_args
-            @info "Processing argument $arg"
+            @debug"Processing argument $arg"
             if in_call && arg.tree_position != prev_pos + 1
                 in_call = false
-                @info "Stepping out of function call at $arg"
+                @debug"Stepping out of function call at $arg"
                 function_call = Expr(call_level[1].type, [arg.content for arg in call_level[2:end]]...)
-                @info "Adding function call to calls $function_call"
+                @debug"Adding function call to calls $function_call"
                 push!(calls, function_call)
                 call_level = []
                 prev_pos = 0
@@ -99,9 +99,9 @@ function construct_calls(nodes::Vector{Node})::Vector{Union{Expr, Symbol, Int64}
             if in_call && arg == last(call_args)
                 in_call = false
                 push!(call_level, arg)
-                @info "Stepping out of function call at $arg"
+                @debug"Stepping out of function call at $arg"
                 function_call = Expr(call_level[1].type, [arg.content for arg in call_level[2:end]]...)
-                @info "Adding function call to calls $function_call"
+                @debug"Adding function call to calls $function_call"
                 push!(calls, function_call)
                 call_level = []
                 prev_pos = 0
@@ -109,23 +109,23 @@ function construct_calls(nodes::Vector{Node})::Vector{Union{Expr, Symbol, Int64}
             end
             if arg.type == :call
                 in_call = true
-                @info "Stepping into function call at $arg"
+                @debug"Stepping into function call at $arg"
                 push!(call_level, arg)
                 continue
             end
             if in_call
-                @info "Adding $arg to function call"
+                @debug"Adding $arg to function call"
                 push!(call_level, arg)
                 prev_pos = arg.tree_position
                 continue
             end
             if !in_call
-                @info "Adding argument to calls $arg"
+                @debug"Adding argument to calls $arg"
                 push!(calls, arg.content)
             end
         end
     end
-    @info "calls are $calls"
+    @debug"calls are $calls"
     return calls
 end
 
@@ -133,20 +133,20 @@ function transition(state::Int64,arg::Node)
     ## from command to condition
     if arg.type == :macrocall && arg.content == Symbol("@if") && state == 1
         state = 2
-        @info "Stepping out of command at $arg"
-        @info "Stepping into condition at $arg"
+        @debug"Stepping out of command at $arg"
+        @debug"Stepping into condition at $arg"
     end
     ## from command to option
     if state == 1 && arg.type == :tuple
         state = 3
-        @info "Stepping out of command at $arg"
-        @info "Stepping into options at $arg"
+        @debug"Stepping out of command at $arg"
+        @debug"Stepping into options at $arg"
     end
     ## from condition to option
     if state == 2 && arg.type == :tuple && !in(arg.content, SYMBOLS) 
         state = 3
-        @info "Stepping out of condition at $arg"
-        @info "Stepping into options at $arg"
+        @debug"Stepping out of condition at $arg"
+        @debug"Stepping into options at $arg"
     end
     return state
 end
@@ -159,7 +159,7 @@ function transpile(exprs::Tuple, command::Symbol)::Command
     options = Vector{Node}()
     condition = Vector{Node}()
     state = 1
-    @info "Starting in command"
+    @debug"Starting in command"
     for arg in ast
         state = transition(state, arg)
         if state == 1
@@ -174,14 +174,13 @@ function transpile(exprs::Tuple, command::Symbol)::Command
         end
         if state == 3
             if arg.type in [:call, :macrocall, Symbol, Int64]
-                @info "add $arg to options"
                 push!(options, arg)
             end
         end
     end
-    @info "Arguments are $arguments"
-    @info "Condition is $condition"
-    @info "Options are $options"
+    @debug"Arguments are $arguments"
+    @debug"Condition is $condition"
+    @debug"Options are $options"
     arguments = construct_calls(arguments)
     condition = construct_calls(condition)
     options = construct_calls(options)
