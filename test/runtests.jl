@@ -27,4 +27,25 @@ end
 end
 
 @testset "Arguments are parsed" begin
+    @testset "$(case.ex)" for case in TEST_CASES
+        expression = Meta.parse(case.ex)
+        (command, arguments, condition, options) = transpiler(parse_ast(expression))
+        @test_skip [arg.content for arg in arguments] == case.arguments
+    end
+end
+
+@testset "Condition is parsed" begin
+    @testset "$(case.ex)" for case in [for x in TEST_CASES if length(x.condition) > 0]
+        expression = Meta.parse(case.ex)
+        (command, arguments, condition, options) = transpiler(parse_ast(expression))
+        @test [arg.content for arg in condition] == case.condition
+    end
+end
+
+@testset "Options are parsed" begin
+    @testset "$(case.ex)" for case in [for x in TEST_CASES if length(x.options) > 0]
+        expression = Meta.parse(case.ex)
+        (command, arguments, condition, options) = transpiler(parse_ast(expression))
+        @test [arg.content for arg in options] == case.options
+    end
 end
