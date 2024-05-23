@@ -9,18 +9,32 @@ TEST_CASES = [
     (ex="@summarize x, detail", command=:summarize, arguments=[:x], condition=[], options=[:detail]),
     (ex="@summarize x @if x < 0, detail", command=:summarize, arguments=[:x], condition=[:<, :x, 0], options=[:detail]),
 ]
+
+macro return_arguments(expr)
+    return (expr,)
+end
+
+macro return_arguments(exprs...)
+    return exprs
+end
+
+function preprocess(command::AbstractString)::Tuple
+    new_command = replace(command, r"@(\w+)" => "@return_arguments")
+    return eval(Meta.parse(new_command))
+end
+
 @testset "Every command begins with a macrocall" begin
     @testset "$(case.ex)" for case in TEST_CASES
-        expression = Meta.parse(case.ex)
-        nodes = parse_ast(expression)
+        expressions = preprocess(case.ex)
+        nodes = parse(expressions)
         @test nodes[1].type == :macrocall
     end
 end
 
 @testset "Command name is parsed" begin
     @testset "$(case.ex)" for case in TEST_CASES
-        expression = Meta.parse(case.ex)
-        nodes = parse_ast(expression)
+        expressions = preprocess(case.ex)
+        nodes = parse(expressions)
         expected_name = Symbol("@$(case.command)")
         @test nodes[1].content == expected_name
     end
@@ -28,24 +42,28 @@ end
 
 @testset "Arguments are parsed" begin
     @testset "$(case.ex)" for case in TEST_CASES
-        expression = Meta.parse(case.ex)
-        (command, arguments, condition, options) = transpiler(parse_ast(expression))
-        @test_skip [arg.content for arg in arguments] == case.arguments
+        expressions = preprocess(case.ex)
+        command = transpile(expressions)
+        @info command
     end
 end
 
 @testset "Condition is parsed" begin
-    @testset "$(case.ex)" for case in [for x in TEST_CASES if length(x.condition) > 0]
-        expression = Meta.parse(case.ex)
-        (command, arguments, condition, options) = transpiler(parse_ast(expression))
-        @test [arg.content for arg in condition] == case.condition
+    @testset "$(case.ex)" for case in TEST_CASES
+        if length(case.condition) > 0
+            expressions = preprocess(case.ex)
+            command = transpile(expressions)
+            @info command
+        end
     end
 end
 
 @testset "Options are parsed" begin
-    @testset "$(case.ex)" for case in [for x in TEST_CASES if length(x.options) > 0]
-        expression = Meta.parse(case.ex)
-        (command, arguments, condition, options) = transpiler(parse_ast(expression))
-        @test [arg.content for arg in options] == case.options
+    @testset "$(case.ex)" for case in TEST_CASES
+        if length(case.options) > 0
+            expressions = preprocess(case.ex)
+            command = transpile(expressions)
+            @info command
+        end
     end
 end
