@@ -1,27 +1,7 @@
 using Logging
 global_logger(Logging.ConsoleLogger(stderr, Logging.Info))
 
-struct Node
-    type::Union{Symbol, Type}
-    content::Union{Expr, Symbol, Number, LineNumberNode, QuoteNode}
-    level::Int64
-    tree_position::Int64
-end
-
-struct Where
-    condition::Tuple
-end
-
-struct Options
-    options::Tuple
-end
-
-struct Command 
-    command::Symbol
-    arguments::Tuple
-    condition::Where
-    options::Options
-end
+include("structs.jl")
 
 SYMBOLS = [:(==), :<, :>, :!=, :<=, :>=]
 
@@ -69,6 +49,7 @@ function switch_tuple(args::Vector{Node})::Vector{Node}
             args[i+1] = arg
         end
     end
+    #FIXME: this has to work for function calls and @if statements, too
     return args
 end
 
@@ -184,7 +165,7 @@ function transpile(exprs::Tuple, command::Symbol)::Command
     arguments = construct_calls(arguments)
     condition = construct_calls(condition)
     options = construct_calls(options)
-    return Command(command, Tuple(arguments), Where(Tuple(condition)), Options(Tuple(options)))
+    return Command(command, Tuple(arguments), length(condition) > 0 ? condition[1] : nothing, Tuple(options))
 end
 
 macro dummy(exprs...)
