@@ -3,7 +3,7 @@ global_logger(Logging.ConsoleLogger(stderr, Logging.Info))
 
 struct Node
     type::Union{Symbol, Type}
-    content::Union{Expr, Symbol, Number, LineNumberNode}
+    content::Union{Expr, Symbol, Number, LineNumberNode, QuoteNode}
     level::Int64
     tree_position::Int64
 end
@@ -33,15 +33,27 @@ function extract_args(arg; depth::Int64=0, position::Int64)::Node
     end
 end
 
-function parse_ast(ast::Expr; depth::Int64=0)::Vector{Node}
+function parse(exprs::Tuple)::Vector{Node}
     args = Vector{Node}()
-    if ast.args != []
-        for (i,arg) in enumerate(ast.args)
-            if arg == ast.args[1]
-                push!(args, Node(ast.head, arg, depth, i))
+    for (i,expr) in enumerate(exprs)
+        if isa(expr, Expr)
+            push!(args, parse_expr(expr; depth=1)...)
+        else
+            push!(args, extract_args(expr;position=i))
+        end
+    end
+    return args
+end
+
+function parse_expr(expr::Expr; depth::Int64=0)::Vector{Node}
+    args = Vector{Node}()
+    if expr.args != []
+        for (i,arg) in enumerate(expr.args)
+            if arg == expr.args[1]
+                push!(args, Node(expr.head, arg, depth, i))
             end
             if isa(arg, Expr)
-                push!(args, parse_ast(arg; depth=depth+1)...)
+                push!(args, parse_expr(arg; depth=depth+1)...)
             else
                 push!(args, extract_args(arg; depth=depth, position=i))
             end
@@ -51,7 +63,7 @@ function parse_ast(ast::Expr; depth::Int64=0)::Vector{Node}
 end
 
 
-function construct_calls(nodes::Vector{Node})::Vector{Union{Expr, Symbol}}
+function construct_calls(nodes::Vector{Node})::Vector{Union{Expr, Symbol, Int64}}
     syntax_levels = unique([node.level for node in nodes])
     options = []
     in_option_call = false
@@ -106,21 +118,18 @@ function construct_calls(nodes::Vector{Node})::Vector{Union{Expr, Symbol}}
 end
 
 # FIXME this part should be another State Machine
-function transpiler(ast::Vector{Node})
+function transpile(ast::Vector{Node})
     command = ast[1].content
     arguments = Vector{Node}()
     options = Vector{Node}()
     condition = Vector{Node}()
     opt_values = []
     cond_values = []
-    in_command = false
+    in_command = true
     in_condition = false
     in_options = false
+    @info "Starting in command"
     for arg in ast
-        if arg.type == LineNumberNode && !in_condition
-            in_command = true
-            @info "Stepping into command at $arg"
-        end
         if arg.type == :macrocall && arg.content == Symbol("@if")
             in_command = false
             in_condition = true
@@ -151,26 +160,26 @@ function transpiler(ast::Vector{Node})
             end
         end
     end
-    return (command, arguments, condition , options)
+    return (command, arguments, condition, options)
 end
 
-if abspath(PROGRAM_FILE) == @__FILE__
-    ex = :(@keep a b @if d == 1, cluster(z) whatever drop(x) peek pipe(y,x))
-    args = parse_ast(ex)
-    map(x -> println(x), args)
-    (command, arguments, condition, options) = transpiler(args)
-    println(command)
-    println(arguments)
-    println(condition)
-    println(options)
+macro keep(exprs...)
+    command = Symbol("@keep")
+    args = parse(exprs)
+    (_, arguments, condition, options) = transpile(args)
     arguments = construct_calls(arguments)
     condition = construct_calls(condition)[1]
     options = construct_calls(options)
     cmd = Command(
-        command,
-        Tuple(arguments),
-        Where(condition),
-        Options(Tuple(options))
+    command,
+    Tuple(arguments),
+    Where(condition),
+    Options(Tuple(options))
     )
+    return cmd
+end
+
+if abspath(PROGRAM_FILE) == @__FILE__
+    cmd = @keep a b @if d == 1, cluster(z) whatever drop(x) peek pipe(y,x)
     println(cmd)
 end
