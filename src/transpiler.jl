@@ -3,13 +3,13 @@ global_logger(Logging.ConsoleLogger(stderr, Logging.Info))
 
 struct Node
     type::Union{Symbol, Type}
-    content::Union{Expr, Symbol, Number, LineNumberNode}
+    content::Union{Expr, Symbol, Number, LineNumberNode, QuoteNode}
     level::Int64
     tree_position::Int64
 end
 
 struct Where
-    condition::Expr
+    condition::Tuple{Expr}
 end
 
 struct Options
@@ -33,15 +33,27 @@ function extract_args(arg; depth::Int64=0, position::Int64)::Node
     end
 end
 
-function parse_ast(ast::Expr; depth::Int64=0)::Vector{Node}
+function parse(exprs::Tuple)::Vector{Node}
     args = Vector{Node}()
-    if ast.args != []
-        for (i,arg) in enumerate(ast.args)
-            if arg == ast.args[1]
-                push!(args, Node(ast.head, arg, depth, i))
+    for (i,expr) in enumerate(exprs)
+        if isa(expr, Expr)
+            push!(args, parse_expr(expr; depth=1)...)
+        else
+            push!(args, extract_args(expr;position=i))
+        end
+    end
+    return args
+end
+
+function parse_expr(expr::Expr; depth::Int64=0)::Vector{Node}
+    args = Vector{Node}()
+    if expr.args != []
+        for (i,arg) in enumerate(expr.args)
+            if arg == expr.args[1]
+                push!(args, Node(expr.head, arg, depth, i))
             end
             if isa(arg, Expr)
-                push!(args, parse_ast(arg; depth=depth+1)...)
+                push!(args, parse_expr(arg; depth=depth+1)...)
             else
                 push!(args, extract_args(arg; depth=depth, position=i))
             end
@@ -51,126 +63,132 @@ function parse_ast(ast::Expr; depth::Int64=0)::Vector{Node}
 end
 
 
-function construct_calls(nodes::Vector{Node})::Vector{Union{Expr, Symbol}}
+function construct_calls(nodes::Vector{Node})::Vector{Union{Expr, Symbol, Int64}}
+    if isempty(nodes)
+        return Vector{Union{Expr, Symbol, Int64}}()
+    end
     syntax_levels = unique([node.level for node in nodes])
-    options = []
-    in_option_call = false
+    calls = []
+    in_call = false
     prev_pos = 0
     for level in syntax_levels
         @info "Processing level $level"
-        option_level = []
+        call_level = []
         function_call = nothing
-        option_args = [node for node in nodes if node.level == level]
-        for arg in option_args
+        call_args = [node for node in nodes if node.level == level]
+        for arg in call_args
             @info "Processing argument $arg"
-            if in_option_call && arg.tree_position != prev_pos + 1
-                in_option_call = false
+            if in_call && arg.tree_position != prev_pos + 1
+                in_call = false
                 @info "Stepping out of function call at $arg"
-                function_call = Expr(option_level[1].type, [arg.content for arg in option_level[2:end]]...)
-                @info "Adding function call to options $function_call"
-                push!(options, function_call)
-                option_level = []
+                function_call = Expr(call_level[1].type, [arg.content for arg in call_level[2:end]]...)
+                @info "Adding function call to calls $function_call"
+                push!(calls, function_call)
+                call_level = []
                 prev_pos = 0
             end
-            if in_option_call && arg == last(option_args)
-                in_option_call = false
-                push!(option_level, arg)
+            if in_call && arg == last(call_args)
+                in_call = false
+                push!(call_level, arg)
                 @info "Stepping out of function call at $arg"
-                function_call = Expr(option_level[1].type, [arg.content for arg in option_level[2:end]]...)
-                @info "Adding function call to options $function_call"
-                push!(options, function_call)
-                option_level = []
+                function_call = Expr(call_level[1].type, [arg.content for arg in call_level[2:end]]...)
+                @info "Adding function call to calls $function_call"
+                push!(calls, function_call)
+                call_level = []
                 prev_pos = 0
                 continue
             end
             if arg.type == :call
-                in_option_call = true
+                in_call = true
                 @info "Stepping into function call at $arg"
-                push!(option_level, arg)
+                push!(call_level, arg)
                 continue
             end
-            if in_option_call
+            if in_call
                 @info "Adding $arg to function call"
-                push!(option_level, arg)
+                push!(call_level, arg)
                 prev_pos = arg.tree_position
                 continue
             end
-            if !in_option_call
-                @info "Adding argument to options $arg"
-                push!(options, arg.content)
+            if !in_call
+                @info "Adding argument to calls $arg"
+                push!(calls, arg.content)
             end
         end
     end
-    @info "Options are $options"
-    return options
+    @info "calls are $calls"
+    return calls
 end
 
-# FIXME this part should be another State Machine
-function transpiler(ast::Vector{Node})
-    command = ast[1].content
+function transition(state::Vector{Int64},arg::Node)
+    ## from command to condition
+    if arg.type == :macrocall && arg.content == Symbol("@if") && state == [1,0,0] 
+        state[1] = 0
+        state[2] = 1
+        @info "Stepping out of command at $arg"
+        @info "Stepping into condition at $arg"
+    end
+    ## from command to option
+    if state == [1,0,0] && arg.type == :call
+        state[1] = 0
+        state[3] = 1
+        @info "Stepping out of command at $arg"
+        @info "Stepping into options at $arg"
+    end
+    ## from condition to option
+    if state == [0,1,0] && arg.type == :call && !in(arg.content, SYMBOLS) 
+        state[2] = 0
+        state[3] = 1
+        @info "Stepping out of condition at $arg"
+        @info "Stepping into options at $arg"
+    end
+end
+
+function transpile(exprs::Tuple, command::Symbol)::Command
+    ast = parse(exprs)
     arguments = Vector{Node}()
     options = Vector{Node}()
     condition = Vector{Node}()
     opt_values = []
     cond_values = []
-    in_command = false
-    in_condition = false
-    in_options = false
+    state = [1,0,0]
+    @info "Starting in command"
     for arg in ast
-        if arg.type == LineNumberNode && !in_condition
-            in_command = true
-            @info "Stepping into command at $arg"
-        end
-        if arg.type == :macrocall && arg.content == Symbol("@if")
-            in_command = false
-            in_condition = true
-            @info "Stepping out of command at $arg"
-            @info "Stepping into condition at $arg"
-        end
-        if in_condition && arg.type == :call && !in(arg.content, SYMBOLS)
-            in_condition = false
-            in_options = true
-            @info "Stepping out of condition at $arg"
-            @info "Stepping into options at $arg"
-        end
-        if in_command
+        transition(state, arg)
+        if state == [1,0,0]
             if arg.type in [:call, Symbol, Int64]
                 push!(arguments, arg)
             end
         end
-        if in_condition
+        if state == [0,1,0]
             if arg.type in [:call, Symbol, Int64] && arg.content != Symbol("@if")
                 push!(cond_values, arg.content)
                 condition = push!(condition, arg)
             end
         end
-        if in_options
+        if state == [0,0,1]
             if arg.type in [:call ,Symbol, Int64]
                 push!(opt_values, arg.content)
                 push!(options, arg)
             end
         end
     end
-    return (command, arguments, condition , options)
+    @info "Arguments are $arguments"
+    @info "Condition is $condition"
+    @info "Options are $options"
+    arguments = construct_calls(arguments)
+    condition = construct_calls(condition)
+    options = construct_calls(options)
+    return Command(command, Tuple(arguments), Where(Tuple(condition)), Options(Tuple(options)))
+end
+
+macro dummy(exprs...)
+    command = Symbol("@keep")
+    cmd = transpile(exprs, command)
+    return cmd
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    ex = :(@keep a b @if d == 1, cluster(z) whatever drop(x) peek pipe(y,x))
-    args = parse_ast(ex)
-    map(x -> println(x), args)
-    (command, arguments, condition, options) = transpiler(args)
-    println(command)
-    println(arguments)
-    println(condition)
-    println(options)
-    arguments = construct_calls(arguments)
-    condition = construct_calls(condition)[1]
-    options = construct_calls(options)
-    cmd = Command(
-        command,
-        Tuple(arguments),
-        Where(condition),
-        Options(Tuple(options))
-    )
+    cmd = @dummy a b @if d == 1, cluster(z) whatever drop(x) peek pipe(y,x)
     println(cmd)
 end
