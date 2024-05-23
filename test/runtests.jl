@@ -19,32 +19,15 @@ macro return_arguments(exprs...)
 end
 
 function preprocess(command::AbstractString)::Tuple
-    new_command = replace(command, r"@(\w+)" => "@return_arguments")
+    new_command = replace(command, r"@(\w+)" => "@return_arguments", count=1)
     return eval(Meta.parse(new_command))
-end
-
-@testset "Every command begins with a macrocall" begin
-    @testset "$(case.ex)" for case in TEST_CASES
-        expressions = preprocess(case.ex)
-        nodes = parse(expressions)
-        @test nodes[1].type == :macrocall
-    end
-end
-
-@testset "Command name is parsed" begin
-    @testset "$(case.ex)" for case in TEST_CASES
-        expressions = preprocess(case.ex)
-        nodes = parse(expressions)
-        expected_name = Symbol("@$(case.command)")
-        @test nodes[1].content == expected_name
-    end
 end
 
 @testset "Arguments are parsed" begin
     @testset "$(case.ex)" for case in TEST_CASES
         expressions = preprocess(case.ex)
-        command = transpile(expressions)
-        @info command
+        command = transpile(expressions, case.command)
+        @test command.arguments == tuple(case.arguments...)
     end
 end
 
@@ -52,7 +35,7 @@ end
     @testset "$(case.ex)" for case in TEST_CASES
         if length(case.condition) > 0
             expressions = preprocess(case.ex)
-            command = transpile(expressions)
+            command = transpile(expressions, case.command)
             @info command
         end
     end
@@ -62,7 +45,7 @@ end
     @testset "$(case.ex)" for case in TEST_CASES
         if length(case.options) > 0
             expressions = preprocess(case.ex)
-            command = transpile(expressions)
+            command = transpile(expressions, case.command)
             @info command
         end
     end
