@@ -27,29 +27,20 @@ end
 
 function parse_expr(expr::Expr; depth::Int64=0)::Vector{Node}
     args = Vector{Node}()
-    if expr.args != []
-        for (i,arg) in enumerate(expr.args)
-            if arg == expr.args[1]
-                push!(args, Node(expr.head, arg, depth, i))
-            end
-            if isa(arg, Expr)
-                push!(args, parse_expr(arg; depth=depth+1)...)
-            else
-                push!(args, extract_args(arg; depth=depth, position=i))
-            end
-        end
+    if isempty(expr.args)
+        return args
     end
-    return args
-end
 
-function switch_tuple(args::Vector{Node})::Vector{Node}
-    for (i,arg) in enumerate(args)
-        if arg.type == :tuple && arg.content == args[i+1].content
-            args[i] = args[i+1]
-            args[i+1] = arg
+    for (i,arg) in enumerate(expr.args)
+        if arg == expr.args[1]
+            push!(args, Node(expr.head, expr.args, depth, i))
+        end
+        if isa(arg, Expr)
+            push!(args, Node(arg.head, arg.args, depth+1, i))
+        else
+            push!(args, extract_args(arg; depth=depth, position=i))
         end
     end
-    #FIXME: this has to work for function calls and @if statements, too
     return args
 end
 
