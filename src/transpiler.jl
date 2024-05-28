@@ -5,7 +5,7 @@ include("structs.jl")
 
 SYMBOLS = [:(==), :<, :>, :!=, :<=, :>=]
 
-function extract_args(arg; depth::Int64=0, position::Int64)::Node
+function extract_args(arg; depth::Int64=0, position::Int64=1)::Node
     if isa(arg, Expr)
         return Node(arg.head, arg, depth, position)
     else
@@ -44,66 +44,20 @@ function parse_expr(expr::Expr; depth::Int64=0)::Vector{Node}
     return args
 end
 
-function construct_calls(nodes::Vector{Node})::Vector{Union{Expr, Symbol, Int64}}
-    if isempty(nodes)
-        return Vector{Union{Expr, Symbol, Int64}}()
-    end
-    syntax_levels = unique([node.level for node in nodes])
-    calls = []
-    in_call = false
-    prev_pos = 0
-    for level in syntax_levels
-        @debug "Processing level $level"
-        call_level = []
-        function_call = nothing
-        call_args = [node for node in nodes if node.level == level]
-        for arg in call_args
-            @debug "Processing argument $arg"
-            if in_call && arg.tree_position != prev_pos + 1
-                in_call = false
-                @debug "Stepping out of function call at $arg"
-                function_call = Expr(call_level[1].type, [arg.content for arg in call_level[2:end]]...)
-                @debug "Adding function call to calls $function_call"
-                push!(calls, function_call)
-                call_level = []
-                prev_pos = 0
-            end
-            if in_call && arg == last(call_args)
-                in_call = false
-                push!(call_level, arg)
-                @debug "Stepping out of function call at $arg"
-                function_call = Expr(call_level[1].type, [arg.content for arg in call_level[2:end]]...)
-                @debug "Adding function call to calls $function_call"
-                push!(calls, function_call)
-                call_level = []
-                prev_pos = 0
-                continue
-            end
-            if arg.type == :call
-                in_call = true
-                @debug "Stepping into function call at $arg"
-                push!(call_level, arg)
-                continue
-            end
-            if in_call
-                @debug "Adding $arg to function call"
-                push!(call_level, arg)
-                prev_pos = arg.tree_position
-                continue
-            end
-            if !in_call
-                @debug "Adding argument to calls $arg"
-                push!(calls, arg.content)
-            end
+function construct_call(node::Node)
+    if node.type == :call
+        if typeof(node.content) == Expr
+            return node.content
+        else
+            return Expr(node.type, node.content...)
         end
     end
-    @debug "calls are $calls"
-    return calls
+    return node.content
 end
 
-function transition(state::Int64,arg::Node)
+function transition(state::Int64,arg::Node)::Int64
     ## from command to condition
-    if arg.type == :macrocall && arg.content == Symbol("@if") && state == 1
+    if arg.content == Symbol("@if") && state == 1
         state = 2
         @debug "Stepping out of command at $arg"
         @debug "Stepping into condition at $arg"
@@ -125,23 +79,29 @@ end
 
 function transpile(exprs::Tuple, command::Symbol)::Command
     ast = parse(exprs)
-    ast = switch_tuple(ast)
     @info "AST is $ast"
     arguments = Vector{Node}()
     options = Vector{Node}()
-    condition = Vector{Node}()
+    condition = nothing
     state = 1
     @debug "Starting in command"
     for arg in ast
-        state = transition(state, arg)
         if state == 1
-            if arg.type in [:call, Symbol, Int64]
+            if arg.type in [:call, Symbol, Int64] && arg.content != Symbol("@if")
                 push!(arguments, arg)
+            end
+            if arg.type == :tuple
+                push!(arguments, extract_args(arg.content[1]))
+                push!(options, extract_args(arg.content[2]))
             end
         end
         if state == 2
-            if arg.type in [:call, Symbol, Int64] && arg.content != Symbol("@if")
-                push!(condition, arg)
+            if arg.type in [:call, Symbol, Int64] 
+                condition = arg
+            end
+            if arg.type == :tuple
+                condition = extract_args(arg.content[1])
+                push!(options, extract_args(arg.content[2]))
             end
         end
         if state == 3
@@ -149,14 +109,14 @@ function transpile(exprs::Tuple, command::Symbol)::Command
                 push!(options, arg)
             end
         end
+        state = transition(state, arg)
     end
     @debug "Arguments are $arguments"
     @debug "Condition is $condition"
     @debug "Options are $options"
-    arguments = construct_calls(arguments)
-    condition = construct_calls(condition)
-    options = construct_calls(options)
-    return Command(command, Tuple(arguments), length(condition) > 0 ? condition[1] : nothing, Tuple(options))
+    arguments = Tuple(construct_call(arg) for arg in arguments)
+    options = Tuple(construct_call(opt) for opt in options)
+    return Command(command, arguments, condition.content, options)
 end
 
 macro dummy(exprs...)
