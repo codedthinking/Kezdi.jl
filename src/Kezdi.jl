@@ -50,13 +50,8 @@ module Kezdi
 export @regress, @keep_if, @drop_if, @keep, @drop, @generate, @replace, @egen
 
 using Reexport
-@reexport using Tidier
 @reexport using CSV
 @reexport using DataFrames
-@reexport using Distributions
-@reexport using FixedEffectModels
-@reexport using LinearAlgebra
-@reexport using StatFiles
 
 """
 	@regress(df, formula)
