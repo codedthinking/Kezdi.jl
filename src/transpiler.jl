@@ -51,19 +51,13 @@ function parse_expr(expr::Expr; depth::Int64=0)::Vector{Node}
 end
 
 function construct_call(node::Node)
-    @info "Constructing call from $node"
     if node.type == :call || node.type in [:&&, :||]
-        @info "It is a call!"
         if typeof(node.content) == Expr
-            @info "The call content is an expression!"
             return node.content
         else
-            @info "The call content is not an expression!"
-            @info "Creating a new expression from $(node.content)"
             return Expr(node.type, node.content...)
         end
     end
-    @info "It is not a call!"
     return node.content
 end
 
@@ -108,7 +102,7 @@ function transpile(exprs::Tuple, command::Symbol)::Command
             end
         end
         if state == 2
-            if arg.type in [:call, Symbol, Int64] 
+            if arg.type in [:call, Symbol, Int64, :&&, :||]
                 condition = arg
             end
             if arg.type == :tuple
@@ -141,6 +135,6 @@ macro dummy(exprs...)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    cmd = @dummy y log(x), robust #a b @if d == 1 && c == 0, cluster(z) whatever drop(x) peek pipe(y,x)
+    cmd = @dummy x @if x < 0 && y > 0 #a b @if d == 1 && c == 0, cluster(z) whatever drop(x) peek pipe(y,x)
     println(cmd)
 end
