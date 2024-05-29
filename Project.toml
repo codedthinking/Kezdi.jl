@@ -1,25 +1,17 @@
 name = "Kezdi"
 uuid = "48308a23-c29e-446c-b4c0-d9446a767439"
-authors = ["Miklos Koren <miklos.koren@gmail.com>"]
-version = "0.2.0"
+authors = ["Miklos Koren <miklos.koren@gmail.com>", "Gergely Attila Kiss"]
+version = "0.3.0"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
-Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-FixedEffectModels = "9d5cd8c9-2029-5cab-9928-427838db53e3"
-HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
-JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
-JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
-LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
-StatFiles = "1463e38c-9381-5320-bcd4-4134955f093a"
-Tidier = "f0413319-3358-4bb0-8e7c-0c83523a93bd"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 
 [targets]
 test = ["Test"]
