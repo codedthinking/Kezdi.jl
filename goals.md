@@ -247,3 +247,5 @@ end
 ```
 
 This can be achieved by `@with` passing a known token inside the code block and `@regress` checks for the existence of this token.
+
+An in-place version of `@with!` should do everything in place. This can mean all commands operating in place (preferred for performance reasons). Like `@with!` transforms `@replace` to `@replace!` and does not need to pass `df` to the next command. Alternatively, `macro @with! df = @with df`. Because all commands work in place in Stata, this may be the preferred mode of operation. 
