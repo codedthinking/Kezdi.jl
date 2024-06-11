@@ -220,3 +220,8 @@ See what `dbt` does to make SQL work nice with abstractions.
 select * from gdps where country = "{{ country }}" 
 ```
 
+# 2024-06-11
+## Variable names
+Tidyverse has all kinds of functions to deal with more than one column, like `beginswith`. 
+
+Stata has a good and widely used varlist syntax: `var*`, `var?` and `var1-var27`. This may need to be implemented later, based on https://dataframes.juliadata.org/stable/lib/functions/#Working-with-column-names
