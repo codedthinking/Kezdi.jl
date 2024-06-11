@@ -224,4 +224,26 @@ select * from gdps where country = "{{ country }}"
 ## Variable names
 Tidyverse has all kinds of functions to deal with more than one column, like `beginswith`. 
 
-Stata has a good and widely used varlist syntax: `var*`, `var?` and `var1-var27`. This may need to be implemented later, based on https://dataframes.juliadata.org/stable/lib/functions/#Working-with-column-names
+Stata has a good and widely used varlist syntax: `var*`, `var?b` and `var1-var27`. This may need to be implemented later, based on https://dataframes.juliadata.org/stable/lib/functions/#Working-with-column-names This is potentially low on the risk-convenience tradeoff, especially `var1-var27` (we don't know what columns are in between). In terms of syntax, `var*` and `var?b` have to be rewritten, e.g., `var...` and `var.b` and could work.
+
+We may want to enforce that commands can only be used in `@with` because Stata syntax is so much different from Julia syntax. 
+
+```julia
+regress(df, y ~ x)
+
+@chain df begin
+    regress y ~ x
+end
+```
+but
+```julia
+@regress(df, y ~ x)
+# raises an error
+
+@with df begin
+    regress y ~ x
+end
+# runs beautifully
+```
+
+This can be achieved by `@with` passing a known token inside the code block and `@regress` checks for the existence of this token.
