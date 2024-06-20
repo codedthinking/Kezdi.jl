@@ -69,13 +69,38 @@ function replace_variable_references(expr::Any)
     end
 end
 
-function is_variable_reference(x::Any)
-    return x isa Symbol && !in(x, RESERVED_WORDS) && !in(x, TYPES) && isalphanumeric(string(x))
+function vectorize_function_calls(expr::Any)
+    if expr isa Expr
+        if is_function_call(expr)
+            vectorized = expr.head == Symbol(".")
+            fname = expr.args[1]
+            if vectorized || fname in DO_NOT_VECTORIZE
+                return Expr(expr.head, fname, vectorize_function_calls.(expr.args[2:end])...)
+            else
+                return Expr(Symbol("."), fname,
+                    Expr(:tuple,     
+                    vectorize_function_calls.(expr.args[2:end])...)
+                )
+            end
+        elseif is_operator(expr.args[1]) && !is_dotted_operator(expr.args[1])
+            op = expr.args[1]
+            dot_op = Symbol("." * String(op))
+            return Expr(expr.head, 
+                    dot_op,    
+                    vectorize_function_calls.(expr.args[2:end])...)
+        else
+            return Expr(expr.head, vectorize_function_calls.(expr.args)...)
+        end
+    else
+        return expr
+    end
 end
 
-function is_function_call(x::Any)
-    return x isa Expr && (x.head == :call || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple)) 
-end
+is_variable_reference(x::Any) = x isa Symbol && !in(x, RESERVED_WORDS) && !in(x, TYPES) && isalphanumeric(string(x))
+is_function_call(x::Any) = x isa Expr && ((x.head == :call && !is_operator(x.args[1]))  || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple)) 
+
+is_operator(x::Any) = x isa Symbol && (in(x, OPERATORS) || is_dotted_operator(x))
+is_dotted_operator(x::Any) = x isa Symbol && String(x)[1] == '.' && Symbol(String(x)[2:end]) in OPERATORS
 
 isalphanumeric(c::AbstractChar) = isletter(c) || isdigit(c) || c == '_'
 isalphanumeric(str::AbstractString) = all(isalphanumeric, str)
