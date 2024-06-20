@@ -43,7 +43,7 @@ function extract_variable_references(expr::Any, left_of_assignment::Bool=false)
     if is_variable_reference(expr)
         return left_of_assignment ? [(:LHS, expr)] : [(:RHS, expr)]
     elseif expr isa Expr
-        if expr.head == :call
+        if is_function_call(expr)
             return vcat(extract_variable_references.(expr.args[2:end], left_of_assignment)...)
         elseif expr.head == Symbol("=")
             return vcat(extract_variable_references.(expr.args[1:1], true)..., extract_variable_references.(expr.args[2:end], false)...)
@@ -59,7 +59,7 @@ function replace_variable_references(expr::Any)
     if is_variable_reference(expr)
         return QuoteNode(expr)
     elseif expr isa Expr
-        if expr.head == :call
+        if is_function_call(expr)
             return Expr(:call, expr.args[1], replace_variable_references.(expr.args[2:end])...)
         else
             return Expr(expr.head, replace_variable_references.(expr.args)...)
@@ -71,4 +71,8 @@ end
 
 function is_variable_reference(x::Any)
     return x isa Symbol && !in(x, RESERVED_WORDS) && !in(x, TYPES)
+end
+
+function is_function_call(x::Any)
+    return x isa Expr && (x.head == :call || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple)) 
 end

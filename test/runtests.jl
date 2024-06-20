@@ -38,9 +38,12 @@ end
         @test_expr build_assignment_formula(:(y = x)) == :([:x] => (x,) -> x => :y)
         @test_expr build_assignment_formula(:(y = x + z)) == :([:x, :z] => (x, z) -> x + z => :y)
         @test_expr build_assignment_formula(:(y = x + 1)) == :([:x] => (x,) -> x + 1 => :y)
+    end
+    @testset "RHS functions" begin
         @test_expr build_assignment_formula(:(y = f(x))) == :([:x] => (x,) -> f(x) => :y)
         @test_expr build_assignment_formula(:(y = f(x, z))) == :([:x, :z] => (x, z) -> f(x, z) => :y)
         @test_expr build_assignment_formula(:(y = f(x, z) + 1)) == :([:x, :z] => (x, z) -> f(x, z) + 1 => :y)
+        @test_expr build_assignment_formula(:(y = f.(x))) == :([:x] => (x,) -> f.(x) => :y)
     end
     @testset "RHS constants" begin
         @test_expr build_assignment_formula(:(y = 1)) == :((_,) -> 1 => :y)
