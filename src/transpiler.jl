@@ -1,5 +1,5 @@
 using Logging
-global_logger(Logging.ConsoleLogger(stderr, Logging.Info))
+#global_logger(Logging.ConsoleLogger(stderr, Logging.Info))
 
 include("structs.jl")
 
@@ -85,7 +85,7 @@ end
 
 function transpile(exprs::Tuple, command::Symbol)::Command
     ast = parse(exprs)
-    @info "AST is $ast"
+    @debug "AST is $ast"
     arguments = Vector{Node}()
     options = Vector{Node}()
     condition = nothing
@@ -126,15 +126,4 @@ function transpile(exprs::Tuple, command::Symbol)::Command
         condition = construct_call(condition)
     end
     return Command(command, arguments, condition, options)
-end
-
-macro dummy(exprs...)
-    command = Symbol("@dummy")
-    cmd = transpile(exprs, command)
-    return cmd
-end
-
-if abspath(PROGRAM_FILE) == @__FILE__
-    cmd = @dummy x @if x < 0 && y > 0 #a b @if d == 1 && c == 0, cluster(z) whatever drop(x) peek pipe(y,x)
-    println(cmd)
 end
