@@ -116,7 +116,8 @@ end
 end
 
 @testset "Generate is parsed correctly" begin
-    ex = preprocess("@generate df y = x + log(z, 1)")
-    new_ex = transpile(ex, :generate) |> rewrite 
-    @test_expr new_ex == :(transform(df, [:x, :z] => (x, z) -> x + log(z, 1) => :y))
+    ex = macroexpand(Main, :(@generate df y = x + log(z, 1)))
+    @test_expr ex == :(transform(df, [:x, :z] => ((x, z)->begin
+                  x + log(z, 1) => :y
+              end)))
 end
