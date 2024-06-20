@@ -1,5 +1,7 @@
 using Test
+using Expronicon
 include("../src/transpiler.jl")
+include("../src/codegen.jl")
 
 TEST_CASES = [
     (ex="@keep a b", command=:keep, arguments=[:a, :b], condition=nothing, options=[]),
@@ -29,7 +31,24 @@ function preprocess(command::AbstractString)::Tuple
     return eval(Meta.parse(new_command))
 end
 
-@testset "All tests" begin
+
+@testset "Assignment formula" begin
+    @testset "RHS varibles" begin
+        @test_expr build_assignment_formula(:(y = x)) == :([:x] => (x,) -> x => :y)
+        @test_expr build_assignment_formula(:(y = x + z)) == :([:x, :z] => (x, z) -> x + z => :y)
+        @test_expr build_assignment_formula(:(y = x + 1)) == :([:x] => (x,) -> x + 1 => :y)
+        @test_expr build_assignment_formula(:(y = f(x))) == :([:x] => (x,) -> f(x) => :y)
+        @test_expr build_assignment_formula(:(y = f(x, z))) == :([:x, :z] => (x, z) -> f(x, z) => :y)
+        @test_expr build_assignment_formula(:(y = f(x, z) + 1)) == :([:x, :z] => (x, z) -> f(x, z) + 1 => :y)
+    end
+    @testset "RHS constants" begin
+        @test_expr build_assignment_formula(:(y = 1)) == :((_,) -> 1 => :y)
+        @test_expr build_assignment_formula(:(y = 1 + 1)) == :((_,) -> 1 + 1 => :y)
+        @test_expr build_assignment_formula(:(y = f(1))) == :((_,) -> f(1) => :y)
+    end
+end
+
+@testset "Parsing tests" begin
 @testset "Arguments are parsed" begin
     @testset "$(case.ex)" for case in TEST_CASES
         expressions = preprocess(case.ex)
