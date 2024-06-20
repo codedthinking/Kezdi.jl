@@ -70,9 +70,12 @@ function replace_variable_references(expr::Any)
 end
 
 function is_variable_reference(x::Any)
-    return x isa Symbol && !in(x, RESERVED_WORDS) && !in(x, TYPES)
+    return x isa Symbol && !in(x, RESERVED_WORDS) && !in(x, TYPES) && isalphanumeric(string(x))
 end
 
 function is_function_call(x::Any)
     return x isa Expr && (x.head == :call || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple)) 
 end
+
+isalphanumeric(c::AbstractChar) = isletter(c) || isdigit(c) || c == '_'
+isalphanumeric(str::AbstractString) = all(isalphanumeric, str)
