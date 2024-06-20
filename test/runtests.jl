@@ -1,6 +1,8 @@
 using Test
 using Expronicon
 using Kezdi
+using Logging
+global_logger(ConsoleLogger(stderr, Logging.Info))
 
 TEST_CASES = [
     (ex="@mockmacro df a b", command=:keep, arguments=[:a, :b], condition=nothing, options=[]),
@@ -34,6 +36,7 @@ build_assignment_formula = Kezdi.build_assignment_formula
 replace_variable_references = Kezdi.replace_variable_references
 vectorize_function_calls = Kezdi.vectorize_function_calls
 transpile = Kezdi.transpile
+rewrite = Kezdi.rewrite
 
 @testset "Assignment formula" begin
     @testset "RHS varibles" begin
@@ -83,7 +86,6 @@ end
     end
 end
 
-@testset "Parsing tests" begin
 @testset "Arguments are parsed" begin
     @testset "$(case.ex)" for case in TEST_CASES
         expressions = preprocess(case.ex)
@@ -112,4 +114,9 @@ end
         end
     end
 end
-end 
+
+@testset "Generate is parsed correctly" begin
+    ex = preprocess("@generate df y = x + log(z, 1)")
+    new_ex = transpile(ex, :generate) |> rewrite 
+    @test_expr new_ex == :(transform(df, [:x, :z] => (x, z) -> x + log(z, 1) => :y))
+end

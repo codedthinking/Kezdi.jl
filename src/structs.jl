@@ -14,4 +14,4 @@ struct Command
 end
 
 # if DataFrame is not explicitly defined, use the first argument
-Command(command, arguments, condition, options) = Command(command, arguments[1], arguments[2:end], condition, options)
+Command(command::Symbol, arguments::Tuple, condition, options) = Command(command, arguments[1], arguments[2:end], condition, options)

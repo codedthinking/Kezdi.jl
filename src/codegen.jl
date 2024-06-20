@@ -4,7 +4,7 @@ rewrite(command::Command) = rewrite(Val(command.command), command)
 function rewrite(::Val{:generate}, command::Command)
     dfname = command.df
     formula = build_assignment_formula(command.arguments[1])
-    return :(transform($(esc(dfname)), $esc(formula)))
+    :(transform($dfname, $formula))
 end
 
 function build_assignment_formula(expr::Expr)
