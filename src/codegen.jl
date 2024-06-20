@@ -1,3 +1,4 @@
+using Logging
 # use multiple dispatch to generate code 
 generate(command::Command) = generate(Val(command.command), command)
 
@@ -12,6 +13,7 @@ function build_assignment_formula(expr::Expr)
     expr.head == :(=) || error("Expected assignment expression")
     no_variable = false
     vars = extract_variable_references(expr)
+    @debug vars
     LHS = [y[2] for y in vars if y[1] == :LHS][1]
     RHS = [y[2] for y in vars if y[1] == :RHS]
     if length(RHS) == 0
@@ -38,7 +40,7 @@ function build_assignment_formula(expr::Expr)
 end
 
 function extract_variable_references(expr::Any, left_of_assignment::Bool=false)
-    if expr isa Symbol
+    if is_variable_reference(expr)
         return left_of_assignment ? [(:LHS, expr)] : [(:RHS, expr)]
     elseif expr isa Expr
         if expr.head == :call
@@ -54,7 +56,7 @@ function extract_variable_references(expr::Any, left_of_assignment::Bool=false)
 end
 
 function replace_variable_references(expr::Any)
-    if expr isa Symbol
+    if is_variable_reference(expr)
         return QuoteNode(expr)
     elseif expr isa Expr
         if expr.head == :call
@@ -67,3 +69,6 @@ function replace_variable_references(expr::Any)
     end
 end
 
+function is_variable_reference(x::Any)
+    return x isa Symbol && !in(x, RESERVED_WORDS) && !in(x, TYPES)
+end

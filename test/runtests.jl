@@ -1,5 +1,6 @@
 using Test
 using Expronicon
+include("../src/consts.jl")
 include("../src/transpiler.jl")
 include("../src/codegen.jl")
 
@@ -45,6 +46,17 @@ end
         @test_expr build_assignment_formula(:(y = 1)) == :((_,) -> 1 => :y)
         @test_expr build_assignment_formula(:(y = 1 + 1)) == :((_,) -> 1 + 1 => :y)
         @test_expr build_assignment_formula(:(y = f(1))) == :((_,) -> f(1) => :y)
+    end
+    @testset "Boolean operators" begin
+        @test_expr build_assignment_formula(:(y = x == 0)) == :([:x] => (x,) -> x == 0 => :y)
+        @test_expr build_assignment_formula(:(y = x < 0)) == :([:x] => (x,) -> x < 0 => :y)
+        @test_expr build_assignment_formula(:(y = x < 0 && z > 0)) == :([:x, :z] => (x, z) -> x < 0 && z > 0 => :y)
+    end
+    @testset "Reserved words" begin
+        @test_expr build_assignment_formula(:(y = f(String))) == :((_,) -> f(String) => :y)
+    end
+    @testset "Type checking" begin
+        @test_expr build_assignment_formula(:(y = x isa String)) == :([:x] => (x,) -> x isa String => :y)
     end
 end
 
