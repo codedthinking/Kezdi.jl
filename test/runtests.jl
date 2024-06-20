@@ -1,22 +1,20 @@
 using Test
 using Expronicon
-include("../src/consts.jl")
-include("../src/transpiler.jl")
-include("../src/codegen.jl")
+using Kezdi
 
 TEST_CASES = [
-    (ex="@keep df a b", command=:keep, arguments=[:a, :b], condition=nothing, options=[]),
-    (ex="@generate df d = 1", command=:generate, arguments=[:(d = 1)], condition=nothing, options=[]),
-    (ex="@summarize df d", command=:summarize, arguments=[:d], condition=nothing, options=[]),
-    (ex="@regress df y x, robust", command=:regress, arguments=[:y, :x], condition=nothing, options=[:robust]),
-    (ex="@regress df y x, absorb(country)", command=:regress, arguments=[:y, :x], condition=nothing, options=[:(absorb(country))]),
-    (ex="@regress df y log(x), robust", command=:regress, arguments=[:y, :(log(x))], condition=nothing, options=[:robust]),
-    (ex="@summarize df x, detail", command=:summarize, arguments=[:x], condition=nothing, options=[:detail]),
-    (ex="@summarize df x @if x < 0", command=:summarize, arguments=[:x], condition=:(x < 0), options=[]),
-    (ex="@summarize df x @if ln(x) < 0", command=:summarize, arguments=[:x], condition=:(ln(x) < 0), options=[]),
-    (ex="@summarize df x @if x < 0, detail", command=:summarize, arguments=[:x], condition=:(x < 0), options=[:detail]),
-    (ex="@summarize df x @if x < 0 && y > 0", command=:summarize, arguments=[:x], condition=:(x < 0 && y > 0), options=[]),   
-    (ex="@summarize df x @if x < 0 && y > 0, detail", command=:summarize, arguments=[:x], condition=:(x < 0 && y > 0), options=[:detail]),   
+    (ex="@mockmacro df a b", command=:keep, arguments=[:a, :b], condition=nothing, options=[]),
+    (ex="@mockmacro df d = 1", command=:generate, arguments=[:(d = 1)], condition=nothing, options=[]),
+    (ex="@mockmacro df d", command=:summarize, arguments=[:d], condition=nothing, options=[]),
+    (ex="@mockmacro df y x, robust", command=:regress, arguments=[:y, :x], condition=nothing, options=[:robust]),
+    (ex="@mockmacro df y x, absorb(country)", command=:regress, arguments=[:y, :x], condition=nothing, options=[:(absorb(country))]),
+    (ex="@mockmacro df y log(x), robust", command=:regress, arguments=[:y, :(log(x))], condition=nothing, options=[:robust]),
+    (ex="@mockmacro df x, detail", command=:summarize, arguments=[:x], condition=nothing, options=[:detail]),
+    (ex="@mockmacro df x @if x < 0", command=:summarize, arguments=[:x], condition=:(x < 0), options=[]),
+    (ex="@mockmacro df x @if ln(x) < 0", command=:summarize, arguments=[:x], condition=:(ln(x) < 0), options=[]),
+    (ex="@mockmacro df x @if x < 0, detail", command=:summarize, arguments=[:x], condition=:(x < 0), options=[:detail]),
+    (ex="@mockmacro df x @if x < 0 && y > 0", command=:summarize, arguments=[:x], condition=:(x < 0 && y > 0), options=[]),   
+    (ex="@mockmacro df x @if x < 0 && y > 0, detail", command=:summarize, arguments=[:x], condition=:(x < 0 && y > 0), options=[:detail]),   
 ]
 
 macro return_arguments(expr)
@@ -32,6 +30,10 @@ function preprocess(command::AbstractString)::Tuple
     return eval(Meta.parse(new_command))
 end
 
+build_assignment_formula = Kezdi.build_assignment_formula
+replace_variable_references = Kezdi.replace_variable_references
+vectorize_function_calls = Kezdi.vectorize_function_calls
+transpile = Kezdi.transpile
 
 @testset "Assignment formula" begin
     @testset "RHS varibles" begin

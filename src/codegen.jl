@@ -1,12 +1,10 @@
-using Logging
 # use multiple dispatch to generate code 
-generate(command::Command) = generate(Val(command.command), command)
+rewrite(command::Command) = rewrite(Val(command.command), command)
 
-function generate(::Val{:keep}, command::Command)
-    return :(select($(command.arguments...)))
-end
-
-function generate(::Val{:generate}, command::Command)
+function rewrite(::Val{:generate}, command::Command)
+    dfname = command.df
+    formula = build_assignment_formula(command.arguments[1])
+    return :(transform($(esc(dfname)), $esc(formula)))
 end
 
 function build_assignment_formula(expr::Expr)
