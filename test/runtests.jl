@@ -5,18 +5,18 @@ include("../src/transpiler.jl")
 include("../src/codegen.jl")
 
 TEST_CASES = [
-    (ex="@keep a b", command=:keep, arguments=[:a, :b], condition=nothing, options=[]),
-    (ex="@generate d = 1", command=:generate, arguments=[:(d = 1)], condition=nothing, options=[]),
-    (ex="@summarize d", command=:summarize, arguments=[:d], condition=nothing, options=[]),
-    (ex="@regress y x, robust", command=:regress, arguments=[:y, :x], condition=nothing, options=[:robust]),
-    (ex="@regress y x, absorb(country)", command=:regress, arguments=[:y, :x], condition=nothing, options=[:(absorb(country))]),
-    (ex="@regress y log(x), robust", command=:regress, arguments=[:y, :(log(x))], condition=nothing, options=[:robust]),
-    (ex="@summarize x, detail", command=:summarize, arguments=[:x], condition=nothing, options=[:detail]),
-    (ex="@summarize x @if x < 0", command=:summarize, arguments=[:x], condition=:(x < 0), options=[]),
-    (ex="@summarize x @if ln(x) < 0", command=:summarize, arguments=[:x], condition=:(ln(x) < 0), options=[]),
-    (ex="@summarize x @if x < 0, detail", command=:summarize, arguments=[:x], condition=:(x < 0), options=[:detail]),
-    (ex="@summarize x @if x < 0 && y > 0", command=:summarize, arguments=[:x], condition=:(x < 0 && y > 0), options=[]),   
-    (ex="@summarize x @if x < 0 && y > 0, detail", command=:summarize, arguments=[:x], condition=:(x < 0 && y > 0), options=[:detail]),   
+    (ex="@keep df a b", command=:keep, arguments=[:a, :b], condition=nothing, options=[]),
+    (ex="@generate df d = 1", command=:generate, arguments=[:(d = 1)], condition=nothing, options=[]),
+    (ex="@summarize df d", command=:summarize, arguments=[:d], condition=nothing, options=[]),
+    (ex="@regress df y x, robust", command=:regress, arguments=[:y, :x], condition=nothing, options=[:robust]),
+    (ex="@regress df y x, absorb(country)", command=:regress, arguments=[:y, :x], condition=nothing, options=[:(absorb(country))]),
+    (ex="@regress df y log(x), robust", command=:regress, arguments=[:y, :(log(x))], condition=nothing, options=[:robust]),
+    (ex="@summarize df x, detail", command=:summarize, arguments=[:x], condition=nothing, options=[:detail]),
+    (ex="@summarize df x @if x < 0", command=:summarize, arguments=[:x], condition=:(x < 0), options=[]),
+    (ex="@summarize df x @if ln(x) < 0", command=:summarize, arguments=[:x], condition=:(ln(x) < 0), options=[]),
+    (ex="@summarize df x @if x < 0, detail", command=:summarize, arguments=[:x], condition=:(x < 0), options=[:detail]),
+    (ex="@summarize df x @if x < 0 && y > 0", command=:summarize, arguments=[:x], condition=:(x < 0 && y > 0), options=[]),   
+    (ex="@summarize df x @if x < 0 && y > 0, detail", command=:summarize, arguments=[:x], condition=:(x < 0 && y > 0), options=[:detail]),   
 ]
 
 macro return_arguments(expr)
