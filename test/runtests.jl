@@ -63,6 +63,10 @@ end
     end
 end
 
+@testset "Replace variable references" begin
+    @test_expr replace_variable_references(:(x + y + f(z) - g.(x))) == :(:x + :y + f(:z) - g.(:x))
+end
+
 @testset "Parsing tests" begin
 @testset "Arguments are parsed" begin
     @testset "$(case.ex)" for case in TEST_CASES

@@ -60,7 +60,7 @@ function replace_variable_references(expr::Any)
         return QuoteNode(expr)
     elseif expr isa Expr
         if is_function_call(expr)
-            return Expr(:call, expr.args[1], replace_variable_references.(expr.args[2:end])...)
+            return Expr(expr.head, expr.args[1], replace_variable_references.(expr.args[2:end])...)
         else
             return Expr(expr.head, replace_variable_references.(expr.args)...)
         end
