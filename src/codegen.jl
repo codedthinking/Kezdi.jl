@@ -4,7 +4,7 @@ rewrite(command::Command) = rewrite(Val(command.command), command)
 function rewrite(::Val{:generate}, command::Command)
     dfname = command.df
     target_column = get_LHS(command.arguments[1])
-    formula = build_assignment_formula(command.arguments[1])
+    formula = build_assignment_formula(command.arguments[1], command.condition, missing)
     # check that target_column does not exist in dfname
     esc(:($target_column in names($dfname) ? ArgumentError("$($target_column) already exists in $($dfname)") |> throw : transform($dfname, $formula)))
 end
@@ -12,7 +12,7 @@ end
 function rewrite(::Val{:replace}, command::Command)
     dfname = command.df
     target_column = get_LHS(command.arguments[1])
-    formula = build_assignment_formula(command.arguments[1])
+    formula = build_assignment_formula(command.arguments[1], command.condition, nothing)
     # check that target_column does not exist in dfname
     esc(:($target_column in names($dfname) ? transform($dfname, $formula) : ArgumentError("$($target_column) does not exist in $($dfname)") |> throw))
 end
@@ -23,8 +23,11 @@ function get_LHS(expr::Expr)
     String([y[2] for y in vars if y[1] == :LHS][1])
 end
 
-function build_assignment_formula(expr::Expr)
+function build_assignment_formula(expr::Expr, condition::Any=nothing, default_value::Any=missing)
     expr.head == :(=) || error("Expected assignment expression")
+    if isnothing(condition)
+        condition = true
+    end
     vars = extract_variable_references(expr)
     LHS = [y[2] for y in vars if y[1] == :LHS][1]
     RHS = [y[2] for y in vars if y[1] == :RHS]
@@ -37,7 +40,9 @@ function build_assignment_formula(expr::Expr)
         arguments = Expr(:tuple, RHS...)
     end
     target_column = QuoteNode(LHS)
-    function_definition = Expr(Symbol("->"), arguments, vectorize_function_calls(expr.args[2]))
+    function_definition = quote
+        $arguments -> ifelse.($(vectorize_function_calls(condition)), $(vectorize_function_calls(expr.args[2])), $default_value)
+    end
     assignment_expression = Expr(:call, Symbol("=>"), 
             function_definition,
             target_column
