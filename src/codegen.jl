@@ -34,8 +34,8 @@ function rewrite(::Val{:replace}, command::Command)
         if $target_column in names($dfname)
             local $df2 = copy($dfname)
             local $sdf = view($df2, $bitmask, :)
-            if typeof($RHS[1,1]) != typeof($sdf[1, $target_column])
-                $df2[!, $target_column] = convert(Vector{typeof($RHS[1,1])}, $df2[!, $target_column])
+            if eltype($RHS) != eltype($sdf[!, $target_column])
+                $df2[!, $target_column] = convert(Vector{eltype($RHS)}, $df2[!, $target_column])
             end
             $sdf[!, $target_column] .= $RHS
             $df2

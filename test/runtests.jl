@@ -100,6 +100,16 @@ end
         @test all(df2.z .== df.x)
     end
 
+    @testset "Type conversion" begin
+        df2 = @replace df x = 4.0
+        @test eltype(df2.x) == typeof(4.0)
+        df2 = @replace df x = log(z)
+        @test eltype(df2.x) == typeof(log(5))
+        df2 = @replace df x = 4.0
+        df3 = @replace df x = 4
+        @test eltype(df.x) == eltype(df3.x)
+    end
+
     @testset "Error handling" begin
         @test_throws ArgumentError @replace df y = 1
     end
