@@ -45,6 +45,31 @@ function rewrite(::Val{:replace}, command::Command)
     end |> esc
 end
 
+function rewrite(::Val{:collapse}, command::Command)
+    dfname = command.df
+    target_columns = get_LHS.(command.arguments)
+    bitmask = build_bitmask(command)
+    # check that target_column does not exist in dfname
+    df2 = gensym()
+    sdf = gensym()
+    combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
+    quote
+        local $df2 = copy($dfname)
+        local $sdf = view($df2, $bitmask, :)
+        $combine_epxression
+    end |> esc
+end
+
+
+function get_by(command::Command)
+    if length(command.options) == 1
+        return :_
+    else
+        return command.arguments[2]
+    end
+
+end
+
 function get_LHS(expr::Expr)
     expr.head == :(=) || error("Expected assignment expression")
     vars = extract_variable_references(expr)
@@ -65,12 +90,16 @@ function build_assignment_formula(expr::Expr)
         arguments = Expr(:tuple, RHS...)
     end
     target_column = QuoteNode(LHS)
-    function_definition = quote
-        $arguments -> $(vectorize_function_calls(expr.args[2]))
-    end
-    return quote
-        $columns_to_transform => ($function_definition) => $target_column
-    end
+    function_definition = Expr(Symbol("->"), 
+        arguments, 
+        vectorize_function_calls(expr.args[2]))
+    Expr(:call, Symbol("=>"),
+        columns_to_transform,
+        Expr(:call, Symbol("=>"),
+            function_definition,
+            target_column
+        )
+    )
 end
 
 function build_bitmask(df::Any, condition::Any)

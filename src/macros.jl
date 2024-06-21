@@ -17,3 +17,14 @@ macro generate(exprs...)
     rewrite(cmd)
 end
 
+macro egen(exprs...)
+    command = :egen
+    cmd = transpile(exprs, command)
+    rewrite(cmd)
+end
+
+macro collapse(exprs...)
+    command = :collapse
+    cmd = transpile(exprs, command)
+    rewrite(cmd)
+end

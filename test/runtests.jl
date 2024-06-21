@@ -115,6 +115,29 @@ end
     end
 end
 
+@testset "Collapse" begin
+    @testset "Non-vectorized aggregators" begin
+        df = DataFrame(x = 1:4, z = 5:8)
+        df2 = @collapse df y = sum(x)
+        @test all(df2.y .== sum(df.x))
+        df2 = @collapse df y = minimum(x)
+        @test all(df2.y .== minimum(df.x))
+        df2 = @collapse df y = sum(x) z = minimum(x)
+        @test all(df2.y .== sum(df.x))
+        @test all(df2.z .== minimum(df.x))
+    end
+    @testset "Vectorized does not collapse" begin
+        df = DataFrame(x = 1:4, z = 5:8)
+        df2 = @collapse df y = sum.(x)
+        @test all(df2.y .== df.x)
+        df2 = @collapse df y = minimum.(x)
+        @test all(df2.y .== df.x)
+        df2 = @collapse df y = sum.(x) z = minimum(x)
+        @test all(df2.y .== df.x)
+        @test all(df2.z .== minimum(df.x))         
+    end
+end
+
 @testset "Generate with if" begin
     df = DataFrame(x = 1:4)
     dfxz = DataFrame(x = 1:4, z = 1:4)
