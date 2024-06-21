@@ -43,14 +43,9 @@ function build_assignment_formula(expr::Expr, condition::Any=nothing, default_va
     function_definition = quote
         $arguments -> ifelse.($(vectorize_function_calls(condition)), $(vectorize_function_calls(expr.args[2])), $default_value)
     end
-    assignment_expression = Expr(:call, Symbol("=>"), 
-            function_definition,
-            target_column
-        )
-    return Expr(:call, Symbol("=>"), 
-        columns_to_transform,
-        assignment_expression
-        )
+    return quote
+        $columns_to_transform => ($function_definition) => $target_column
+    end
 end
 
 function extract_variable_references(expr::Any, left_of_assignment::Bool=false)

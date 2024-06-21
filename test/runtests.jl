@@ -92,6 +92,38 @@ end
         @test_throws ArgumentError @replace df y = 1
     end
 end
+
+@testset "Generate with if" begin
+    df = DataFrame(x = 1:4)
+    dfxz = DataFrame(x = 1:4, z = 1:4)
+    @testset "Constant conditions" begin
+        @testset "True" begin
+            df2 = @generate df y = x @if true
+            @test df2.y == df.x
+            df2 = @generate df y = x @if 2 < 4
+            @test df2.y == df.x
+            end
+        @testset "False" begin
+            df2 = @generate df y = x @if false
+            @test all(df2.y .=== missing)
+            df2 = @generate df y = x @if 1 == 0
+                @test all(df2.y .=== missing)
+            end
+    end
+    @testset "Known conditions" begin
+        df2 = @generate df y = x @if x < 3
+        @test all(df2.y .=== [1, 2, missing, missing])
+    end
+
+    @testset "Condition on other variable" begin
+        df2 = @generate dfxz y = x @if z < 3
+        @test all(df2.y .=== [1, 2, missing, missing])
+    end
+    @testset "Window functions operate on subset" begin
+        df2 = @generate df y = sum(x) @if x < 3
+        @test all(df2.y .=== 3)
+    end
+end
 @testset "Assignment formula" begin
     @testset "RHS varibles" begin
         @test_expr build_assignment_formula(:(y = x)) == :([:x] => (x,) -> x => :y)
