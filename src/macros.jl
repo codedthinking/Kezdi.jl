@@ -5,7 +5,6 @@ macro mockmacro(exprs...)
     transpile(exprs, command)
 end
 
-
 macro replace(exprs...)
     command = :replace
     cmd = transpile(exprs, command)
