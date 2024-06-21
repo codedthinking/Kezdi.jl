@@ -4,17 +4,42 @@ rewrite(command::Command) = rewrite(Val(command.command), command)
 function rewrite(::Val{:generate}, command::Command)
     dfname = command.df
     target_column = get_LHS(command.arguments[1])
-    formula = build_assignment_formula(command.arguments[1], command.condition, missing)
+    bitmask = build_bitmask(command)
     # check that target_column does not exist in dfname
-    esc(:($target_column in names($dfname) ? ArgumentError("$($target_column) already exists in $($dfname)") |> throw : transform($dfname, $formula)))
+    df2 = gensym()
+    sdf = gensym()
+    RHS = replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls
+    quote
+        if !($target_column in names($dfname))
+            local $df2 = copy($dfname)
+            $df2[!, $target_column] .= missing
+            local $sdf = view($df2, $bitmask, :)
+            $sdf[!, $target_column] .= $RHS
+            $df2
+        else
+            ArgumentError("$($target_column) already exists in $($dfname)") |> throw
+        end
+    end |> esc
 end
 
 function rewrite(::Val{:replace}, command::Command)
     dfname = command.df
     target_column = get_LHS(command.arguments[1])
-    formula = build_assignment_formula(command.arguments[1], command.condition, nothing)
+    bitmask = build_bitmask(command)
     # check that target_column does not exist in dfname
-    esc(:($target_column in names($dfname) ? transform($dfname, $formula) : ArgumentError("$($target_column) does not exist in $($dfname)") |> throw))
+    df2 = gensym()
+    sdf = gensym()
+    RHS = replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls
+    quote
+        if $target_column in names($dfname)
+            local $df2 = copy($dfname)
+            local $sdf = view($df2, $bitmask, :)
+            $sdf[!, $target_column] .= $RHS
+            $df2
+        else
+            ArgumentError("$($target_column) does not exist in $($dfname)") |> throw
+        end
+    end |> esc
 end
 
 function get_LHS(expr::Expr)
@@ -23,16 +48,11 @@ function get_LHS(expr::Expr)
     String([y[2] for y in vars if y[1] == :LHS][1])
 end
 
-function build_assignment_formula(expr::Expr, condition::Any=nothing, default_value::Any=missing)
+function build_assignment_formula(expr::Expr)
     expr.head == :(=) || error("Expected assignment expression")
-    if isnothing(condition)
-        condition = true
-    end
     vars = extract_variable_references(expr)
     LHS = [y[2] for y in vars if y[1] == :LHS][1]
     RHS = [y[2] for y in vars if y[1] == :RHS]
-    condition_vars = [x[2] for x in extract_variable_references(condition) if !(x[2] in RHS)]
-    RHS = vcat(RHS, condition_vars)
     if length(RHS) == 0
         # if no variable is used in RHS of assignment, create an anonymous variable
         columns_to_transform = :(AsTable([]))
@@ -43,12 +63,18 @@ function build_assignment_formula(expr::Expr, condition::Any=nothing, default_va
     end
     target_column = QuoteNode(LHS)
     function_definition = quote
-        $arguments -> ifelse.($(vectorize_function_calls(condition)), $(vectorize_function_calls(expr.args[2])), $default_value)
+        $arguments -> $(vectorize_function_calls(expr.args[2]))
     end
     return quote
         $columns_to_transform => ($function_definition) => $target_column
     end
 end
+
+function build_bitmask(df::Any, condition::Any)
+    replace_variable_references(df, condition) |> vectorize_function_calls
+end
+
+build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition)
 
 function extract_variable_references(expr::Any, left_of_assignment::Bool=false)
     if is_variable_reference(expr)
@@ -74,6 +100,22 @@ function replace_variable_references(expr::Any)
             return Expr(expr.head, expr.args[1], replace_variable_references.(expr.args[2:end])...)
         else
             return Expr(expr.head, replace_variable_references.(expr.args)...)
+        end
+    else
+        return expr
+    end
+end
+
+function replace_variable_references(df::Any, expr::Any)
+    if is_variable_reference(expr)
+        return Expr(Symbol("."), 
+            df,
+            QuoteNode(expr))
+    elseif expr isa Expr
+        if is_function_call(expr)
+            return Expr(expr.head, expr.args[1], [replace_variable_references(df, x) for x in expr.args[2:end]]...)
+        else
+            return Expr(expr.head, [replace_variable_references(df, x) for x in expr.args]...)
         end
     else
         return expr

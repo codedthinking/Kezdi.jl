@@ -121,36 +121,7 @@ end
     end
     @testset "Window functions operate on subset" begin
         df2 = @generate df y = sum(x) @if x < 3
-        @test all(df2.y .=== 3)
-    end
-end
-@testset "Assignment formula" begin
-    @testset "RHS varibles" begin
-        @test_expr build_assignment_formula(:(y = x)) == :([:x] => (x,) -> x => :y)
-        @test_expr build_assignment_formula(:(y = x + z)) == :([:x, :z] => (x, z) -> x + z => :y)
-        @test_expr build_assignment_formula(:(y = x + 1)) == :([:x] => (x,) -> x + 1 => :y)
-    end
-    @testset "RHS functions" begin
-        @test_expr build_assignment_formula(:(y = f(x))) == :([:x] => (x,) -> f(x) => :y)
-        @test_expr build_assignment_formula(:(y = f(x, z))) == :([:x, :z] => (x, z) -> f(x, z) => :y)
-        @test_expr build_assignment_formula(:(y = f(x, z) + 1)) == :([:x, :z] => (x, z) -> f(x, z) + 1 => :y)
-        @test_expr build_assignment_formula(:(y = f.(x))) == :([:x] => (x,) -> f.(x) => :y)
-    end
-    @testset "RHS constants" begin
-        @test_expr build_assignment_formula(:(y = 1)) == :((_,) -> 1 => :y)
-        @test_expr build_assignment_formula(:(y = 1 + 1)) == :((_,) -> 1 + 1 => :y)
-        @test_expr build_assignment_formula(:(y = f(1))) == :((_,) -> f(1) => :y)
-    end
-    @testset "Boolean operators" begin
-        @test_expr build_assignment_formula(:(y = x == 0)) == :([:x] => (x,) -> x == 0 => :y)
-        @test_expr build_assignment_formula(:(y = x < 0)) == :([:x] => (x,) -> x < 0 => :y)
-        @test_expr build_assignment_formula(:(y = x < 0 && z > 0)) == :([:x, :z] => (x, z) -> x < 0 && z > 0 => :y)
-    end
-    @testset "Reserved words" begin
-        @test_expr build_assignment_formula(:(y = f(String))) == :((_,) -> f(String) => :y)
-    end
-    @testset "Type checking" begin
-        @test_expr build_assignment_formula(:(y = x isa String)) == :([:x] => (x,) -> x isa String => :y)
+        @test all(df2.y .=== [3, 3, missing, missing])
     end
 end
 
@@ -171,6 +142,37 @@ end
         @test_expr vectorize_function_calls(:(f.(x))) == :(f.(x))
     end
 end
+
+@testset "Assignment formula" begin
+    @testset "RHS variables" begin
+        @test_expr build_assignment_formula(:(y = x)) == :([:x] => (((x,) -> x) => :y))
+        @test_expr build_assignment_formula(:(y = x + z)) == :([:x, :z] => (((x, z) -> x + z) => :y))
+        @test_expr build_assignment_formula(:(y = x + 1)) == :([:x] => (((x,) -> x + 1) => :y))
+    end
+    @testset "RHS functions" begin
+        @test_expr build_assignment_formula(:(y = f(x))) == :([:x] => ((x,) -> f(x)) => :y)
+        @test_expr build_assignment_formula(:(y = f(x, z))) == :([:x, :z] => ((x, z) -> f(x, z)) => :y)
+        @test_expr build_assignment_formula(:(y = f(x, z) + 1)) == :([:x, :z] => ((x, z) -> f(x, z) + 1) => :y)
+        @test_expr build_assignment_formula(:(y = f.(x))) == :([:x] => ((x,) -> f.(x)) => :y)
+    end
+    @testset "RHS constants" begin
+        @test_expr build_assignment_formula(:(y = 1)) == :(((_,) -> 1) => :y)
+        @test_expr build_assignment_formula(:(y = 1 + 1)) == :(((_,) -> 1 + 1) => :y)
+        @test_expr build_assignment_formula(:(y = f(1))) == :(((_,) -> f(1)) => :y)
+    end
+    @testset "Boolean operators" begin
+        @test_expr build_assignment_formula(:(y = x == 0)) == :([:x] => ((x,) -> x == 0) => :y)
+        @test_expr build_assignment_formula(:(y = x < 0)) == :([:x] => ((x,) -> x < 0) => :y)
+        @test_expr build_assignment_formula(:(y = x < 0 && z > 0)) == :([:x, :z] => ((x, z) -> x < 0 && z > 0) => :y)
+    end
+    @testset "Reserved words" begin
+        @test_expr build_assignment_formula(:(y = f(String))) == :(((_,) -> f(String)) => :y)
+    end
+    @testset "Type checking" begin
+        @test_expr build_assignment_formula(:(y = x isa String)) == :([:x] => ((x,) -> x isa String) => :y)
+    end
+end
+
 
 @testset "Arguments are parsed" begin
     @testset "$(case.ex)" for case in TEST_CASES
