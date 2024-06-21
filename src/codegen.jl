@@ -11,10 +11,7 @@ function build_assignment_formula(expr::Expr)
     expr.head == :(=) || error("Expected assignment expression")
     no_variable = false
     vars = extract_variable_references(expr)
-    expr = replace_variable_references(expr)
-    expr = vectorize_function_calls(expr)
     @debug vars
-    operation = String(expr.args[2].args[1])
     LHS = [y[2] for y in vars if y[1] == :LHS][1]
     RHS = [y[2] for y in vars if y[1] == :RHS]
     if length(RHS) == 0
@@ -25,10 +22,14 @@ function build_assignment_formula(expr::Expr)
     columns_to_transform = Expr(:vect, [QuoteNode(x) for x in RHS]...)
     arguments = Expr(:tuple, RHS...)
     target_column = QuoteNode(LHS)
-    assignment_expression = Expr(:call,
-        Symbol("=>"), 
-        Expr(Symbol(operation[1]), Symbol(operation[2:end])), # operation
-        target_column # target column
+    assignment_expression = Expr(Symbol("->"), 
+        arguments, 
+        Expr(:block,
+            Expr(:call, Symbol("=>"), 
+                expr.args[2],
+                target_column
+                )
+            )
         )
     return no_variable ? assignment_expression : Expr(:call, Symbol("=>"), 
         columns_to_transform,
