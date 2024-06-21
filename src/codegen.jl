@@ -17,7 +17,7 @@ function rewrite(::Val{:generate}, command::Command)
             $sdf[!, $target_column] .= $RHS
             $df2
         else
-            ArgumentError("$($target_column) already exists in $($dfname)") |> throw
+            ArgumentError("Column \"$($target_column)\" already exists in $(names($dfname))") |> throw
         end
     end |> esc
 end
@@ -34,10 +34,13 @@ function rewrite(::Val{:replace}, command::Command)
         if $target_column in names($dfname)
             local $df2 = copy($dfname)
             local $sdf = view($df2, $bitmask, :)
+            if typeof($RHS[1,1]) != typeof($sdf[1, $target_column])
+                $df2[!, $target_column] = convert(Vector{typeof($RHS[1,1])}, $df2[!, $target_column])
+            end
             $sdf[!, $target_column] .= $RHS
             $df2
         else
-            ArgumentError("$($target_column) does not exist in $($dfname)") |> throw
+            ArgumentError("Column \"$($target_column)\" does not exist in $(names($dfname))") |> throw
         end
     end |> esc
 end
