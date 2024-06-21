@@ -31,6 +31,8 @@ function build_assignment_formula(expr::Expr, condition::Any=nothing, default_va
     vars = extract_variable_references(expr)
     LHS = [y[2] for y in vars if y[1] == :LHS][1]
     RHS = [y[2] for y in vars if y[1] == :RHS]
+    condition_vars = [x[2] for x in extract_variable_references(condition) if !(x[2] in RHS)]
+    RHS = vcat(RHS, condition_vars)
     if length(RHS) == 0
         # if no variable is used in RHS of assignment, create an anonymous variable
         columns_to_transform = :(AsTable([]))
