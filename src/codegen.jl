@@ -22,14 +22,10 @@ function build_assignment_formula(expr::Expr)
     columns_to_transform = Expr(:vect, [QuoteNode(x) for x in RHS]...)
     arguments = Expr(:tuple, RHS...)
     target_column = QuoteNode(LHS)
-    assignment_expression = Expr(Symbol("->"), 
-        arguments, 
-        Expr(:block,
-            Expr(:call, Symbol("=>"), 
-                expr.args[2],
-                target_column
-                )
-            )
+    function_definition = Expr(Symbol("->"), arguments, vectorize_function_calls(expr.args[2]))
+    assignment_expression = Expr(:call, Symbol("=>"), 
+            function_definition,
+            target_column
         )
     return no_variable ? assignment_expression : Expr(:call, Symbol("=>"), 
         columns_to_transform,
