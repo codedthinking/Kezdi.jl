@@ -1,8 +1,10 @@
 module Kezdi
-export @generate, @replace
+export @generate, @replace, @egen
 
 using Reexport
 using Logging
+using Statistics
+using StatsBase
 @reexport using CSV
 @reexport using DataFrames
 

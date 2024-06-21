@@ -13,6 +13,12 @@ function rewrite(::Val{:replace}, command::Command)
     esc(:(transform($dfname, $formula)))
 end
 
+function rewrite(::Val{:egen}, command::Command)
+    dfname = command.df
+    formula = build_assignment_formula(command.arguments[1])
+    esc(:(transform($dfname, $formula)))
+end
+
 function build_assignment_formula(expr::Expr)
     expr.head == :(=) || error("Expected assignment expression")
     vars = extract_variable_references(expr)
@@ -31,6 +37,10 @@ function build_assignment_formula(expr::Expr)
             function_definition,
             target_column
         )
+        return Expr(:call, Symbol("=>"), 
+            columns_to_transform,
+            assignment_expression
+            )
     end
     columns_to_transform = Expr(:vect, [QuoteNode(x) for x in RHS]...)
     arguments = Expr(:tuple, RHS...)

@@ -18,3 +18,8 @@ macro generate(exprs...)
     rewrite(cmd)
 end
 
+macro egen(exprs...)
+    command = :egen
+    cmd = transpile(exprs, command)
+    rewrite(cmd)
+end

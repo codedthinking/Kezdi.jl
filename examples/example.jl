@@ -13,7 +13,8 @@ scalars(x...) = x
 df = DataFrame(
     population = [100, 200, 300, missing],
     gdp = [1000, missing, 9000, 16000],
-    group = ["blue", "blue", "red", "red"]
+    group = ["blue", "blue", "red", "red"],
+    country = ["HU", "DE", "US", "UK"]
 )
 
 # illustrate Stata-like syntax
