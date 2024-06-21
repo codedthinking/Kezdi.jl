@@ -51,6 +51,7 @@ const TYPES = (
     :Int64, 
     :Int8, 
     :LineNumberNode, 
+    :Missing,
     :Nothing, 
     :Number, 
     :QuoteNode, 

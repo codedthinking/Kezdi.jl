@@ -39,7 +39,7 @@ transpile = Kezdi.transpile
 rewrite = Kezdi.rewrite
 
 @testset "Generate" begin
-    df = DataFrame(x = 1:4, z = 5:8)
+    df = DataFrame(x = 1:4, z = 5:8, s = ["a", "b", "c", "d"])
 
     @testset "Column added" begin
         df2 = @generate df y = 4.0
@@ -61,6 +61,18 @@ rewrite = Kezdi.rewrite
         @test all(df2.y .== sum(df.x))
         df2 = @generate df y = sum.(x)
         @test all(df2.y .== df.x)
+    end
+
+    @testset "Do not replace special variable names" begin
+        df2 = @generate df y = missing
+        @test all(ismissing.(df2.y))
+        df2 = @generate df y = nothing
+        @test all(isnothing.(df2.y))
+        df2 = @generate df y = s isa String
+        @test all(df2.y)
+        df2 = @generate df y = s isa Missing
+        @test !any(df2.y)
+        df2 = @generate df y = "string" @if s isa String
     end
 
     @testset "Error handling" begin
