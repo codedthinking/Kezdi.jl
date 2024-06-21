@@ -28,3 +28,15 @@ macro collapse(exprs...)
     cmd = transpile(exprs, command)
     rewrite(cmd)
 end
+
+macro keep(exprs...)
+    command = :keep
+    cmd = transpile(exprs, command)
+    rewrite(cmd)
+end
+
+macro drop(exprs...)
+    command = :drop
+    cmd = transpile(exprs, command)
+    rewrite(cmd)
+end

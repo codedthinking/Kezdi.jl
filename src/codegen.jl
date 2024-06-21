@@ -60,6 +60,17 @@ function rewrite(::Val{:collapse}, command::Command)
     end |> esc
 end
 
+function rewrite(::Val{:keep}, command::Command)
+    dfname = command.df
+    bitmask = build_bitmask(command)
+    # check that target_column does not exist in dfname
+    df2 = gensym()
+    quote
+        local $df2 = copy($dfname)
+        view($df2, $bitmask, collect($(command.arguments)))
+    end |> esc
+end
+
 
 function get_by(command::Command)
     if length(command.options) == 1

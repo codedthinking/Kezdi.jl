@@ -138,6 +138,17 @@ end
     end
 end
 
+@testset "Keep if" begin
+    df = DataFrame(a = 1:4, b = 5:8)
+    @test "a" in names(@keep df a)
+    @test !("b" in names(@keep df a))
+    @test "a" in names(@keep df a @if a < 3)
+    @test !("b" in names(@keep df a @if a < 3))
+    df2 = @keep df a @if b > 6
+    @test all(df2.a .== [3, 4])
+end
+
+
 @testset "Generate with if" begin
     df = DataFrame(x = 1:4)
     dfxz = DataFrame(x = 1:4, z = 1:4)
