@@ -27,7 +27,9 @@ const RESERVED_WORDS = (
     :true, 
     :try, 
     :using, 
-    :while
+    :while,
+    :missing,
+    :nothing
 )
 
 const TYPES = (
