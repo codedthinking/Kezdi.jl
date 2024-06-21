@@ -38,6 +38,60 @@ vectorize_function_calls = Kezdi.vectorize_function_calls
 transpile = Kezdi.transpile
 rewrite = Kezdi.rewrite
 
+@testset "Generate" begin
+    df = DataFrame(x = 1:4, z = 5:8)
+
+    @testset "Column added" begin
+        df2 = @generate df y = 4.0
+        @test "y" in names(df2)
+        @test "x" in names(df2) && "z" in names(df2)
+        @test df.x == df2.x
+        @test df.z == df2.z
+    end
+    @testset "Known values" begin
+        df2 = @generate df y = x
+        @test df.x == df2.y
+        df2 = @generate df y = x + z
+        @test df.x + df.z == df2.y
+        df2 = @generate df y = log(z)
+        @test log.(df.z) == df2.y
+        df2 = @generate df y = 4.0
+        @test all(df2.y .== 4.0)
+        df2 = @generate df y = sum(x)
+        @test all(df2.y .== sum(df.x))
+        df2 = @generate df y = sum.(x)
+        @test all(df2.y .== df.x)
+    end
+
+    @testset "Error handling" begin
+        @test_throws ArgumentError @generate df x = 1
+    end
+end
+
+@testset "Replace" begin
+    df = DataFrame(x = 1:4, z = 5:8)
+
+    @testset "Column names don't change" begin
+        df2 = @replace df x = 4.0
+        @test names(df) == names(df2)
+        df2 = @replace df z = 4.0
+        @test names(df) == names(df2)
+    end
+    @testset "Known values" begin
+        df2 = @replace df x = log(z)
+        @test log.(df.z) == df2.x
+        df2 = @replace df x = 4.0
+        @test all(df2.x .== 4.0)
+        df2 = @replace df z = sum(x)
+        @test all(df2.z .== sum(df.x))
+        df2 = @replace df z = sum.(x)
+        @test all(df2.z .== df.x)
+    end
+
+    @testset "Error handling" begin
+        @test_throws ArgumentError @replace df y = 1
+    end
+end
 @testset "Assignment formula" begin
     @testset "RHS varibles" begin
         @test_expr build_assignment_formula(:(y = x)) == :([:x] => (x,) -> x => :y)

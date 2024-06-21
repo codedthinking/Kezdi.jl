@@ -6,7 +6,7 @@ function rewrite(::Val{:generate}, command::Command)
     target_column = get_LHS(command.arguments[1])
     formula = build_assignment_formula(command.arguments[1])
     # check that target_column does not exist in dfname
-    esc(:($target_column in names($dfname) ? error("$($target_column) already exists in $($dfname)") : transform($dfname, $formula)))
+    esc(:($target_column in names($dfname) ? ArgumentError("$($target_column) already exists in $($dfname)") |> throw : transform($dfname, $formula)))
 end
 
 function rewrite(::Val{:replace}, command::Command)
@@ -14,7 +14,7 @@ function rewrite(::Val{:replace}, command::Command)
     target_column = get_LHS(command.arguments[1])
     formula = build_assignment_formula(command.arguments[1])
     # check that target_column does not exist in dfname
-    esc(:($target_column in names($dfname) ? transform($dfname, $formula) : error("$($target_column) does not exist in $($dfname)")))
+    esc(:($target_column in names($dfname) ? transform($dfname, $formula) : ArgumentError("$($target_column) does not exist in $($dfname)") |> throw))
 end
 
 function get_LHS(expr::Expr)
