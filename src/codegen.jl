@@ -7,17 +7,30 @@ function rewrite(::Val{:generate}, command::Command)
     esc(:(transform($dfname, $formula)))
 end
 
+function rewrite(::Val{:replace}, command::Command)
+    dfname = command.df
+    formula = build_assignment_formula(command.arguments[1])
+    esc(:(transform($dfname, $formula)))
+end
+
 function build_assignment_formula(expr::Expr)
     expr.head == :(=) || error("Expected assignment expression")
-    no_variable = false
     vars = extract_variable_references(expr)
     @debug vars
     LHS = [y[2] for y in vars if y[1] == :LHS][1]
     RHS = [y[2] for y in vars if y[1] == :RHS]
+    @debug LHS
+    @debug RHS
     if length(RHS) == 0
         # if no variable is used in RHS of assignment, create an anonymous variable
-        RHS = [:_]
-        no_variable = true
+        columns_to_transform = :($(Meta.quot(LHS)))
+        arguments = :($RHS)
+        target_column = QuoteNode(LHS)
+        function_definition = Expr(Symbol("->"), arguments, vectorize_function_calls(expr.args[2]))
+        assignment_expression = Expr(:call, Symbol("=>"), 
+            function_definition,
+            target_column
+        )
     end
     columns_to_transform = Expr(:vect, [QuoteNode(x) for x in RHS]...)
     arguments = Expr(:tuple, RHS...)
@@ -27,7 +40,7 @@ function build_assignment_formula(expr::Expr)
             function_definition,
             target_column
         )
-    return no_variable ? assignment_expression : Expr(:call, Symbol("=>"), 
+    return Expr(:call, Symbol("=>"), 
         columns_to_transform,
         assignment_expression
         )
