@@ -3,8 +3,6 @@ export @generate, @replace, @egen, @collapse, @keep, @drop
 
 using Reexport
 using Logging
-using Statistics
-using StatsBase
 @reexport using CSV
 @reexport using DataFrames
 
