@@ -1,5 +1,5 @@
 function extract_args(arg; depth::Int64=0, position::Int64=1)::Node
-    if isa(arg, Expr)
+    if arg isa Expr
         if arg.head == :tuple
             return Node(arg.head, arg.args, depth, position)
         end
@@ -10,21 +10,21 @@ end
 
 function parse(exprs::Tuple)::Vector{Node}
     args = Vector{Node}()
-    for (i,expr) in enumerate(exprs)
-        if isa(expr, Expr)
+    for (i, expr) in enumerate(exprs)
+        if expr isa Expr
             if expr.head == :macrocall
-                push!(args, parse_expr(expr; depth=1)...)
+                push!(args, parse(expr; depth=1)...)
             else
                 push!(args, extract_args(expr; depth=1, position=i))
             end
         else
-            push!(args, extract_args(expr;position=i))
+            push!(args, extract_args(expr; position=i))
         end
     end
     return args
 end
 
-function parse_expr(expr::Expr; depth::Int64=0)::Vector{Node}
+function parse(expr::Expr; depth::Int64=0)::Vector{Node}
     args = Vector{Node}()
     if isempty(expr.args)
         return args
@@ -34,7 +34,7 @@ function parse_expr(expr::Expr; depth::Int64=0)::Vector{Node}
         if arg == expr.args[1]
             push!(args, Node(expr.head, expr.args, depth, i))
         end
-        if isa(arg, Expr)
+        if arg isa Expr
             push!(args, Node(arg.head, arg.args, depth+1, i))
         else
             push!(args, extract_args(arg; depth=depth, position=i))
@@ -115,7 +115,7 @@ function transpile(exprs::Tuple, command::Symbol)::Command
     @debug "Options are $options"
     arguments = Tuple(construct_call(arg) for arg in arguments)
     options = Tuple(construct_call(opt) for opt in options)
-    if isa(condition, Node)
+    if condition isa Node
         condition = construct_call(condition)
     end
     return Command(command, arguments, condition, options)
