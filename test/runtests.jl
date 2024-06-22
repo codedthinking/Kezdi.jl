@@ -148,6 +148,12 @@ end
     @test all(df2.a .== [3, 4])
 end
 
+@testset "Drop if" begin
+    df = DataFrame(a = 1:4, b = 5:8)
+    @test "a" in names(@drop df b)
+    @test !("b" in names(@drop df b))
+end
+
 
 @testset "Generate with if" begin
     df = DataFrame(x = 1:4)

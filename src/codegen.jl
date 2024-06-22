@@ -71,6 +71,15 @@ function rewrite(::Val{:keep}, command::Command)
     end |> esc
 end
 
+function rewrite(::Val{:drop}, command::Command)
+    dfname = command.df
+    if isnothing(command.condition)
+        return :(select($dfname, Not(collect($(command.arguments))))) |> esc
+    end 
+    bitmask = build_bitmask(dfname, :(!($command.condition)))
+    :($dfname[$bitmask, :]) |> esc
+end
+
 
 function get_by(command::Command)
     if length(command.options) == 1
