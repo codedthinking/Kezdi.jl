@@ -6,37 +6,25 @@ macro mockmacro(exprs...)
 end
 
 macro replace(exprs...)
-    command = :replace
-    cmd = parse(exprs, command)
-    rewrite(cmd) 
+    :replace |> parse(exprs) |> rewrite
 end
 
 macro generate(exprs...)
-    command = :generate
-    cmd = parse(exprs, command)
-    rewrite(cmd)
+    :generate |> parse(exprs) |> rewrite
 end
 
 macro egen(exprs...)
-    command = :egen
-    cmd = parse(exprs, command)
-    rewrite(cmd)
+    :egen |> parse(exprs) |> rewrite
 end
 
 macro collapse(exprs...)
-    command = :collapse
-    cmd = parse(exprs, command)
-    rewrite(cmd)
+    :collapse |> parse(exprs) |> rewrite
 end
 
 macro keep(exprs...)
-    command = :keep
-    cmd = parse(exprs, command)
-    rewrite(cmd)
+    :keep |> parse(exprs) |> rewrite
 end
 
 macro drop(exprs...)
-    command = :drop
-    cmd = parse(exprs, command)
-    rewrite(cmd)
+    :drop |> parse(exprs) |> rewrite
 end

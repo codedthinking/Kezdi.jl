@@ -120,3 +120,5 @@ function parse(exprs::Tuple, command::Symbol)::Command
     end
     return Command(command, arguments, condition, options)
 end
+
+parse(exprs::Tuple) = x::Symbol -> parse(exprs, x)
