@@ -99,6 +99,7 @@ function parse(exprs::Tuple, command::Symbol)::Command
             if next_arg.type == :tuple
                 push!(arguments, extract_args(:($LHS = $(next_arg.content[1]))))
                 push!(options, extract_args(next_arg.content[2]))
+                state = transition(state, next_arg)
                 continue
             end
         end
@@ -117,6 +118,9 @@ function parse(exprs::Tuple, command::Symbol)::Command
             else
                 condition = arg
             end
+        end
+        if state == 3
+            push!(options, arg)
         end
         state = transition(state, arg)
     end
