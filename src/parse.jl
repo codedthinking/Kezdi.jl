@@ -50,7 +50,7 @@ function construct_call(node::Node)
     return node.content
 end
 
-function transition(state::Int64,arg::Node)::Int64
+function transition(state::Int64, arg::Node)::Int64
     ## from command to condition
     if arg.content == Symbol("@if") && state == 1
         state = 2
@@ -81,22 +81,21 @@ function parse(exprs::Tuple, command::Symbol)::Command
     state = 1
     @debug "Starting in command"
     for arg in ast
+        @info "In state $state, argument is $arg"
         if state == 1
-            if arg.type in [:call, Symbol, Int64, :(=)] && arg.content != Symbol("@if")
-                push!(arguments, arg)
-            end
             if arg.type == :tuple
                 push!(arguments, extract_args(arg.content[1]))
                 push!(options, extract_args(arg.content[2]))
+            elseif arg.type != :macrocall && arg.content != Symbol("@if")
+                push!(arguments, arg)
             end
         end
         if state == 2
-            if arg.type in [:call, Symbol, Int64, :&&, :||]
-                condition = arg
-            end
             if arg.type == :tuple
                 condition = extract_args(arg.content[1])
                 push!(options, extract_args(arg.content[2]))
+            else
+                condition = arg
             end
         end
         if state == 3
