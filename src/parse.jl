@@ -72,6 +72,17 @@ function transition(state::Int64, arg::Node)::Int64
     return state
 end
 
+function isassignment(node::Node)
+    return node.type == :(=)
+end
+
+function splitassignment(node::Node)
+    if isassignment(node)
+        expr = node.content
+        return (expr.args[1], expr.args[2])
+    end
+end
+
 function parse(exprs::Tuple, command::Symbol)::Command
     ast = scan(exprs)
     @debug "AST is $ast"
@@ -80,8 +91,17 @@ function parse(exprs::Tuple, command::Symbol)::Command
     condition = nothing
     state = 1
     @debug "Starting in command"
-    for arg in ast
-        @info "In state $state, argument is $arg"
+    for (i, arg) in enumerate(ast)
+        @debug "In state $state, argument number $i is $arg"
+        if isassignment(arg)
+            LHS, RHS = splitassignment(arg)
+            next_arg = extract_args(RHS)
+            if next_arg.type == :tuple
+                push!(arguments, extract_args(:($LHS = $(next_arg.content[1]))))
+                push!(options, extract_args(next_arg.content[2]))
+                continue
+            end
+        end
         if state == 1
             if arg.type == :tuple
                 push!(arguments, extract_args(arg.content[1]))
