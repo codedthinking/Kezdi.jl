@@ -5,6 +5,7 @@ TEST_CASES = [
     (ex="@mockmacro df y x, robust", command=:regress, arguments=[:y, :x], condition=nothing, options=[:robust]),
     (ex="@mockmacro df y x, robust", command=:regress, arguments=[:y, :x], condition=nothing, options=[:robust]),
     (ex="@mockmacro df y = x, absorb(country)", command=:regress, arguments=[:(y = x)], condition=nothing, options=[:(absorb(country))]),
+    (ex="@mockmacro df y = x, absorb(country) robust", command=:regress, arguments=[:(y = x)], condition=nothing, options=[:(absorb(country)), :robust]),
     (ex="@mockmacro df y log(x), robust", command=:regress, arguments=[:y, :(log(x))], condition=nothing, options=[:robust]),
     (ex="@mockmacro df y = log(x), robust", command=:regress, arguments=[:(y = log(x))], condition=nothing, options=[:robust]),
     (ex="@mockmacro df x, detail", command=:summarize, arguments=[:x], condition=nothing, options=[:detail]),
@@ -29,7 +30,6 @@ end
         if !isnothing(case.condition)
             expressions = preprocess(case.ex)
             command = parse(expressions, case.command)
-            @warn typeof(command.condition), typeof(case.condition)
             @test command.condition == case.condition
         end
     end
