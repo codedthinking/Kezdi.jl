@@ -2,41 +2,29 @@ global_logger(Logging.ConsoleLogger(stderr, Logging.Info))
 
 macro mockmacro(exprs...)
     command = :mockmacro
-    transpile(exprs, command)
+    parse(exprs, command)
 end
 
 macro replace(exprs...)
-    command = :replace
-    cmd = transpile(exprs, command)
-    rewrite(cmd) 
+    :replace |> parse(exprs) |> rewrite
 end
 
 macro generate(exprs...)
-    command = :generate
-    cmd = transpile(exprs, command)
-    rewrite(cmd)
+    :generate |> parse(exprs) |> rewrite
 end
 
 macro egen(exprs...)
-    command = :egen
-    cmd = transpile(exprs, command)
-    rewrite(cmd)
+    :egen |> parse(exprs) |> rewrite
 end
 
 macro collapse(exprs...)
-    command = :collapse
-    cmd = transpile(exprs, command)
-    rewrite(cmd)
+    :collapse |> parse(exprs) |> rewrite
 end
 
 macro keep(exprs...)
-    command = :keep
-    cmd = transpile(exprs, command)
-    rewrite(cmd)
+    :keep |> parse(exprs) |> rewrite
 end
 
 macro drop(exprs...)
-    command = :drop
-    cmd = transpile(exprs, command)
-    rewrite(cmd)
+    :drop |> parse(exprs) |> rewrite
 end

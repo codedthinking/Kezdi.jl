@@ -1,7 +1,6 @@
 struct Node
     type::Union{Symbol, Type}
     content::Union{Expr, Symbol, Number, LineNumberNode, QuoteNode, Vector{Any}}
-    level::Int64
     tree_position::Int64
 end
 

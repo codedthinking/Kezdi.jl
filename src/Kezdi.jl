@@ -9,7 +9,7 @@ using Logging
 include("consts.jl")
 include("structs.jl")
 include("macros.jl")
-include("transpiler.jl")
+include("parse.jl")
 include("codegen.jl")
 
 end # module
