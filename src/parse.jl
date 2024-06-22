@@ -8,12 +8,12 @@ function extract_args(arg; depth::Int64=0, position::Int64=1)::Node
     return Node(typeof(arg), arg, depth, position)
 end
 
-function parse(exprs::Tuple)::Vector{Node}
+function scan(exprs::Tuple)::Vector{Node}
     args = Vector{Node}()
     for (i, expr) in enumerate(exprs)
         if expr isa Expr
             if expr.head == :macrocall
-                push!(args, parse(expr; depth=1)...)
+                push!(args, scan(expr; depth=1)...)
             else
                 push!(args, extract_args(expr; depth=1, position=i))
             end
@@ -24,7 +24,7 @@ function parse(exprs::Tuple)::Vector{Node}
     return args
 end
 
-function parse(expr::Expr; depth::Int64=0)::Vector{Node}
+function scan(expr::Expr; depth::Int64=0)::Vector{Node}
     args = Vector{Node}()
     if isempty(expr.args)
         return args
@@ -76,8 +76,8 @@ function transition(state::Int64,arg::Node)::Int64
     return state
 end
 
-function transpile(exprs::Tuple, command::Symbol)::Command
-    ast = parse(exprs)
+function parse(exprs::Tuple, command::Symbol)::Command
+    ast = scan(exprs)
     @debug "AST is $ast"
     arguments = Vector{Node}()
     options = Vector{Node}()

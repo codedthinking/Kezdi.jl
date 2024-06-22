@@ -37,7 +37,7 @@ end
 build_assignment_formula = Kezdi.build_assignment_formula
 replace_variable_references = Kezdi.replace_variable_references
 vectorize_function_calls = Kezdi.vectorize_function_calls
-transpile = Kezdi.transpile
+parse = Kezdi.parse
 rewrite = Kezdi.rewrite
 
 @testset "All tests" begin
