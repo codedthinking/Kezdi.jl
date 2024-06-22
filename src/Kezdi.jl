@@ -1,5 +1,5 @@
 module Kezdi
-export @generate, @replace, @egen
+export @generate, @replace, @egen, @collapse, @keep, @drop
 
 using Reexport
 using Logging
@@ -11,7 +11,7 @@ using StatsBase
 include("consts.jl")
 include("structs.jl")
 include("macros.jl")
-include("transpiler.jl")
+include("parse.jl")
 include("codegen.jl")
 
 end # module

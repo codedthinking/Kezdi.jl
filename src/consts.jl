@@ -27,7 +27,9 @@ const RESERVED_WORDS = (
     :true, 
     :try, 
     :using, 
-    :while
+    :while,
+    :missing,
+    :nothing
 )
 
 const TYPES = (
@@ -49,6 +51,7 @@ const TYPES = (
     :Int64, 
     :Int8, 
     :LineNumberNode, 
+    :Missing,
     :Nothing, 
     :Number, 
     :QuoteNode, 
@@ -98,6 +101,8 @@ const DO_NOT_VECTORIZE =(
     :middle,
     :std,
     :sum,
+    :minimum,
+    :maximum,
     :var,
 )
 
