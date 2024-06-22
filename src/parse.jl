@@ -98,11 +98,6 @@ function parse(exprs::Tuple, command::Symbol)::Command
                 condition = arg
             end
         end
-        if state == 3
-            if arg.type in [:call, :macrocall, Symbol, Int64]
-                push!(options, arg)
-            end
-        end
         state = transition(state, arg)
     end
     @debug "Arguments are $arguments"
