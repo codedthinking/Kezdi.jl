@@ -1,11 +1,11 @@
-function extract_args(arg; position::Int64=1)::Node
+function extract_args(arg)::Node
     if arg isa Expr
         if arg.head == :tuple
-            return Node(arg.head, arg.args, position)
+            return Node(arg.head, arg.args)
         end
-        return Node(arg.head, arg, position)
+        return Node(arg.head, arg)
     end
-    return Node(typeof(arg), arg, position)
+    return Node(typeof(arg), arg)
 end
 
 function scan(exprs::Tuple)::Vector{Node}
@@ -14,7 +14,7 @@ function scan(exprs::Tuple)::Vector{Node}
         if expr isa Expr && expr.head == :macrocall
             push!(args, scan(expr)...)
         else
-            push!(args, extract_args(expr; position=i))
+            push!(args, extract_args(expr))
         end
     end
     return args
@@ -33,7 +33,7 @@ function scan(expr::Expr)::Vector{Node}
         if arg isa Expr
             push!(args, Node(arg.head, arg.args, i))
         else
-            push!(args, extract_args(arg; position=i))
+            push!(args, extract_args(arg))
         end
     end
     return args
