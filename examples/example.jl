@@ -1,7 +1,7 @@
 include("../../With.jl/src/With.jl")
 using .With, DataFrames, Logging #, Kezdi
 global_logger(Logging.ConsoleLogger(stderr, Logging.Info))
-include("../src/transpiler.jl")
+include("../src/parse.jl")
 include("../src/macros.jl")
 
 EXPLICIT_MISSING = false
