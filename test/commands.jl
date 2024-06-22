@@ -146,3 +146,85 @@ end
         @test all(df2.y .=== [3, 3, missing, missing])
     end
 end
+
+@testset "Egen" begin
+    df = DataFrame(x = 1:4, s = ["a", "b", "c", "d"], group = ["red", "red", "blue", "blue"])
+
+    @testset "Column added" begin
+        df2 = @egen df y = mean(x)
+        @test "y" in names(df2)
+        @test "x" in names(df2) && "group" in names(df2)
+        @test df.x == df2.x
+        @test df.group == df2.group
+    end
+    @testset "Known values for not vectorized functions" begin
+        df2 = @egen df y = sum(x)
+        @test all(df2.y .== sum(df.x))
+        df2 = @egen df y = minimum(x)
+        @test all(df2.y .== minimum(df.x))
+        df2 = @egen df y = maximum(x)
+        @test all(df2.y .== maximum(df.x))
+    end
+    @testset "Known values for vectorized functions" begin
+        df2 = @egen df y = sum.(x)
+        @test all(df2.y .== df.x)
+        df2 = @egen df y = minimum.(x)
+        @test all(df2.y .== df.x)
+        df2 = @egen df y = maximum.(x)
+        @test all(df2.y .== df.x)
+    end
+    @testset "Do not replace special variable names" begin
+        df2 = @egen df y = missing
+        @test all(ismissing.(df2.y))
+        df2 = @egen df y = nothing
+        @test all(isnothing.(df2.y))
+        df2 = @egen df y = s isa String
+        @test all(df2.y)
+        df2 = @egen df y = s isa Missing
+        @test !any(df2.y)
+        df2 = @egen df y = "string" @if s isa String
+    end
+    @testset "Known values by group" begin
+        df2 = @egen df y = sum(x) @by group
+        @test all(df2.y .== [3, 3, 7, 7])
+        df2 = @egen df y = minimum(x) @by group
+        @test all(df2.y .== [1, 1, 3, 3])
+        df2 = @egen df y = maximum(x) @by group
+        @test all(df2.y .== [2, 2, 4, 4])
+    end
+    @testset "Error handling" begin
+        @test_throws ArgumentError @egen df x = 1
+    end
+end
+
+@testset "Egen with if" begin
+    df = DataFrame(x = 1:4, group=["red", "red", "blue", "blue"])
+    dfxz = DataFrame(x = 1:4, z = 1:4, group=["red", "red", "blue", "blue"])
+    @testset "Constant conditions" begin
+        @testset "True" begin
+            df2 = @egen df y = sum(x) @if true
+            @test all(df2.y .== sum(df.x))
+            df2 = @egen df y = sum(x) @if 2 < 4
+            @test all(df2.y .== sum(df.x))
+            end
+        @testset "False" begin
+            df2 = @egen df y = sum(x) @if false
+            @test all(df2.y .=== missing)
+            df2 = @egen df y = sum(x) @if 1 == 0
+                @test all(df2.y .=== missing)
+            end
+    end
+    @testset "Known conditions" begin
+        df2 = @egen df y = sum(x) @if x < 3
+        @test all(df2.y .=== [3, 3, missing, missing])
+    end
+
+    @testset "Condition on other variable" begin
+        df2 = @egen dfxz y = sum(x) @if z < 3
+        @test all(df2.y .=== [3, 3, missing, missing])
+    end
+    @testset "Window functions operate on subset" begin
+        df2 = @egen df y = sum(x) @if x < 3
+        @test all(df2.y .=== [3, 3, missing, missing])
+    end
+end
