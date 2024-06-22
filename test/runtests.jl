@@ -38,6 +38,7 @@ vectorize_function_calls = Kezdi.vectorize_function_calls
 transpile = Kezdi.transpile
 rewrite = Kezdi.rewrite
 
+@testset "All tests" begin
 @testset "Parsing" begin
     include("parse.jl")
 end
@@ -49,3 +50,4 @@ end
 @testset "Code generation" begin
     include("codegen.jl")
 end
+end # all tests
