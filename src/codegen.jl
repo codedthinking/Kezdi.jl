@@ -80,28 +80,6 @@ function rewrite(::Val{:drop}, command::Command)
     :($dfname[$bitmask, :]) |> esc
 end
 
-
-function get_by(command::Command)
-    if length(command.options) == 1
-        return :_
-    else
-        return command.arguments[2]
-    end
-
-end
-
-function get_LHS(expr::Expr)
-    expr.head == :(=) || error("Expected assignment expression")
-    vars = extract_variable_references(expr)
-    String([y[2] for y in vars if y[1] == :LHS][1])
-end
-
-function rewrite(::Val{:replace}, command::Command)
-    dfname = command.df
-    formula = build_assignment_formula(command.arguments[1])
-    esc(:(transform($dfname, $formula)))
-end
-
 function rewrite(::Val{:egen}, command::Command)
     dfname = command.df
     target_column = get_LHS(command.arguments[1])
@@ -123,62 +101,20 @@ function rewrite(::Val{:egen}, command::Command)
     end |> esc
 end
 
-function rewrite(::Val{:replace}, command::Command)
-    dfname = command.df
-    target_column = get_LHS(command.arguments[1])
-    bitmask = build_bitmask(command)
-    # check that target_column does not exist in dfname
-    df2 = gensym()
-    sdf = gensym()
-    RHS = replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls
-    quote
-        if $target_column in names($dfname)
-            local $df2 = copy($dfname)
-            local $sdf = view($df2, $bitmask, :)
-            if eltype($RHS) != eltype($sdf[!, $target_column])
-                $df2[!, $target_column] = convert(Vector{eltype($RHS)}, $df2[!, $target_column])
-            end
-            $sdf[!, $target_column] .= $RHS
-            $df2
-        else
-            ArgumentError("Column \"$($target_column)\" does not exist in $(names($dfname))") |> throw
-        end
-    end |> esc
+
+function get_by(command::Command)
+    if length(command.options) == 1
+        return :_
+    else
+        return command.arguments[2]
+    end
+
 end
 
-function rewrite(::Val{:collapse}, command::Command)
-    dfname = command.df
-    target_columns = get_LHS.(command.arguments)
-    bitmask = build_bitmask(command)
-    # check that target_column does not exist in dfname
-    df2 = gensym()
-    sdf = gensym()
-    combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
-    quote
-        local $df2 = copy($dfname)
-        local $sdf = view($df2, $bitmask, :)
-        $combine_epxression
-    end |> esc
-end
-
-function rewrite(::Val{:keep}, command::Command)
-    dfname = command.df
-    bitmask = build_bitmask(command)
-    # check that target_column does not exist in dfname
-    df2 = gensym()
-    quote
-        local $df2 = copy($dfname)
-        view($df2, $bitmask, collect($(command.arguments)))
-    end |> esc
-end
-
-function rewrite(::Val{:drop}, command::Command)
-    dfname = command.df
-    if isnothing(command.condition)
-        return :(select($dfname, Not(collect($(command.arguments))))) |> esc
-    end 
-    bitmask = build_bitmask(dfname, :(!($command.condition)))
-    :($dfname[$bitmask, :]) |> esc
+function get_LHS(expr::Expr)
+    expr.head == :(=) || error("Expected assignment expression")
+    vars = extract_variable_references(expr)
+    String([y[2] for y in vars if y[1] == :LHS][1])
 end
 
 
