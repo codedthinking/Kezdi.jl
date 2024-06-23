@@ -21,5 +21,5 @@ end
 
 # if DataFrame is not explicitly defined, use the first argument
 Command(command::Symbol, arguments::Tuple, condition, options) = Command(command, arguments[1], arguments[2:end], condition, options)
-# if context is not explicitly defined, pass nothing
-Command(command::Symbol, df, arguments::Tuple, condition, options) = Command(command, df, nothing, arguments, condition, options)
+# if context is not explicitly defined, pass the default context
+Command(command::Symbol, df, arguments::Tuple, condition, options) = Command(command, df, Context(), arguments, condition, options)
