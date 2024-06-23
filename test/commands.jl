@@ -75,6 +75,18 @@ end
     end
 end
 
+@testset "Missing values" begin
+    df = DataFrame(x = [1, missing, 3])
+    @testset "ismissing checks" begin
+        df2 = @generate df y = ismissing(x)
+        @test df2.y == [false, true, false]
+        df2 = @generate df y = 4 @if ismissing(x)
+        @test all(df2.y .=== [missing, 4, missing])
+        df2 = @replace df x = 2 @if ismissing(x)
+        @test df2.x == [1, 2, 3]
+    end
+end
+
 @testset "Collapse" begin
     @testset "Non-vectorized aggregators" begin
         df = DataFrame(x = 1:4, z = 5:8)
