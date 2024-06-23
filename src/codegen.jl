@@ -78,7 +78,7 @@ function rewrite(::Val{:keep}, command::Command)
     df2 = gensym()
     quote
         local $df2 = copy($dfname)
-        view($df2, $bitmask, collect($(command.arguments)))
+        view($df2, $bitmask,  isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments))
     end |> esc
 end
 
