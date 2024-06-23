@@ -5,7 +5,7 @@ end
 
 struct Context 
     scalars::Vector{Symbol}
-    flags::BitVector
+    flags::Set{Symbol}
 end
 
 Context() = Context(Symbol[], DEFAULT_FLAGS)
@@ -13,7 +13,7 @@ Context() = Context(Symbol[], DEFAULT_FLAGS)
 struct Command 
     command::Symbol
     df::Any
-    context::Union{Context, Nothing}
+    context::Context
     arguments::Tuple
     condition::Union{Expr, Nothing, Bool}
     options::Tuple
