@@ -5,6 +5,7 @@ using Reexport
 using Logging
 @reexport using CSV
 @reexport using DataFrames
+@reexport using StatsBase: mean
 
 include("consts.jl")
 include("structs.jl")

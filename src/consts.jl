@@ -92,6 +92,7 @@ const SIDE_EFFECTS = (
 
 const DO_NOT_VECTORIZE =(
     :sum,
+    :mean,
     :minimum,
     :maximum,
 )
