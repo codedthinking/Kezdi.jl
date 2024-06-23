@@ -34,6 +34,7 @@ function rewrite(::Val{:replace}, command::Command)
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
+    third_vector = gensym()
     RHS = vectorize_function_calls(
         replace_variable_references(sdf, command.arguments[1].args[2], context),
         context)
@@ -42,9 +43,13 @@ function rewrite(::Val{:replace}, command::Command)
             local $df2 = copy($dfname)
             local $sdf = view($df2, $bitmask, :)
             if eltype($RHS) != eltype($sdf[!, $target_column])
-                $df2[!, $target_column] = convert(Vector{eltype($RHS)}, $df2[!, $target_column])
+                local $third_vector = Vector{eltype($RHS)}(undef, nrow($df2))
+                $third_vector[$bitmask] .= $RHS
+                $third_vector[.!$bitmask] .= $df2[!, $target_column][.!$bitmask]
+                $df2[!, $target_column] = $third_vector
+            else
+                $sdf[!, $target_column] .= $RHS
             end
-            $sdf[!, $target_column] .= $RHS
             $df2
         else
             ArgumentError("Column \"$($target_column)\" does not exist in $(names($dfname))") |> throw
@@ -55,16 +60,26 @@ end
 function rewrite(::Val{:collapse}, command::Command)
     dfname = command.df
     context = command.context
-    target_columns = get_LHS.(command.arguments)
     bitmask = build_bitmask(command)
+    by_cols = get_by(command)
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
-    combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments, context)...)
+    gsdf = gensym()
+    if isnothing(by_cols)
+        combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
+    else
+        combine_epxression = Expr(:call, :combine, gsdf, build_assignment_formula.(command.arguments)...)
+    end
     quote
         local $df2 = copy($dfname)
         local $sdf = view($df2, $bitmask, :)
-        $combine_epxression
+        if isnothing($by_cols)
+            $combine_epxression
+        else
+            local $gsdf = groupby($sdf, $by_cols)
+            $combine_epxression
+        end
     end |> esc
 end
 
@@ -75,7 +90,7 @@ function rewrite(::Val{:keep}, command::Command)
     df2 = gensym()
     quote
         local $df2 = copy($dfname)
-        view($df2, $bitmask, collect($(command.arguments)))
+        view($df2, $bitmask,  isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments))
     end |> esc
 end
 
@@ -89,14 +104,48 @@ function rewrite(::Val{:drop}, command::Command)
     :($dfname[$bitmask, :]) |> esc
 end
 
+function rewrite(::Val{:egen}, command::Command)
+    dfname = command.df
+    target_column = get_LHS(command.arguments[1])
+    by_cols = get_by(command)
+    bitmask = build_bitmask(command)
+    # check that target_column does not exist in dfname
+    df2 = gensym()
+    sdf = gensym()
+    gsdf = gensym()
+    RHS = gensym()
+    g = gensym()
+    quote
+        if !($target_column in names($dfname))
+            local $df2 = copy($dfname)
+            $df2[!, $target_column] .= missing
+            local $sdf = view($df2, $bitmask, :)
+            if isnothing($by_cols)
+                local $RHS = $(replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls)
+                $sdf[!, $target_column] .= $RHS
+                $df2
+            else
+                local $gsdf = groupby($sdf, $by_cols)
+                for gr in $gsdf
+                    local $g = gr
+                    local $RHS = $(replace_variable_references(g, command.arguments[1].args[2]) |> vectorize_function_calls)
+                    gr[!, $target_column] .= $RHS
+                end
+                $df2 = combine($gsdf, names($gsdf))
+            end
+        else
+            ArgumentError("Column \"$($target_column)\" already exists in $(names($dfname))") |> throw
+        end
+    end |> esc
+end
 
 function get_by(command::Command)
-    if length(command.options) == 1
-        return :_
-    else
-        return command.arguments[2]
+    options = command.options
+    for opt in options
+        if opt isa Expr && opt.head == :call && opt.args[1] == :by
+            return opt.args[2:end]
+        end
     end
-
 end
 
 function get_LHS(expr::Expr, context::Context=Context())
@@ -110,6 +159,8 @@ function build_assignment_formula(expr::Expr, context::Context=Context())
     vars = extract_variable_references(expr)
     LHS = [y[2] for y in vars if y[1] == :LHS][1]
     RHS = [y[2] for y in vars if y[1] == :RHS]
+    @debug LHS
+    @debug RHS
     if length(RHS) == 0
         # if no variable is used in RHS of assignment, create an anonymous variable
         columns_to_transform = :(AsTable([]))
