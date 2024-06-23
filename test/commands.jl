@@ -113,7 +113,7 @@ end
     df = DataFrame(x = 1:6, s = ["a", "b", "a", "c", "d", "d"], group = ["red", "red", "red", "blue", "blue", "blue"])
 
     @testset "Column added" begin
-        df2 = @egen df y = mean(x)
+        df2 = @egen df y = sum(x)
         @test "y" in names(df2)
         @test "x" in names(df2) && "group" in names(df2)
         @test df.x == df2.x
@@ -148,17 +148,17 @@ end
     end
     @testset "Known values by group(s)" begin
         df2 = @egen df y = sum(x), by(group)
-        @test all(df2.y .== [6, 6, 6, 15, 15, 15])
+        @test df2.y == [6, 6, 6, 15, 15, 15]
         df2 = @egen df y = minimum(x), by(group)
-        @test all(df2.y .== [1, 1, 1, 4, 4, 4])
+        @test df2.y == [1, 1, 1, 4, 4, 4]
         df2 = @egen df y = maximum(x), by(group)
-        @test all(df2.y .== [3, 3, 3, 6, 6, 6])
+        @test df2.y == [3, 3, 3, 6, 6, 6]
         df2 = @egen df y = sum(x), by(group, s)
-        @test all(df2.y .== [4, 2, 4, 4, 11, 11])
+        @test df2.y == [4, 4, 2, 4, 11, 11]
         df2 = @egen df y = minimum(x), by(group, s)
-        @test all(df2.y .== [1, 2, 1, 4, 5, 5])
+        @test df2.y == [1, 1, 2, 4, 5, 5]
         df2 = @egen df y = maximum(x), by(group, s)
-        @test all(df2.y .== [3, 2, 3, 4, 6, 6])
+        @test df2.y == [3, 3, 2, 4, 6, 6]
     end
     @testset "Error handling" begin
         @test_throws ArgumentError @egen df x = 1

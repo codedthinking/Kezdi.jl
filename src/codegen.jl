@@ -100,18 +100,26 @@ function rewrite(::Val{:egen}, command::Command)
     df2 = gensym()
     sdf = gensym()
     gsdf = gensym()
-    RHS = replace_variable_references(gsdf, command.arguments[1].args[2]) |> vectorize_function_calls
+    RHS = gensym()
+    g = gensym()
     quote
         if !($target_column in names($dfname))
             local $df2 = copy($dfname)
             $df2[!, $target_column] .= missing
             local $sdf = view($df2, $bitmask, :)
-            local $gsdf = groupby($sdf, $by_cols)
-            for (i,g) in $gsdf
-                g[!, $target_column] .= $RHS[i]
+            if isnothing($by_cols)
+                local $RHS = $(replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls)
+                $sdf[!, $target_column] .= $RHS
+                $df2
+            else
+                local $gsdf = groupby($sdf, $by_cols)
+                for gr in $gsdf
+                    local $g = gr
+                    local $RHS = $(replace_variable_references(g, command.arguments[1].args[2]) |> vectorize_function_calls)
+                    gr[!, $target_column] .= $RHS
+                end
+                $df2 = combine($gsdf, names($gsdf))
             end
-            $df2 = combine($gsdf, names($gsdf))
-            $df2
         else
             ArgumentError("Column \"$($target_column)\" already exists in $(names($dfname))") |> throw
         end
