@@ -47,16 +47,27 @@ end
 
 function rewrite(::Val{:collapse}, command::Command)
     dfname = command.df
-    target_columns = get_LHS.(command.arguments)
+    #target_columns = get_LHS.(command.arguments)
     bitmask = build_bitmask(command)
+    by_cols = get_by(command)
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
-    combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
+    gsdf = gensym()
+    if isnothing(by_cols)
+        combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
+    else
+        combine_epxression = Expr(:call, :combine, gsdf, build_assignment_formula.(command.arguments)...)
+    end
     quote
         local $df2 = copy($dfname)
         local $sdf = view($df2, $bitmask, :)
-        $combine_epxression
+        if isnothing($by_cols)
+            $combine_epxression
+        else
+            local $gsdf = groupby($sdf, $by_cols)
+            $combine_epxression
+        end
     end |> esc
 end
 
@@ -84,18 +95,22 @@ function rewrite(::Val{:egen}, command::Command)
     dfname = command.df
     target_column = get_LHS(command.arguments[1])
     by_cols = get_by(command)
-    @info "By columns are $by_cols"
     bitmask = build_bitmask(command)
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
-    RHS = replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls
+    gsdf = gensym()
+    RHS = replace_variable_references(gsdf, command.arguments[1].args[2]) |> vectorize_function_calls
     quote
         if !($target_column in names($dfname))
             local $df2 = copy($dfname)
             $df2[!, $target_column] .= missing
             local $sdf = view($df2, $bitmask, :)
-            $sdf[!, $target_column] .= $RHS
+            local $gsdf = groupby($sdf, $by_cols)
+            for (i,g) in $gsdf
+                g[!, $target_column] .= $RHS[i]
+            end
+            $df2 = combine($gsdf, names($gsdf))
             $df2
         else
             ArgumentError("Column \"$($target_column)\" already exists in $(names($dfname))") |> throw
@@ -105,7 +120,6 @@ end
 
 function get_by(command::Command)
     options = command.options
-    @info "options are $options"
     for opt in options
         if opt isa Expr && opt.head == :call && opt.args[1] == :by
             return opt.args[2:end]
