@@ -3,12 +3,16 @@ rewrite(command::Command) = rewrite(Val(command.command), command)
 
 function rewrite(::Val{:generate}, command::Command)
     dfname = command.df
-    target_column = get_LHS(command.arguments[1])
+    context = command.context
+    target_column = get_LHS(command.arguments[1], context)
     bitmask = build_bitmask(command)
+    @warn bitmask
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
-    RHS = replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls
+    RHS = vectorize_function_calls(
+        replace_variable_references(sdf, command.arguments[1].args[2], context),
+        context) 
     quote
         if !($target_column in names($dfname))
             local $df2 = copy($dfname)
@@ -24,12 +28,15 @@ end
 
 function rewrite(::Val{:replace}, command::Command)
     dfname = command.df
-    target_column = get_LHS(command.arguments[1])
+    context = command.context
+    target_column = get_LHS(command.arguments[1], context)
     bitmask = build_bitmask(command)
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
-    RHS = replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls
+    RHS = vectorize_function_calls(
+        replace_variable_references(sdf, command.arguments[1].args[2], context),
+        context)
     quote
         if $target_column in names($dfname)
             local $df2 = copy($dfname)
@@ -47,12 +54,13 @@ end
 
 function rewrite(::Val{:collapse}, command::Command)
     dfname = command.df
+    context = command.context
     target_columns = get_LHS.(command.arguments)
     bitmask = build_bitmask(command)
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
-    combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
+    combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments, context)...)
     quote
         local $df2 = copy($dfname)
         local $sdf = view($df2, $bitmask, :)
@@ -73,10 +81,11 @@ end
 
 function rewrite(::Val{:drop}, command::Command)
     dfname = command.df
+    context = command.context
     if isnothing(command.condition)
         return :(select($dfname, Not(collect($(command.arguments))))) |> esc
     end 
-    bitmask = build_bitmask(dfname, :(!($command.condition)))
+    bitmask = build_bitmask(dfname, :(!($command.condition)), context)
     :($dfname[$bitmask, :]) |> esc
 end
 
@@ -90,13 +99,13 @@ function get_by(command::Command)
 
 end
 
-function get_LHS(expr::Expr)
+function get_LHS(expr::Expr, context::Context=Context())
     expr.head == :(=) || error("Expected assignment expression")
     vars = extract_variable_references(expr)
     String([y[2] for y in vars if y[1] == :LHS][1])
 end
 
-function build_assignment_formula(expr::Expr)
+function build_assignment_formula(expr::Expr, context::Context=Context())
     expr.head == :(=) || error("Expected assignment expression")
     vars = extract_variable_references(expr)
     LHS = [y[2] for y in vars if y[1] == :LHS][1]
@@ -122,14 +131,16 @@ function build_assignment_formula(expr::Expr)
     )
 end
 
-function build_bitmask(df::Any, condition::Any)
+function build_bitmask(df::Any, condition::Any, context::Context=Context())
     if condition isa Bool
         return :(BitVector($condition ? fill(1, nrow($df)) : fill(0, nrow($df))))
     end
-    replace_variable_references(df, condition) |> vectorize_function_calls
+    vectorize_function_calls(
+        replace_variable_references(df, condition, context),
+        context)
 end
 
-build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition)
+build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition, command.context)
 
 function extract_variable_references(expr::Any, left_of_assignment::Bool=false)
     if is_variable_reference(expr)
@@ -147,7 +158,7 @@ function extract_variable_references(expr::Any, left_of_assignment::Bool=false)
     end
 end
 
-function replace_variable_references(expr::Any)
+function replace_variable_references(expr::Any, context::Context=Context())
     if is_variable_reference(expr)
         return QuoteNode(expr)
     elseif expr isa Expr
@@ -161,7 +172,7 @@ function replace_variable_references(expr::Any)
     end
 end
 
-function replace_variable_references(df::Any, expr::Any)
+function replace_variable_references(df::Any, expr::Any, context::Context=Context())
     if is_variable_reference(expr)
         return Expr(Symbol("."), 
             df,
@@ -177,7 +188,8 @@ function replace_variable_references(df::Any, expr::Any)
     end
 end
 
-function vectorize_function_calls(expr::Any)
+# if not context is provided, use the default context at compile time
+function vectorize_function_calls(expr::Any, context::Context=Context())
     if expr isa Expr
         if is_function_call(expr)
             vectorized = expr.head == Symbol(".")

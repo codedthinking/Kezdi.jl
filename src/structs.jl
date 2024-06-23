@@ -9,6 +9,7 @@ struct Context
 end
 
 Context() = Context(Symbol[], DEFAULT_FLAGS)
+Base.in(s::Symbol, c::Context) = s in c.flags
 
 struct Command 
     command::Symbol
