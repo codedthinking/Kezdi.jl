@@ -83,6 +83,8 @@ end
 function rewrite(::Val{:egen}, command::Command)
     dfname = command.df
     target_column = get_LHS(command.arguments[1])
+    by_cols = get_by(command)
+    @info "By columns are $by_cols"
     bitmask = build_bitmask(command)
     # check that target_column does not exist in dfname
     df2 = gensym()
@@ -101,30 +103,14 @@ function rewrite(::Val{:egen}, command::Command)
     end |> esc
 end
 
-
 function get_by(command::Command)
-    if length(command.options) == 1
-        return :_
-    else
-        return command.arguments[2]
+    options = command.options
+    @info "options are $options"
+    for opt in options
+        if opt isa Expr && opt.head == :call && opt.args[1] == :by
+            return opt.args[2:end]
+        end
     end
-
-end
-
-function get_LHS(expr::Expr)
-    expr.head == :(=) || error("Expected assignment expression")
-    vars = extract_variable_references(expr)
-    String([y[2] for y in vars if y[1] == :LHS][1])
-end
-
-
-function get_by(command::Command)
-    if length(command.options) == 1
-        return :_
-    else
-        return command.arguments[2]
-    end
-
 end
 
 function get_LHS(expr::Expr)
