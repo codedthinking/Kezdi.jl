@@ -162,6 +162,9 @@ function build_assignment_formula(expr::Expr)
 end
 
 function build_bitmask(df::Any, condition::Any)
+    if condition isa Bool
+        return :(BitVector($condition ? fill(1, nrow($df)) : fill(0, nrow($df))))
+    end
     replace_variable_references(df, condition) |> vectorize_function_calls
 end
 

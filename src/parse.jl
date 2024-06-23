@@ -28,10 +28,10 @@ function scan(expr::Expr)::Vector{Node}
 
     for (i, arg) in enumerate(expr.args)
         if arg == expr.args[1]
-            push!(args, Node(expr.head, expr.args, i))
+            push!(args, Node(expr.head, expr.args))
         end
         if arg isa Expr
-            push!(args, Node(arg.head, arg.args, i))
+            push!(args, Node(arg.head, arg.args))
         else
             push!(args, extract_args(arg))
         end
