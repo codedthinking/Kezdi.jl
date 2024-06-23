@@ -129,9 +129,10 @@ end
             df2 = @generate df y = x @if false
             @test all(df2.y .=== missing)
             df2 = @generate df y = x @if 1 == 0
-                @test all(df2.y .=== missing)
+            @test all(df2.y .=== missing)
             end
     end
+
     @testset "Known conditions" begin
         df2 = @generate df y = x @if x < 3
         @test all(df2.y .=== [1, 2, missing, missing])
@@ -141,6 +142,7 @@ end
         df2 = @generate dfxz y = x @if z < 3
         @test all(df2.y .=== [1, 2, missing, missing])
     end
+
     @testset "Window functions operate on subset" begin
         df2 = @generate df y = sum(x) @if x < 3
         @test all(df2.y .=== [3, 3, missing, missing])

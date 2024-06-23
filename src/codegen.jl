@@ -123,10 +123,13 @@ function build_assignment_formula(expr::Expr)
 end
 
 function build_bitmask(df::Any, condition::Any)
+    if condition isa Bool
+        return :(BitVector($condition ? fill(1, nrow($df)) : fill(0, nrow($df))))
+    end
     replace_variable_references(df, condition) |> vectorize_function_calls
 end
 
-build_bitmask(command::Command) = isnothing(command.condition) || command.condition isa Bool ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition)
+build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition)
 
 function extract_variable_references(expr::Any, left_of_assignment::Bool=false)
     if is_variable_reference(expr)
