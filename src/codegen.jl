@@ -29,15 +29,20 @@ function rewrite(::Val{:replace}, command::Command)
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
+    third_vector = gensym()
     RHS = replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls
     quote
         if $target_column in names($dfname)
             local $df2 = copy($dfname)
             local $sdf = view($df2, $bitmask, :)
             if eltype($RHS) != eltype($sdf[!, $target_column])
-                $df2[!, $target_column] = convert(Vector{eltype($RHS)}, $df2[!, $target_column])
+                local $third_vector = Vector{eltype($RHS)}(undef, nrow($df2))
+                $third_vector[$bitmask] .= $RHS
+                $third_vector[.!$bitmask] .= $df2[!, $target_column][.!$bitmask]
+                $df2[!, $target_column] = $third_vector
+            else
+                $sdf[!, $target_column] .= $RHS
             end
-            $sdf[!, $target_column] .= $RHS
             $df2
         else
             ArgumentError("Column \"$($target_column)\" does not exist in $(names($dfname))") |> throw
