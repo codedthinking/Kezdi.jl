@@ -7,7 +7,7 @@ using Logging
 @reexport using CSV
 @reexport using DataFrames
 @reexport using StatsBase: mean
-@reexport using With: @with
+@reexport using With: @with, @with!
 
 include("consts.jl")
 include("structs.jl")
