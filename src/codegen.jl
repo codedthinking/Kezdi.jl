@@ -18,7 +18,7 @@ function rewrite(::Val{:generate}, command::Command)
     df2 = gensym()
     sdf = gensym()
     RHS = replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls
-    @info "bitmask is: $bitmask"
+    @debug "bitmask is: $bitmask"
     quote
         if !($target_column in names($dfname))
             local $df2 = copy($dfname)
@@ -185,10 +185,10 @@ function build_assignment_formula(expr::Expr)
 end
 
 function build_bitmask(df::Any, condition::Any)
-    @info "condition: $condition"
+    @debug "condition: $condition"
     try eval(condition)
         if eval(condition) isa Bool
-            @info "It is Bool"
+            @debug "It is Bool"
             return :(BitVector($condition ? fill(1, nrow($df)) : fill(0, nrow($df))))
         end
     catch e 
