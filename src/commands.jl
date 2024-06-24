@@ -35,3 +35,9 @@ function summarize(df::AbstractDataFrame, column::Symbol)::Summarize
         percentiles_values[9]
     )
 end
+
+function regress(df::AbstractDataFrame, formula::Expr)
+    quote
+        reg($df, $formula)
+    end
+end

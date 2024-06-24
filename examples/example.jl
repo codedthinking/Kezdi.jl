@@ -21,7 +21,7 @@ df2 = @with df begin
     @generate gdp_per_capita = gdp / population
     @egen mean_gdp_per_capita = mean(gdp_per_capita), by(group)
     @generate small_country = population < 250
-    #@regress ln(gdp) ln(population) i.group, robust
+    @regress ln(gdp) ln(population) fe(group)
     #@test ln(population) == 2
 end
 @show df2

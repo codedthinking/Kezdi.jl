@@ -32,3 +32,7 @@ end
 macro summarize(exprs...)
     :summarize |> parse(exprs) |> rewrite
 end
+
+macro regress(exprs...)
+    :regress |> parse(exprs) |> rewrite
+end

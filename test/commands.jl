@@ -324,5 +324,16 @@ end
     end
 end
 
+@testset "Regression" begin
+    @testset "Univariate" begin
+        # use alternating +1 and -1 as error term to avoid numerical instability
+        df = DataFrame(x = 1:10, y = 2 .+ 3 .* (1:10) .+ (-1) .^ (1:10))
+        @testset "Known values" begin
+            r = @regress df y  x
+            @test r.coef ≈ [1.6666666666666679, 3.0606060606060606]
+        end
+    end
+end
+
 # julia> @summarize DataFrame(x=1:11) x
 # Kezdi.Summarize(:x, 11, 11.0, 6.0, 11.0, 3.3166247903554, 0.0, -1.22, 66.0, 1.0, 11.0, 1.0, 1.05, 1.6, 3.25, 6.0, 8.75, 10.4, 10.95, 11.0)

@@ -1,8 +1,9 @@
 module Kezdi
-export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize
+export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress
 
 using Reexport
 using Logging
+@reexport using FixedEffectModels
 @reexport using Statistics
 @reexport using CSV
 @reexport using DataFrames
