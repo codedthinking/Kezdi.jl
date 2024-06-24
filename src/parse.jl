@@ -1,43 +1,39 @@
-function extract_args(arg; depth::Int64=0, position::Int64=1)::Node
-    if isa(arg, Expr)
+function extract_args(arg)::Node
+    if arg isa Expr
         if arg.head == :tuple
-            return Node(arg.head, arg.args, depth, position)
+            return Node(arg.head, arg.args)
         end
-        return Node(arg.head, arg, depth, position)
+        return Node(arg.head, arg)
     end
-    return Node(typeof(arg), arg, depth, position)
+    return Node(typeof(arg), arg)
 end
 
-function parse(exprs::Tuple)::Vector{Node}
+function scan(exprs::Tuple)::Vector{Node}
     args = Vector{Node}()
-    for (i,expr) in enumerate(exprs)
-        if isa(expr, Expr)
-            if expr.head == :macrocall
-                push!(args, parse_expr(expr; depth=1)...)
-            else
-                push!(args, extract_args(expr; depth=1, position=i))
-            end
+    for (i, expr) in enumerate(exprs)
+        if expr isa Expr && expr.head == :macrocall
+            push!(args, scan(expr)...)
         else
-            push!(args, extract_args(expr;position=i))
+            push!(args, extract_args(expr))
         end
     end
     return args
 end
 
-function parse_expr(expr::Expr; depth::Int64=0)::Vector{Node}
+function scan(expr::Expr)::Vector{Node}
     args = Vector{Node}()
     if isempty(expr.args)
         return args
     end
 
-    for (i,arg) in enumerate(expr.args)
+    for (i, arg) in enumerate(expr.args)
         if arg == expr.args[1]
-            push!(args, Node(expr.head, expr.args, depth, i))
+            push!(args, Node(expr.head, expr.args))
         end
-        if isa(arg, Expr)
-            push!(args, Node(arg.head, arg.args, depth+1, i))
+        if arg isa Expr
+            push!(args, Node(arg.head, arg.args))
         else
-            push!(args, extract_args(arg; depth=depth, position=i))
+            push!(args, extract_args(arg))
         end
     end
     return args
@@ -54,7 +50,7 @@ function construct_call(node::Node)
     return node.content
 end
 
-function transition(state::Int64,arg::Node)::Int64
+function transition(state::Int64, arg::Node)::Int64
     ## from command to condition
     if arg.content == Symbol("@if") && state == 1
         state = 2
@@ -76,37 +72,55 @@ function transition(state::Int64,arg::Node)::Int64
     return state
 end
 
-function transpile(exprs::Tuple, command::Symbol)::Command
-    ast = parse(exprs)
+function isassignment(node::Node)
+    return node.type == :(=)
+end
+
+function splitassignment(node::Node)
+    if isassignment(node)
+        expr = node.content
+        return (expr.args[1], expr.args[2])
+    end
+end
+
+function parse(exprs::Tuple, command::Symbol)::Command
+    ast = scan(exprs)
     @debug "AST is $ast"
     arguments = Vector{Node}()
     options = Vector{Node}()
     condition = nothing
     state = 1
     @debug "Starting in command"
-    for arg in ast
-        if state == 1
-            if arg.type in [:call, Symbol, Int64, :(=)] && arg.content != Symbol("@if")
-                push!(arguments, arg)
+    for (i, arg) in enumerate(ast)
+        @debug "In state $state, argument number $i is $arg"
+        if isassignment(arg)
+            LHS, RHS = splitassignment(arg)
+            next_arg = extract_args(RHS)
+            if next_arg.type == :tuple
+                push!(arguments, extract_args(:($LHS = $(next_arg.content[1]))))
+                push!(options, extract_args(next_arg.content[2]))
+                state = transition(state, next_arg)
+                continue
             end
+        end
+        if state == 1
             if arg.type == :tuple
                 push!(arguments, extract_args(arg.content[1]))
                 push!(options, extract_args(arg.content[2]))
+            elseif arg.type != :macrocall && arg.content != Symbol("@if")
+                push!(arguments, arg)
             end
         end
         if state == 2
-            if arg.type in [:call, Symbol, Int64, :&&, :||]
-                condition = arg
-            end
             if arg.type == :tuple
                 condition = extract_args(arg.content[1])
                 push!(options, extract_args(arg.content[2]))
+            else
+                condition = arg
             end
         end
         if state == 3
-            if arg.type in [:call, :macrocall, Symbol, Int64]
-                push!(options, arg)
-            end
+            push!(options, arg)
         end
         state = transition(state, arg)
     end
@@ -115,8 +129,10 @@ function transpile(exprs::Tuple, command::Symbol)::Command
     @debug "Options are $options"
     arguments = Tuple(construct_call(arg) for arg in arguments)
     options = Tuple(construct_call(opt) for opt in options)
-    if isa(condition, Node)
+    if condition isa Node
         condition = construct_call(condition)
     end
     return Command(command, arguments, condition, options)
 end
+
+parse(exprs::Tuple) = x::Symbol -> parse(exprs, x)
