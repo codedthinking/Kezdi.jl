@@ -308,6 +308,20 @@ end
         @test s.p95 ≈ 10.95
         @test s.p99 ≈ 11.0
     end
+
+    @testset "If" begin
+        df = DataFrame(x = 1:10)
+        s = @summarize df x @if x < 5
+        @test s.N == 4
+        @test s.mean == 2.5
+    end
+
+    @testset "Missing values" begin
+        df = DataFrame(x = [1, missing, 3])
+        s = @summarize df x
+        @test s.N == 2
+        @test s.mean == 2.0        
+    end
 end
 
 # julia> @summarize DataFrame(x=1:11) x

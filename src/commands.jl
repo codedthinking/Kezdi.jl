@@ -1,5 +1,5 @@
 function summarize(df::AbstractDataFrame, column::Symbol)::Summarize
-    data = df[!, column]
+    data = df[!, column] |> skipmissing |> collect
     n = length(data)
     sum_val = sum(data)
     mean_val = mean(data)
