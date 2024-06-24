@@ -28,3 +28,7 @@ end
 macro drop(exprs...)
     :drop |> parse(exprs) |> rewrite
 end
+
+macro summarize(exprs...)
+    :summarize |> parse(exprs) |> rewrite
+end
