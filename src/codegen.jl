@@ -14,11 +14,10 @@ function rewrite(::Val{:regress}, command::Command)
     dfname = command.df
     bitmask = build_bitmask(command)
     variables = command.arguments
-    formula = macroexpand(Main, :(@formula($(variables[1]) ~ $(sum(variables[2:end])))))
     sdf = gensym()
     quote
         local $sdf = view($dfname, $bitmask, :)
-        reg($sdf, $formula)
+        reg($sdf, @formula $(variables[1]) ~ $(sum(variables[2:end])))
     end |> esc
 end
 
