@@ -38,5 +38,28 @@ struct Summarize
     p99::Float64
 end
 
+function Base.show(io::IO, s::Summarize)
+    println(io, "Summarize ", s.name, ":")
+    println(io, "  N = ", s.N)
+    println(io, "  sum_w = ", s.sum_w)
+    println(io, "  mean = ", s.mean)
+    println(io, "  Var = ", s.Var)
+    println(io, "  sd = ", s.sd)
+    println(io, "  skewness = ", s.skewness)
+    println(io, "  kurtosis = ", s.kurtosis)
+    println(io, "  sum = ", s.sum)
+    println(io, "  min = ", s.min)
+    println(io, "  max = ", s.max)
+    println(io, "  p1 = ", s.p1)
+    println(io, "  p5 = ", s.p5)
+    println(io, "  p10 = ", s.p10)
+    println(io, "  p25 = ", s.p25)
+    println(io, "  p50 = ", s.p50)
+    println(io, "  p75 = ", s.p75)
+    println(io, "  p90 = ", s.p90)
+    println(io, "  p95 = ", s.p95)
+    println(io, "  p99 = ", s.p99)
+end
+
 # if DataFrame is not explicitly defined, use the first argument
 Command(command::Symbol, arguments::Tuple, condition, options) = Command(command, arguments[1], arguments[2:end], condition, options)

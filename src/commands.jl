@@ -12,7 +12,7 @@ function summarize(df::AbstractDataFrame, column::Symbol)::Summarize
     percentiles = [1, 5, 10, 25, 50, 75, 90, 95, 99]
     percentiles_values = quantile(data, percentiles ./ 100; alpha=0.5, beta=0.5)
 
-    return Summarize(
+    Summarize(
         column,
         n,
         n,
