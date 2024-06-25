@@ -12,7 +12,7 @@ Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
-With = {url = "https://github.com/codedthinking/With.jl.git"}
+With = "acd23e61-7c8e-4166-a7ce-716dcf7a99f5"
 
 [extras]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
