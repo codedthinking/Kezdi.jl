@@ -260,8 +260,13 @@ function vectorize_function_calls(expr::Any)
         if is_function_call(expr)
             vectorized = expr.head == Symbol(".")
             fname = expr.args[1]
-            if vectorized || fname in DO_NOT_VECTORIZE || (length(methodswith(Vector, eval(fname); supertypes=true)) > 0)
+            if vectorized
                 return Expr(expr.head, fname, vectorize_function_calls.(expr.args[2:end])...)
+            elseif fname in DO_NOT_VECTORIZE || (length(methodswith(Vector, eval(fname); supertypes=true)) > 0)
+                return Expr(expr.head, fname, 
+                    Expr(:call, :skipmissing, 
+                    vectorize_function_calls.(expr.args[2:end])...)
+                )
             else
                 return Expr(Symbol("."), fname,
                     Expr(:tuple,     

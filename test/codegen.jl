@@ -10,11 +10,11 @@ end
     @test_expr vectorize_function_calls(:(div(x, y))) == :(div.(x, y))
     @test_expr vectorize_function_calls(:(1 + div(x, y, z))) == :(1 .+ div.(x, y, z))
     @testset "Do not vectorize" begin
-        @test_expr vectorize_function_calls(:(mean(x))) == :(mean(x))
-        @test_expr vectorize_function_calls(:(mean(x) + log(y))) == :(mean(x) .+ log.(y))
+        @test_expr vectorize_function_calls(:(mean(x))) == :(mean(skipmissing(x)))
+        @test_expr vectorize_function_calls(:(mean(x) + log(y))) == :(mean(skipmissing(x)) .+ log.(y))
         @test_expr vectorize_function_calls(:(log.(x))) == :(log.(x))
-        @test_expr vectorize_function_calls(:(log(x) + sum(y))) == :(log.(x) .+ sum(y))
-        @test_expr vectorize_function_calls(:(wsum(x))) == :(wsum(x))
-        @test_expr vectorize_function_calls(:(std(x))) == :(std(x))
+        @test_expr vectorize_function_calls(:(log(x) + sum(y))) == :(log.(x) .+ sum(skipmissing(y)))
+        @test_expr vectorize_function_calls(:(wsum(x))) == :(wsum(skipmissing(x)))
+        @test_expr vectorize_function_calls(:(std(x))) == :(std(skipmissing(x)))
     end
 end

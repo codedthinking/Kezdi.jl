@@ -98,6 +98,13 @@ end
         @test all(df2.y .== sum(df.x))
         @test all(df2.z .== minimum(df.x))
     end
+    @testset "Missing values" begin
+        df = DataFrame(x = [1, missing, 3])
+        df2 = @collapse df y = sum(x)
+        @test df2.y == [4]
+        df2 = @collapse df y = mean(x)
+        @test df2.y == [2.0]
+    end
     @testset "Vectorized does not collapse" begin
         df = DataFrame(x = 1:4, z = 5:8)
         df2 = @collapse df y = sum.(x)
@@ -146,6 +153,12 @@ end
         @test all(df2.y .== df.x)
         df2 = @egen df y = maximum.(x)
         @test all(df2.y .== df.x)
+    end
+
+    @testset "Missing values" begin
+        df2 = DataFrame(x = [1, missing, 3])
+        @test all((@egen df2 y = sum(x)).y .== 4)
+        @test all((@egen df2 y = mean(x)).y .== 2.0)
     end
     @testset "Do not replace special variable names" begin
         df2 = @egen df y = missing
