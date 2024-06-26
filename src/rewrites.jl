@@ -91,13 +91,14 @@ function rewrite(::Val{:collapse}, command::Command)
 end
 
 function rewrite(::Val{:keep}, command::Command)
-    dfname = command.df
-    bitmask = build_bitmask(command)
-    # check that target_column does not exist in dfname
-    df2 = gensym()
+    gc = generate_command(command; options=[:variables, :ifable])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
+    output = gensym()
     quote
-        local $df2 = copy($dfname)
-        view($df2, $bitmask,  isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments))
+        $setup
+        local $output = $sdf[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]
+        $teardown
+        $output
     end |> esc
 end
 
