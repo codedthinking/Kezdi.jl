@@ -6,7 +6,7 @@ function rewrite(::Val{:summarize}, command::Command)
     column = extract_variable_references(command.arguments[1])
     bitmask = build_bitmask(command)
     quote
-        Kezdi.summarize(view($dfname, $bitmask, :), $column[1][2])
+        Kezdi.summarize(view($dfname, $bitmask, :), $column[1])
     end |> esc
 end
 
@@ -28,11 +28,14 @@ function rewrite(::Val{:generate}, command::Command)
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
-    RHS = replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls
-    @debug "bitmask is: $bitmask"
+    lhs, rhs = split_assignment(command.arguments[1])
+    RHS = replace_variable_references(sdf, rhs) |> vectorize_function_calls
+    vars = extract_variable_references(rhs)
+    #var_expr = add_special_variables(df2, vars)
     quote
         if !($target_column in names($dfname))
             local $df2 = copy($dfname)
+            #$var_expr
             $df2[!, $target_column] .= missing
             local $sdf = view($df2, $bitmask, :)
             $sdf[!, $target_column] .= $RHS
@@ -45,13 +48,15 @@ end
 
 function rewrite(::Val{:replace}, command::Command)
     dfname = command.df
+    lhs, rhs = split_assignment(command.arguments[1])
     target_column = get_LHS(command.arguments[1])
     bitmask = build_bitmask(command)
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
     third_vector = gensym()
-    RHS = replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls
+    RHS = replace_variable_references(sdf, rhs) |> vectorize_function_calls
+    #add_special_variables(df2, extract_variable_references(RHS) |> map(x -> x[2]) |> collect)
     quote
         if $target_column in names($dfname)
             local $df2 = copy($dfname)
@@ -128,6 +133,7 @@ function rewrite(::Val{:egen}, command::Command)
     gsdf = gensym()
     RHS = gensym()
     g = gensym()
+    #add_special_variables(df2, extract_variable_references(command.arguments[1].args[2]) |> map(x -> x[2]) |> collect)
     quote
         if !($target_column in names($dfname))
             local $df2 = copy($dfname)
@@ -162,18 +168,15 @@ function get_by(command::Command)
 end
 
 function get_LHS(expr::Expr)
-    expr.head == :(=) || error("Expected assignment expression")
-    vars = extract_variable_references(expr)
-    String([y[2] for y in vars if y[1] == :LHS][1])
+    LHS, RHS = split_assignment(expr)
+    LHS |> extract_variable_references |> first |> String
 end
 
 function build_assignment_formula(expr::Expr)
     expr.head == :(=) || error("Expected assignment expression")
-    vars = extract_variable_references(expr)
-    LHS = [y[2] for y in vars if y[1] == :LHS][1]
-    RHS = [y[2] for y in vars if y[1] == :RHS]
-    @debug LHS
-    @debug RHS
+    _, RHS = split_assignment(expr)
+    LHS = get_LHS(expr)
+    RHS = extract_variable_references(RHS) 
     if length(RHS) == 0
         # if no variable is used in RHS of assignment, create an anonymous variable
         columns_to_transform = :(AsTable([]))
@@ -209,16 +212,33 @@ end
 
 build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition)
 
-function extract_variable_references(expr::Any, left_of_assignment::Bool=false)
+function add_special_variables(df::Any, varlist::Vector)
+    exprs = [] 
+    if :_n in varlist
+        push!(exprs, :($(df)[!, :_n] = 1:nrow($df)))
+    end
+    if :_N in varlist
+        push!(exprs, :($(df)[!, :_N] = nrow($df)))
+    end
+    Expr(:block, exprs...)
+end    
+
+function split_assignment(expr::Any)
+    if expr isa Expr && expr.head == :(=)
+        return (expr.args[1], expr.args[2])
+    else
+        error("Expected assignment expression, got $expr")
+    end
+end
+
+function extract_variable_references(expr::Any)
     if is_variable_reference(expr)
-        return left_of_assignment ? [(:LHS, expr)] : [(:RHS, expr)]
+        return [expr]
     elseif expr isa Expr
         if is_function_call(expr)
-            return vcat(extract_variable_references.(expr.args[2:end], left_of_assignment)...)
-        elseif expr.head == Symbol("=")
-            return vcat(extract_variable_references.(expr.args[1:1], true)..., extract_variable_references.(expr.args[2:end], false)...)
+            return vcat(extract_variable_references.(expr.args[2:end])...)
         else
-            return vcat(extract_variable_references.(expr.args, left_of_assignment)...)
+            return vcat(extract_variable_references.(expr.args)...)
         end
     else
         return []
