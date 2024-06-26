@@ -40,14 +40,22 @@ function scan(expr::Expr)::Vector{Node}
 end
 
 function construct_call(node::Node)
-    if node.type == :call || node.type in [:&&, :||]
-        if typeof(node.content) == Expr
-            return node.content
-        else
-            return Expr(node.type, node.content...)
-        end
+    if !(node.type in [:&&, :||, :call])
+        return node.content
     end
-    return node.content
+
+    if node.type in [:&&, :||] && typeof(node.content) != Expr
+        return Expr(Symbol("." * String(node.type)), node.content...)
+    end
+
+    if typeof(node.content) == Expr
+        if node.type in [:&&, :||]
+            return Expr(Symbol("." * String(node.type)), node.content.args...)
+        end
+        return node.content
+    end
+
+    return Expr(node.type, node.content...)
 end
 
 function transition(state::Int64, arg::Node)::Int64
