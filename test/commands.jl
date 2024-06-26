@@ -48,6 +48,8 @@
 
     @testset "Error handling" begin
         @test_throws ArgumentError @generate df x = 1
+        @test_throws ArgumentError @generate df y
+        @test_throws ArgumentError @generate df y = x z = 4
     end
 end
 
@@ -83,6 +85,8 @@ end
 
     @testset "Error handling" begin
         @test_throws ArgumentError @replace df y = 1
+        @test_throws ArgumentError @replace df x
+        @test_throws ArgumentError @replace df x z
     end
 end
 
@@ -136,6 +140,10 @@ end
         @test df2.y == [4, 2, 4, 11]
         df2 = @collapse df y = minimum(x), by(group, s)
         @test df2.y == [1, 2, 4, 5]
+    end
+    @testset "Error handling" begin
+        df = DataFrame(x = 1:4, z = 5:8)
+        @test_throws ArgumentError @collapse df  x z 
     end
 end
 
@@ -198,6 +206,7 @@ end
     end
     @testset "Error handling" begin
         @test_throws ArgumentError @egen df x = 1
+        @test_throws ArgumentError @egen df z
     end
 end
 
@@ -209,12 +218,18 @@ end
     @test !("b" in names(@keep df a @if a < 3))
     df2 = @keep df a @if b > 6
     @test all(df2.a .== [3, 4])
+    @testset "Error handling" begin
+        @test_throws ArgumentError @keep df a, by(b)
+    end
 end
 
 @testset "Drop if" begin
     df = DataFrame(a = 1:4, b = 5:8)
     @test "a" in names(@drop df b)
     @test !("b" in names(@drop df b))
+    @testset "Error handling" begin
+        @test_throws ArgumentError @drop df a, by(b)
+    end
 end
 
 

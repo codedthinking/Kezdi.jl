@@ -9,13 +9,13 @@ function generate_command(command::Command; options=[])
 
     # check for syntax
     if !(:ifable in options) && !isnothing(command.condition)
-        error("@if not allowed for this command: $(command.command)")
+        ArgumentError("@if not allowed for this command: $(command.command)") |> throw
     end
     if (:single_argument in options) && length(command.arguments) > 1
-        error("Exactly one argument is required for this command: $(command.command)")
+        ArgumentError("Exactly one argument is required for this command: $(command.command)") |> throw
     end
     if (:assignment in options) && !all(isassignment.(command.arguments))
-        error("$(command.command) requires an assignment like y = x + 1")
+        ArgumentError("$(command.command) requires an assignment like y = x + 1") |> throw
     end
 
     push!(setup, :(local $df2 = copy($dfname)))
@@ -69,7 +69,7 @@ function get_by(command::Command)
     end
 end
 
-function get_LHS(expr::Expr)
+function get_LHS(expr)
     LHS, RHS = split_assignment(expr)
     LHS |> extract_variable_references |> first |> String
 end
@@ -113,7 +113,7 @@ function split_assignment(expr::Any)
     if isassignment(expr)
         return (expr.args[1], expr.args[2])
     else
-        error("Expected assignment expression, got $expr")
+        ArgumentError("Expected assignment expression, got $expr") |> throw
     end
 end
 
