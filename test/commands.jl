@@ -279,6 +279,8 @@ end
             @test all(df2.y .== sum(df.x))
             df2 = @egen df y = sum(x) @if x < 6 && 2+2 == 4
             @test all(df2.y .== sum(df.x))
+            df = @egen df y = sum(x) @if s in ["red", "blue"]
+            @test all(df.y .== sum(df.x))
             end
         @testset "False" begin
             df2 = @egen df y = sum(x) @if false
@@ -301,6 +303,8 @@ end
             @test all(df2.y .== sum(df.x))
             df2 = @egen df y = sum(x) @if  2+2 == 5 || x > 6
             @test all(df2.y .== sum(df.x))
+            df2 = @egen df y = sum(x) @if s in ["green", "yellow"]
+            @test all(df2.y .=== missing)
             end
     end
     @testset "Known conditions" begin
