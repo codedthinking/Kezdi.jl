@@ -45,31 +45,27 @@ function rewrite(::Val{:generate}, command::Command)
 end
 
 function rewrite(::Val{:replace}, command::Command)
-    dfname = command.df
-    lhs, rhs = split_assignment(command.arguments[1])
+    gc = generate_command(command; options=[:single_argument, :variables, :ifable, :replace_variables, :vectorize, :assignment])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     target_column = get_LHS(command.arguments[1])
-    # check that target_column does not exist in dfname
-    df2 = gensym()
-    sdf = gensym()
+    LHS, RHS = split_assignment(arguments[1])
     third_vector = gensym()
-    bitmask = build_bitmask(df2, command.condition)
-    RHS = replace_variable_references(sdf, rhs) |> vectorize_function_calls
-    #add_special_variables(df2, extract_variable_references(RHS) |> map(x -> x[2]) |> collect)
+    bitmask = build_bitmask(local_copy, vectorize_function_calls(replace_variable_references(local_copy, command.condition)))
     quote
-        if $target_column in names($dfname)
-            local $df2 = copy($dfname)
-            local $sdf = view($df2, $bitmask, :)
+        if !($target_column in names($df))
+            ArgumentError("Column \"$($target_column)\" does not exist in $(names($df))") |> throw
+        else
+            $setup
             if eltype($RHS) != eltype($sdf[!, $target_column])
-                local $third_vector = Vector{eltype($RHS)}(undef, nrow($df2))
+                local $third_vector = Vector{eltype($RHS)}(undef, nrow($local_copy))
                 $third_vector[$bitmask] .= $RHS
-                $third_vector[.!$bitmask] .= $df2[!, $target_column][.!$bitmask]
-                $df2[!, $target_column] = $third_vector
+                $third_vector[.!$bitmask] .= $local_copy[!, $target_column][.!$bitmask]
+                $local_copy[!, $target_column] = $third_vector
             else
                 $sdf[!, $target_column] .= $RHS
             end
-            $df2
-        else
-            ArgumentError("Column \"$($target_column)\" does not exist in $(names($dfname))") |> throw
+            $teardown
+            $local_copy
         end
     end |> esc
 end
