@@ -71,26 +71,20 @@ function rewrite(::Val{:replace}, command::Command)
 end
 
 function rewrite(::Val{:collapse}, command::Command)
-    dfname = command.df
-    #target_columns = get_LHS.(command.arguments)
-    bitmask = build_bitmask(command)
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     by_cols = get_by(command)
-    # check that target_column does not exist in dfname
-    df2 = gensym()
-    sdf = gensym()
-    gsdf = gensym()
     if isnothing(by_cols)
         combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
     else
-        combine_epxression = Expr(:call, :combine, gsdf, build_assignment_formula.(command.arguments)...)
+        combine_epxression = Expr(:call, :combine, gdf, build_assignment_formula.(command.arguments)...)
     end
     quote
-        local $df2 = copy($dfname)
-        local $sdf = view($df2, $bitmask, :)
+        $setup
         if isnothing($by_cols)
             $combine_epxression
         else
-            local $gsdf = groupby($sdf, $by_cols)
+            local $gdf = groupby($sdf, $by_cols)
             $combine_epxression
         end
     end |> esc

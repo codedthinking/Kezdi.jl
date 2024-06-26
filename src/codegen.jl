@@ -50,7 +50,7 @@ function generate_command(command::Command; options=[])
             push!(setup, :(local $sdf = view($df2, $bitmask, :)))
         end
     end
-    GeneratedCommand(dfname, df2, sdf, nothing, Expr(:block, setup...), Expr(:block, teardown...), collect(process.(command.arguments)))
+    GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), Expr(:block, teardown...), collect(process.(command.arguments)))
 end
 
 function get_by(command::Command)
