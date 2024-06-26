@@ -5,10 +5,8 @@ function rewrite(::Val{:summarize}, command::Command)
     dfname = command.df
     column = extract_variable_references(command.arguments[1])
     bitmask = build_bitmask(command)
-    indexes = gensym()
     quote
-        local $indexes = BitVector(zeros(Bool, nrow($dfname))) .| $bitmask
-        Kezdi.summarize(view($dfname, $indexes, :), $column[1][2])
+        Kezdi.summarize(view($dfname, $bitmask, :), $column[1][2])
     end |> esc
 end
 
@@ -17,10 +15,8 @@ function rewrite(::Val{:regress}, command::Command)
     bitmask = build_bitmask(command)
     variables = command.arguments
     sdf = gensym()
-    indexes = gensym()
     quote
-        local $indexes = BitVector(zeros(Bool, nrow($dfname))) .| $bitmask
-        local $sdf = view($dfname, $indexes, :)
+        local $sdf = view($dfname, $bitmask, :)
         reg($sdf, @formula $(variables[1]) ~ $(sum(variables[2:end])))
     end |> esc
 end
@@ -32,14 +28,12 @@ function rewrite(::Val{:generate}, command::Command)
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
-    indexes = gensym()
     RHS = replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls
     quote
         if !($target_column in names($dfname))
             local $df2 = copy($dfname)
             $df2[!, $target_column] .= missing
-            local $indexes = BitVector(zeros(Bool, nrow($df2))) .| $bitmask
-            local $sdf = view($df2, $indexes, :)
+            local $sdf = view($df2, $bitmask, :)
             $sdf[!, $target_column] .= $RHS
             $df2
         else
@@ -56,13 +50,11 @@ function rewrite(::Val{:replace}, command::Command)
     df2 = gensym()
     sdf = gensym()
     third_vector = gensym()
-    indexes = gensym() 
     RHS = replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls
     quote
         if $target_column in names($dfname)
             local $df2 = copy($dfname)
-            local $indexes = BitVector(zeros(Bool, nrow($df2))) .| $bitmask
-            local $sdf = view($df2, $indexes, :)
+            local $sdf = view($df2, $bitmask, :)
             if eltype($RHS) != eltype($sdf[!, $target_column])
                 local $third_vector = Vector{eltype($RHS)}(undef, nrow($df2))
                 $third_vector[$bitmask] .= $RHS
@@ -87,7 +79,6 @@ function rewrite(::Val{:collapse}, command::Command)
     df2 = gensym()
     sdf = gensym()
     gsdf = gensym()
-    indexes = gensym()
     if isnothing(by_cols)
         combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
     else
@@ -95,8 +86,7 @@ function rewrite(::Val{:collapse}, command::Command)
     end
     quote
         local $df2 = copy($dfname)
-        local $indexes = BitVector(zeros(Bool, nrow($df2))) .| $bitmask
-        local $sdf = view($df2, $indexes, :)
+        local $sdf = view($df2, $bitmask, :)
         if isnothing($by_cols)
             $combine_epxression
         else
@@ -111,11 +101,9 @@ function rewrite(::Val{:keep}, command::Command)
     bitmask = build_bitmask(command)
     # check that target_column does not exist in dfname
     df2 = gensym()
-    indexes = gensym()
     quote
         local $df2 = copy($dfname)
-        local $indexes = BitVector(zeros(Bool, nrow($df2))) .| $bitmask
-        view($df2, $indexes,  isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments))
+        view($df2, $bitmask,  isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments))
     end |> esc
 end
 
@@ -139,13 +127,11 @@ function rewrite(::Val{:egen}, command::Command)
     gsdf = gensym()
     RHS = gensym()
     g = gensym()
-    indexes = gensym()
     quote
         if !($target_column in names($dfname))
             local $df2 = copy($dfname)
             $df2[!, $target_column] .= missing
-            local $indexes = BitVector(zeros(Bool, nrow($df2))) .| $bitmask
-            local $sdf = view($df2, $indexes, :)
+            local $sdf = view($df2, $bitmask, :)
             if isnothing($by_cols)
                 local $RHS = $(replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls)
                 $sdf[!, $target_column] .= $RHS
@@ -209,7 +195,9 @@ function build_assignment_formula(expr::Expr)
 end
 
 function build_bitmask(df::Any, condition::Any)
-    replace_variable_references(df, condition) |> vectorize_function_calls
+    mask = replace_variable_references(df, condition) |> vectorize_function_calls
+    bitvector = :(BitVector(zeros(Bool, nrow($(df)))))
+    :($bitvector .|= $mask)
 end
 
 build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition)
