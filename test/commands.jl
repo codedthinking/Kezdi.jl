@@ -256,9 +256,9 @@ end
             df2 = @egen df y = sum(x) @if 2 > 4
             @test all(df2.y .=== missing)
             df2 = @egen df y = sum(x) @if 2+2 != 4
-            @test all(df2.y .== missing)
+            @test all(df2.y .=== missing)
             df2 = @egen df y = sum(x) @if 2+2 == 4 && 2+2 == 5
-            @test all(df2.y .== missing)
+            @test all(df2.y .=== missing)
             end
     end
     @testset "Known conditions" begin
