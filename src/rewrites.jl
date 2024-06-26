@@ -119,37 +119,31 @@ function rewrite(::Val{:drop}, command::Command)
 end
 
 function rewrite(::Val{:egen}, command::Command)
-    dfname = command.df
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     target_column = get_LHS(command.arguments[1])
     by_cols = get_by(command)
-    bitmask = build_bitmask(command)
-    # check that target_column does not exist in dfname
-    df2 = gensym()
-    sdf = gensym()
-    gsdf = gensym()
     RHS = gensym()
     g = gensym()
-    #add_special_variables(df2, extract_variable_references(command.arguments[1].args[2]) |> map(x -> x[2]) |> collect)
     quote
-        if !($target_column in names($dfname))
-            local $df2 = copy($dfname)
-            $df2[!, $target_column] .= missing
-            local $sdf = view($df2, $bitmask, :)
+        if ($target_column in names($df))
+            ArgumentError("Column \"$($target_column)\" already exists in $(names($df))") |> throw
+        else
+            $setup
+            $local_copy[!, $target_column] .= missing
             if isnothing($by_cols)
                 local $RHS = $(replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls)
                 $sdf[!, $target_column] .= $RHS
-                $df2
+                $local_copy
             else
-                local $gsdf = groupby($sdf, $by_cols)
-                for gr in $gsdf
-                    local $g = gr
+                local $gdf = groupby($sdf, $by_cols)
+                for i in $gdf
+                    local $g = i
                     local $RHS = $(replace_variable_references(g, command.arguments[1].args[2]) |> vectorize_function_calls)
-                    gr[!, $target_column] .= $RHS
+                    $g[!, $target_column] .= $RHS
                 end
-                $df2 = combine($gsdf, names($gsdf))
+                $local_copy = combine($gdf, names($gdf))
             end
-        else
-            ArgumentError("Column \"$($target_column)\" already exists in $(names($dfname))") |> throw
         end
     end |> esc
 end
