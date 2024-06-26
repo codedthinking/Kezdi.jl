@@ -1,4 +1,56 @@
 function generate_command(command::Command; options=[])
+    dfname = command.df
+    df2 = gensym()
+    sdf = gensym()
+    setup = Expr[]
+    teardown = Expr[]
+    process = (x -> x)
+
+    # check for syntax
+    if !(:ifable in options) && !isnothing(command.condition)
+        error("@if not allowed for this command: $(command.command)")
+    end
+    if (:single_argument in options) && length(command.arguments) > 1
+        error("Exactly one argument is required for this command: $(command.command)")
+    end
+    if (:assignment in options) && !all(isassignment.(command.arguments))
+        error("$(command.command) requires an assignment like y = x + 1")
+    end
+
+    push!(setup, :(local $df2 = copy($dfname)))
+    if :variables in options
+        if :ifable in options
+            variables = vcat(extract_variable_references.(vcat(command.arguments, command.condition))...)
+        else
+            variables = vcat(extract_variable_references.(command.arguments)...)
+        end
+    else
+        variables = Symbol[]
+    end
+    if :replace_variables in options
+        process(x) = replace_variable_references(df2, x)
+    end
+    if :vectorize in options
+        process = vectorize_function_calls ∘ process
+    end
+    if :_n in variables
+        push!(setup, :($(df2)[!, "_n"] .= 1:nrow($df2)))
+        push!(teardown, :(select!($df2, Not(:_n))))
+    end
+    if :_N in variables
+        push!(setup, :($(df2)[!, "_N"] .= nrow($df2)))
+        push!(teardown, :(select!($df2, Not(:_N))))
+    end
+    if :ifable in options
+        condition = vectorize_function_calls(replace_variable_references(df2, command.condition))
+        if isnothing(condition)
+            push!(setup, :(local $sdf = $df2))
+        else
+            bitmask = build_bitmask(df2, condition)
+            push!(setup, :(local $sdf = view($df2, $bitmask, :)))
+        end
+    end
+    GeneratedCommand(dfname, df2, sdf, nothing, Expr(:block, setup...), Expr(:block, teardown...), collect(process.(command.arguments)))
 end
 
 function get_by(command::Command)
@@ -50,19 +102,8 @@ end
 
 build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition)
 
-function add_special_variables(df::Any, varlist::Vector{Symbol})
-    exprs = [] 
-    if :_n in varlist
-        push!(exprs, :($(df)[!, "_n"] .= 1:nrow($df)))
-    end
-    if :_N in varlist
-        push!(exprs, :($(df)[!, "_N"] .= nrow($df)))
-    end
-    Expr(:block, exprs...)
-end    
-
 function split_assignment(expr::Any)
-    if expr isa Expr && expr.head == :(=)
+    if isassignment(expr)
         return (expr.args[1], expr.args[2])
     else
         error("Expected assignment expression, got $expr")
@@ -153,3 +194,17 @@ is_dotted_operator(x::Any) = x isa Symbol && String(x)[1] == '.' && Symbol(Strin
 
 isalphanumeric(c::AbstractChar) = isletter(c) || isdigit(c) || c == '_'
 isalphanumeric(str::AbstractString) = all(isalphanumeric, str)
+
+isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args) == 2
+
+# this is to be deleted after refactoring
+function add_special_variables(df::Any, varlist::Vector{Symbol})
+    exprs = [] 
+    if :_n in varlist
+        push!(exprs, :($(df)[!, "_n"] .= 1:nrow($df)))
+    end
+    if :_N in varlist
+        push!(exprs, :($(df)[!, "_N"] .= nrow($df)))
+    end
+    Expr(:block, exprs...)
+end  

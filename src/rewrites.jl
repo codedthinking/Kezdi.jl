@@ -11,13 +11,14 @@ function rewrite(::Val{:summarize}, command::Command)
 end
 
 function rewrite(::Val{:regress}, command::Command)
-    dfname = command.df
-    bitmask = build_bitmask(command)
-    variables = command.arguments
-    sdf = gensym()
+    gc = generate_command(command; options=[:variables, :ifable])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
+    r = gensym()
     quote
-        local $sdf = view($dfname, $bitmask, :)
-        reg($sdf, @formula $(variables[1]) ~ $(sum(variables[2:end])))
+        $setup
+        local $r = reg($sdf, @formula $(arguments[1]) ~ $(sum(arguments[2:end])))
+        $teardown
+        $r
     end |> esc
 end
 

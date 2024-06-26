@@ -14,10 +14,11 @@ end
 struct GeneratedCommand
     df::Any
     local_copy::Symbol
-    sdf::Symbol
-    gdf::Symbol
-    setup::Vector{Expr}
-    teardown::Vector{Expr}
+    sdf::Union{Symbol, Nothing}
+    gdf::Union{Symbol, Nothing}
+    setup::Expr
+    teardown::Expr
+    arguments::Vector{Any}
 end
 
 using DataFrames
