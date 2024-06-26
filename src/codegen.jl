@@ -199,18 +199,10 @@ function build_assignment_formula(expr::Expr)
 end
 
 function build_bitmask(df::Any, condition::Any)
-    if isnothing(condition)
-        return :(BitVector(fill(1, nrow($df))))
-    end
-    @debug "condition: $condition"
-    try eval(condition)
-        if eval(condition) isa Bool
-            @debug "It is Bool"
-            return :(BitVector($condition ? fill(1, nrow($df)) : fill(0, nrow($df))))
-        end
-    catch e 
-        replace_variable_references(df, condition) |> vectorize_function_calls
-    end
+    condition = condition isa Nothing ? true : condition
+    mask = replace_variable_references(df, condition) |> vectorize_function_calls
+    bitvector = :(BitVector(zeros(Bool, nrow($(df)))))
+    :($bitvector .|= $mask)
 end
 
 build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition)
