@@ -5,6 +5,7 @@ function generate_command(command::Command; options=[])
     setup = Expr[]
     teardown = Expr[]
     process = (x -> x)
+    tdfunction = gensym()
 
     # check for syntax
     if !(:ifable in options) && !isnothing(command.condition)
@@ -50,7 +51,13 @@ function generate_command(command::Command; options=[])
             push!(setup, :(local $sdf = view($df2, $bitmask, :)))
         end
     end
-    GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), Expr(:block, teardown...), collect(process.(command.arguments)))
+    push!(setup, quote
+        function $tdfunction(x)
+            $(Expr(:block, teardown...))
+            x
+        end
+    end)
+    GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), tdfunction, collect(process.(command.arguments)))
 end
 
 function get_by(command::Command)

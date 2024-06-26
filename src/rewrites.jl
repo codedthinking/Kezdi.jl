@@ -5,24 +5,18 @@ function rewrite(::Val{:summarize}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :single_argument])
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     column = extract_variable_references(command.arguments[1])
-    s = gensym()
     quote
         $setup
-        local $s = Kezdi.summarize($sdf, $column[1])
-        $teardown
-        $s
+        Kezdi.summarize($sdf, $column[1]) |> $teardown
     end |> esc
 end
 
 function rewrite(::Val{:regress}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable])
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
-    r = gensym()
     quote
         $setup
-        local $r = reg($sdf, @formula $(arguments[1]) ~ $(sum(arguments[2:end])))
-        $teardown
-        $r
+        reg($sdf, @formula $(arguments[1]) ~ $(sum(arguments[2:end]))) |> $teardown
     end |> esc
 end
 
@@ -38,8 +32,7 @@ function rewrite(::Val{:generate}, command::Command)
             $setup
             $local_copy[!, $target_column] .= missing
             $sdf[!, $target_column] .= $RHS
-            $teardown
-            $local_copy
+            $local_copy |> $teardown
         end
     end |> esc
 end
@@ -64,8 +57,7 @@ function rewrite(::Val{:replace}, command::Command)
             else
                 $sdf[!, $target_column] .= $RHS
             end
-            $teardown
-            $local_copy
+            $local_copy |> $teardown
         end
     end |> esc
 end
@@ -82,10 +74,10 @@ function rewrite(::Val{:collapse}, command::Command)
     quote
         $setup
         if isnothing($by_cols)
-            $combine_epxression
+            $combine_epxression |> $teardown
         else
             local $gdf = groupby($sdf, $by_cols)
-            $combine_epxression
+            $combine_epxression |> $teardown
         end
     end |> esc
 end
@@ -93,12 +85,9 @@ end
 function rewrite(::Val{:keep}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable])
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
-    output = gensym()
     quote
         $setup
-        local $output = $sdf[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]
-        $teardown
-        $output
+        $sdf[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> $teardown
     end |> esc
 end
 
@@ -108,13 +97,13 @@ function rewrite(::Val{:drop}, command::Command)
     if isnothing(command.condition)
         return quote
             $setup
-            select($local_copy, Not(collect($(command.arguments))))
+            select($local_copy, Not(collect($(command.arguments)))) |> $teardown
         end |> esc
     end 
     bitmask = build_bitmask(local_copy, :(!($command.condition)))
     return quote
         $setup
-        $local_copy[$bitmask, :]
+        $local_copy[$bitmask, :] |> $teardown
     end |> esc
 end
 
@@ -134,7 +123,7 @@ function rewrite(::Val{:egen}, command::Command)
             if isnothing($by_cols)
                 local $RHS = $(replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls)
                 $sdf[!, $target_column] .= $RHS
-                $local_copy
+                $local_copy |> $teardown
             else
                 local $gdf = groupby($sdf, $by_cols)
                 for i in $gdf
@@ -143,6 +132,7 @@ function rewrite(::Val{:egen}, command::Command)
                     $g[!, $target_column] .= $RHS
                 end
                 $local_copy = combine($gdf, names($gdf))
+                $local_copy |> $teardown
             end
         end
     end |> esc

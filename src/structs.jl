@@ -17,7 +17,7 @@ struct GeneratedCommand
     sdf::Union{Symbol, Nothing}
     gdf::Union{Symbol, Nothing}
     setup::Expr
-    teardown::Expr
+    teardown::Symbol
     arguments::Vector{Any}
 end
 
