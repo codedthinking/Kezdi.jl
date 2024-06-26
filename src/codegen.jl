@@ -24,18 +24,18 @@ end
 function rewrite(::Val{:generate}, command::Command)
     dfname = command.df
     target_column = get_LHS(command.arguments[1])
-    bitmask = build_bitmask(command)
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
+    bitmask = build_bitmask(df2, command.condition)
     lhs, rhs = split_assignment(command.arguments[1])
     RHS = replace_variable_references(sdf, rhs) |> vectorize_function_calls
-    vars = extract_variable_references(rhs)
-    #var_expr = add_special_variables(df2, vars)
+    vars = vcat(extract_variable_references(rhs), extract_variable_references(command.condition))
+    var_expr = add_special_variables(df2, vars)
     quote
         if !($target_column in names($dfname))
             local $df2 = copy($dfname)
-            #$var_expr
+            $var_expr
             $df2[!, $target_column] .= missing
             local $sdf = view($df2, $bitmask, :)
             $sdf[!, $target_column] .= $RHS
@@ -50,11 +50,11 @@ function rewrite(::Val{:replace}, command::Command)
     dfname = command.df
     lhs, rhs = split_assignment(command.arguments[1])
     target_column = get_LHS(command.arguments[1])
-    bitmask = build_bitmask(command)
     # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
     third_vector = gensym()
+    bitmask = build_bitmask(df2, command.condition)
     RHS = replace_variable_references(sdf, rhs) |> vectorize_function_calls
     #add_special_variables(df2, extract_variable_references(RHS) |> map(x -> x[2]) |> collect)
     quote
@@ -199,6 +199,9 @@ function build_assignment_formula(expr::Expr)
 end
 
 function build_bitmask(df::Any, condition::Any)
+    if isnothing(condition)
+        return :(BitVector(fill(1, nrow($df))))
+    end
     @debug "condition: $condition"
     try eval(condition)
         if eval(condition) isa Bool
@@ -212,13 +215,13 @@ end
 
 build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition)
 
-function add_special_variables(df::Any, varlist::Vector)
+function add_special_variables(df::Any, varlist::Vector{Symbol})
     exprs = [] 
     if :_n in varlist
-        push!(exprs, :($(df)[!, :_n] = 1:nrow($df)))
+        push!(exprs, :($(df)[!, "_n"] .= 1:nrow($df)))
     end
     if :_N in varlist
-        push!(exprs, :($(df)[!, :_N] = nrow($df)))
+        push!(exprs, :($(df)[!, "_N"] .= nrow($df)))
     end
     Expr(:block, exprs...)
 end    
@@ -241,7 +244,7 @@ function extract_variable_references(expr::Any)
             return vcat(extract_variable_references.(expr.args)...)
         end
     else
-        return []
+        return Symbol[]
     end
 end
 

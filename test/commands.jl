@@ -35,6 +35,17 @@
         df2 = @generate df y = "string" @if s isa String
     end
 
+    @testset "Special varnames" begin
+        df2 = @generate df y = _n
+        @test all(df2.y .== 1:4)
+        df2 = @generate df y = _N
+        @test all(df2.y .== 4)
+        df2 = @generate df y = -x @if _n < 3
+        @test all(df2.y .=== [-1, -2, missing, missing])
+        df2 = @generate df y = -x @if _n < _N
+        @test all(df2.y .=== [-1, -2, -3, missing])
+    end
+
     @testset "Error handling" begin
         @test_throws ArgumentError @generate df x = 1
     end
