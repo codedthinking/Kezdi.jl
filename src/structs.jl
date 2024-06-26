@@ -11,6 +11,15 @@ struct Command
     options::Tuple
 end
 
+struct GeneratedCommand
+    df::Any
+    local_copy::Symbol
+    sdf::Symbol
+    gdf::Symbol
+    setup::Vector{Expr}
+    teardown::Vector{Expr}
+end
+
 using DataFrames
 using Statistics
 using StatsBase
