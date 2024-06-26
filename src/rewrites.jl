@@ -103,12 +103,19 @@ function rewrite(::Val{:keep}, command::Command)
 end
 
 function rewrite(::Val{:drop}, command::Command)
-    dfname = command.df
+    gc = generate_command(command; options=[:variables, :ifable])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     if isnothing(command.condition)
-        return :(select($dfname, Not(collect($(command.arguments))))) |> esc
+        return quote
+            $setup
+            select($local_copy, Not(collect($(command.arguments))))
+        end |> esc
     end 
-    bitmask = build_bitmask(dfname, :(!($command.condition)))
-    :($dfname[$bitmask, :]) |> esc
+    bitmask = build_bitmask(local_copy, :(!($command.condition)))
+    return quote
+        $setup
+        $local_copy[$bitmask, :]
+    end |> esc
 end
 
 function rewrite(::Val{:egen}, command::Command)
