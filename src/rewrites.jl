@@ -27,26 +27,19 @@ function rewrite(::Val{:regress}, command::Command)
 end
 
 function rewrite(::Val{:generate}, command::Command)
-    dfname = command.df
+    gc = generate_command(command; options=[:single_argument, :variables, :ifable, :replace_variables, :vectorize, :assignment])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     target_column = get_LHS(command.arguments[1])
-    # check that target_column does not exist in dfname
-    df2 = gensym()
-    sdf = gensym()
-    bitmask = build_bitmask(df2, command.condition)
-    lhs, rhs = split_assignment(command.arguments[1])
-    RHS = replace_variable_references(sdf, rhs) |> vectorize_function_calls
-    vars = vcat(extract_variable_references(rhs), extract_variable_references(command.condition))
-    var_expr = add_special_variables(df2, vars)
+    LHS, RHS = split_assignment(arguments[1])
     quote
-        if !($target_column in names($dfname))
-            local $df2 = copy($dfname)
-            $var_expr
-            $df2[!, $target_column] .= missing
-            local $sdf = view($df2, $bitmask, :)
-            $sdf[!, $target_column] .= $RHS
-            $df2
+        if ($target_column in names($df))
+            ArgumentError("Column \"$($target_column)\" already exists in $(names($df))") |> throw
         else
-            ArgumentError("Column \"$($target_column)\" already exists in $(names($dfname))") |> throw
+            $setup
+            $local_copy[!, $target_column] .= missing
+            $sdf[!, $target_column] .= $RHS
+            $teardown
+            $local_copy
         end
     end |> esc
 end

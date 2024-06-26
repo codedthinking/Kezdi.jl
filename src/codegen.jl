@@ -20,7 +20,7 @@ function generate_command(command::Command; options=[])
     push!(setup, :(local $df2 = copy($dfname)))
     if :variables in options
         if :ifable in options
-            variables = vcat(extract_variable_references.(vcat(command.arguments, command.condition))...)
+            variables = vcat(extract_variable_references.(command.arguments)..., extract_variable_references(command.condition)...)
         else
             variables = vcat(extract_variable_references.(command.arguments)...)
         end
@@ -28,7 +28,7 @@ function generate_command(command::Command; options=[])
         variables = Symbol[]
     end
     if :replace_variables in options
-        process(x) = replace_variable_references(df2, x)
+        process(x) = replace_variable_references(sdf, x)
     end
     if :vectorize in options
         process = vectorize_function_calls ∘ process
@@ -97,7 +97,7 @@ function build_bitmask(df::Any, condition::Any)
     condition = condition isa Nothing ? true : condition
     mask = replace_variable_references(df, condition) |> vectorize_function_calls
     bitvector = :(BitVector(zeros(Bool, nrow($(df)))))
-    :($bitvector .|= $mask)
+    :($bitvector .| ($mask))
 end
 
 build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition)
