@@ -2,11 +2,15 @@
 rewrite(command::Command) = rewrite(Val(command.command), command)
 
 function rewrite(::Val{:summarize}, command::Command)
-    dfname = command.df
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :single_argument])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     column = extract_variable_references(command.arguments[1])
-    bitmask = build_bitmask(command)
+    s = gensym()
     quote
-        Kezdi.summarize(view($dfname, $bitmask, :), $column[1])
+        $setup
+        local $s = Kezdi.summarize($sdf, $column[1])
+        $teardown
+        $s
     end |> esc
 end
 
