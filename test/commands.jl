@@ -205,8 +205,16 @@ end
             @test df2.y == df.x
             df2 = @generate df y = x @if 2+2 == 4
             @test df2.y == df.x
-            df2 = @generate df y = x @if 2+2 == 4 || 2+2 == 5
-            @test df2.y == df.x
+            df2 = @generate df y = x @if 2+2 == 5 || 2+2 == 4
+            @test df2.y .== df.x
+            df2 = @generate df y = x @if x < 6 || 2+2 == 5
+            @test df2.y .== df.x
+            df2 = @generate df y = x @if 2+2 == 5 || x < 6 
+            @test df2.y .== df.x
+            df2 = @generate df y = x @if 2+2 == 4 && x < 6 
+            @test df2.y .== df.x
+            df2 = @generate df y = x @if x < 6 && 2+2 == 4
+            @test df2.y .== df.x
             end
         @testset "False" begin
             df2 = @generate df y = x @if false
@@ -215,8 +223,20 @@ end
             @test all(df2.y .=== missing)
             df2 = @generate df y = x @if 1 < 0
             @test all(df2.y .=== missing)
-            df2 = @generate df y = x @if 1 < 0 && true
+            df2 = @generate df y = x @if 2+2 == 5 && x <6
             @test all(df2.y .=== missing)
+            df2 = @generate df y = x @if x < 6 && 2+2 == 5
+            @test all(df2.y .=== missing)
+            df2 = @generate df y = x @if 2+2 == 4 && 2+2 == 5
+            @test all(df2.y .=== missing)
+            df2 = @generate df y = x @if 2+2 == 5 && 2+2 == 4
+            @test all(df2.y .=== missing)
+            df2 = @generate df y = x @if 2+2 == 3 || 2+2 == 5
+            @test all(df2.y .== sum(df.x))
+            df2 = @generate df y = x @if x > 6 || 2+2 == 5
+            @test all(df2.y .== sum(df.x))
+            df2 = @generate df y = x @if  2+2 == 5 || x > 6
+            @test all(df2.y .== sum(df.x))
             end
     end
 
@@ -249,6 +269,16 @@ end
             @test all(df2.y .== sum(df.x))
             df2 = @egen df y = sum(x) @if 2+2 == 4 || 2+2 == 5
             @test all(df2.y .== sum(df.x))
+            df2 = @egen df y = sum(x) @if 2+2 == 5 || 2+2 == 4
+            @test all(df2.y .== sum(df.x))
+            df2 = @egen df y = sum(x) @if x < 6 || 2+2 == 5
+            @test all(df2.y .== sum(df.x))
+            df2 = @egen df y = sum(x) @if 2+2 == 5 || x < 6 
+            @test all(df2.y .== sum(df.x))
+            df2 = @egen df y = sum(x) @if 2+2 == 4 && x < 6 
+            @test all(df2.y .== sum(df.x))
+            df2 = @egen df y = sum(x) @if x < 6 && 2+2 == 4
+            @test all(df2.y .== sum(df.x))
             end
         @testset "False" begin
             df2 = @egen df y = sum(x) @if false
@@ -257,8 +287,20 @@ end
             @test all(df2.y .=== missing)
             df2 = @egen df y = sum(x) @if 2+2 != 4
             @test all(df2.y .=== missing)
+            df2 = @egen df y = sum(x) @if 2+2 == 5 && x <6
+            @test all(df2.y .=== missing)
+            df2 = @egen df y = sum(x) @if x < 6 && 2+2 == 5
+            @test all(df2.y .=== missing)
             df2 = @egen df y = sum(x) @if 2+2 == 4 && 2+2 == 5
             @test all(df2.y .=== missing)
+            df2 = @egen df y = sum(x) @if 2+2 == 5 && 2+2 == 4
+            @test all(df2.y .=== missing)
+            df2 = @egen df y = sum(x) @if 2+2 == 3 || 2+2 == 5
+            @test all(df2.y .== sum(df.x))
+            df2 = @egen df y = sum(x) @if x > 6 || 2+2 == 5
+            @test all(df2.y .== sum(df.x))
+            df2 = @egen df y = sum(x) @if  2+2 == 5 || x > 6
+            @test all(df2.y .== sum(df.x))
             end
     end
     @testset "Known conditions" begin
