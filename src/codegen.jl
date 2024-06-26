@@ -195,7 +195,6 @@ function build_assignment_formula(expr::Expr)
 end
 
 function build_bitmask(df::Any, condition::Any)::Expr
-    @info "Building bitmask for condition: $condition"
     mask = replace_variable_references(df, condition) |> vectorize_function_calls
     bitvector = :(BitVector(zeros(Bool, nrow($(df)))))
     :($bitvector .| ($mask))
