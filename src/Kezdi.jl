@@ -3,6 +3,7 @@ export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress
 
 using Reexport
 using Logging
+using InteractiveUtils
 @reexport using FixedEffectModels
 @reexport using Statistics
 @reexport using CSV
@@ -16,5 +17,6 @@ include("commands.jl")
 include("macros.jl")
 include("parse.jl")
 include("codegen.jl")
+include("rewrites.jl")
 
 end # module

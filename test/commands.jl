@@ -35,8 +35,19 @@
         df2 = @generate df y = "string" @if s isa String
     end
 
+    @testset "Special varnames" begin
+        df2 = @generate df y = _n
+        @test all(df2.y .== 1:4)
+        df2 = @generate df y = _N
+        @test all(df2.y .== 4)
+        df2 = @generate df y = -x @if _n < 3
+        @test all(df2.y .=== [-1, -2, missing, missing])
+        df2 = @generate df y = -x @if _n < _N
+        @test all(df2.y .=== [-1, -2, -3, missing])
+    end
+
     @testset "Error handling" begin
-        @test_throws ArgumentError @generate df x = 1
+        @test_throws Exception @generate df x = 1
     end
 end
 
@@ -71,7 +82,7 @@ end
     end
 
     @testset "Error handling" begin
-        @test_throws ArgumentError @replace df y = 1
+        @test_throws Exception @replace df y = 1
     end
 end
 
@@ -97,6 +108,13 @@ end
         df2 = @collapse df y = sum(x) z = minimum(x)
         @test all(df2.y .== sum(df.x))
         @test all(df2.z .== minimum(df.x))
+    end
+    @testset "Missing values" begin
+        df = DataFrame(x = [1, missing, 3])
+        df2 = @collapse df y = sum(x)
+        @test df2.y == [4]
+        df2 = @collapse df y = mean(x)
+        @test df2.y == [2.0]
     end
     @testset "Vectorized does not collapse" begin
         df = DataFrame(x = 1:4, z = 5:8)
@@ -147,6 +165,12 @@ end
         df2 = @egen df y = maximum.(x)
         @test all(df2.y .== df.x)
     end
+
+    @testset "Missing values" begin
+        df2 = DataFrame(x = [1, missing, 3])
+        @test all((@egen df2 y = sum(x)).y .== 4)
+        @test all((@egen df2 y = mean(x)).y .== 2.0)
+    end
     @testset "Do not replace special variable names" begin
         df2 = @egen df y = missing
         @test all(ismissing.(df2.y))
@@ -171,9 +195,6 @@ end
         @test df2.y == [1, 1, 2, 4, 5, 5]
         df2 = @egen df y = maximum(x), by(group, s)
         @test df2.y == [3, 3, 2, 4, 6, 6]
-    end
-    @testset "Error handling" begin
-        @test_throws ArgumentError @egen df x = 1
     end
 end
 
