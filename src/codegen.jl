@@ -1,4 +1,4 @@
-function generate_command(command::Command; options=[])
+function generate_command(command::Command; options=[], allowed=[])
     dfname = command.df
     df2 = gensym()
     sdf = gensym()
@@ -6,6 +6,8 @@ function generate_command(command::Command; options=[])
     teardown = Expr[]
     process = (x -> x)
     tdfunction = gensym()
+
+    given_options = get_top_symbol.(command.options)
 
     # check for syntax
     if !(:ifable in options) && !isnothing(command.condition)
@@ -19,6 +21,9 @@ function generate_command(command::Command; options=[])
     end
     if (:nofunction in options) && length(vcat(extract_function_references.(command.arguments)...)) > 0
         ArgumentError("Function calls are not allowed for this command: @$(command.command)") |> throw
+    end
+    for opt in given_options
+        (opt in allowed) || ArgumentError("Invalid option \"$opt\" for this command: @$(command.command)") |> throw
     end
 
     push!(setup, :($dfname isa AbstractDataFrame || error("Expected DataFrame as first argument")))
@@ -61,15 +66,28 @@ function generate_command(command::Command; options=[])
             x
         end
     end)
-    GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), tdfunction, collect(process.(command.arguments)))
+    GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
 end
 
-function get_by(command::Command)
+
+
+get_by(command::Command) = get_option(command, :by)
+
+function get_option(command::Command, key::Symbol)
     options = command.options
     for opt in options
-        if opt isa Expr && opt.head == :call && opt.args[1] == :by
+        if opt isa Expr && opt.head == :call && opt.args[1] == key
             return opt.args[2:end]
         end
+    end
+end
+
+
+function get_top_symbol(expr::Any)
+    if expr isa Expr
+        return get_top_symbol(expr.args[1])
+    else
+        return expr
     end
 end
 
