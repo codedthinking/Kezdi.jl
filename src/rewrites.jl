@@ -73,13 +73,13 @@ function rewrite(::Val{:replace}, command::Command)
 end
 
 function rewrite(::Val{:collapse}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable, :vectorize, :assignment])
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment])
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     by_cols = get_by(command)
     if isnothing(by_cols)
-        combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(arguments)...)
+        combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
     else
-        combine_epxression = Expr(:call, :combine, gdf, build_assignment_formula.(arguments)...)
+        combine_epxression = Expr(:call, :combine, gdf, build_assignment_formula.(command.arguments)...)
     end
     quote
         $setup
@@ -118,7 +118,7 @@ function rewrite(::Val{:drop}, command::Command)
 end
 
 function rewrite(::Val{:egen}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable, :vectorize, :assignment, :single_argument])
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment])
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     target_column = get_LHS(command.arguments[1])
     by_cols = get_by(command)
@@ -131,14 +131,14 @@ function rewrite(::Val{:egen}, command::Command)
             $setup
             $local_copy[!, $target_column] .= missing
             if isnothing($by_cols)
-                local $RHS = $(replace_variable_references(sdf, arguments[1].args[2]) |> vectorize_function_calls)
+                local $RHS = $(replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls)
                 $sdf[!, $target_column] .= $RHS
                 $local_copy |> $teardown
             else
                 local $gdf = groupby($sdf, $by_cols)
                 for i in $gdf
                     local $g = i
-                    local $RHS = $(replace_variable_references(g, arguments[1].args[2]) |> vectorize_function_calls)
+                    local $RHS = $(replace_variable_references(g, command.arguments[1].args[2]) |> vectorize_function_calls)
                     $g[!, $target_column] .= $RHS
                 end
                 $local_copy = combine($gdf, names($gdf))

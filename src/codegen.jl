@@ -4,8 +4,8 @@ function generate_command(command::Command; options=[])
     sdf = gensym()
     setup = Expr[]
     teardown = Expr[]
+    process = (x -> x)
     tdfunction = gensym()
-    arguments = command.arguments
 
     # check for syntax
     if !(:ifable in options) && !isnothing(command.condition)
@@ -23,20 +23,20 @@ function generate_command(command::Command; options=[])
 
     push!(setup, :($dfname isa AbstractDataFrame || error("Expected DataFrame as first argument")))
     push!(setup, :(local $df2 = copy($dfname)))
-    if :vectorize in options
-        arguments = vectorize_function_calls.(arguments)
-    end
     if :variables in options
         if :ifable in options
-            variables = vcat(extract_variable_references.(arguments)..., extract_variable_references(command.condition)...)
+            variables = vcat(extract_variable_references.(command.arguments)..., extract_variable_references(command.condition)...)
         else
-            variables = vcat(extract_variable_references.(arguments)...)
+            variables = vcat(extract_variable_references.(command.arguments)...)
         end
     else
         variables = Symbol[]
     end
     if :replace_variables in options
-        arguments = [replace_variable_references(sdf, x) for x in arguments]
+        process(x) = replace_variable_references(sdf, x)
+    end
+    if :vectorize in options
+        process = vectorize_function_calls ∘ process
     end
     if :_n in variables
         push!(setup, :($(df2)[!, "_n"] .= 1:nrow($df2)))
@@ -61,7 +61,7 @@ function generate_command(command::Command; options=[])
             x
         end
     end)
-    GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), tdfunction, collect(arguments))
+    GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), tdfunction, collect(process.(command.arguments)))
 end
 
 function get_by(command::Command)
@@ -183,7 +183,6 @@ function vectorize_function_calls(expr::Any)
             if vectorized
                 return Expr(expr.head, fname, vectorize_function_calls.(expr.args[2:end])...)
             elseif fname in DO_NOT_VECTORIZE || (length(methodswith(Vector, eval(fname); supertypes=true)) > 0)
-                expr = replace_special_function(expr)
                 return Expr(expr.head, fname, 
                     Expr(:call, :skipmissing, 
                     vectorize_function_calls.(expr.args[2:end])...)
@@ -203,14 +202,6 @@ function vectorize_function_calls(expr::Any)
         else
             return Expr(expr.head, vectorize_function_calls.(expr.args)...)
         end
-    else
-        return expr
-    end
-end
-
-function replace_special_function(expr::Expr)
-    if expr.head == :call && expr.args[1] in [:count] && length(expr.args) == 1
-        return Expr(:call, :count, :_n)
     else
         return expr
     end
