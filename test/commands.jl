@@ -220,6 +220,12 @@ end
     df = DataFrame(a = 1:4, b = 5:8)
     @test "a" in names(@drop df b)
     @test !("b" in names(@drop df b))
+    df2 = @drop df @if a < 3
+    @test "a" in names(df2)
+    @test "b" in names(df2)
+    @test nrow(df2) == 2
+    @test all(df2.a .== [3, 4])
+    @test all(df2.b .== [7, 8])
 end
 
 
@@ -339,6 +345,8 @@ end
     @testset "Known conditions" begin
         df2 = @egen df y = sum(x) @if x < 3
         @test all(df2.y .=== [3, 3, missing, missing])
+        df2 = @egen df y = sum(x) @if group in ["blue"]
+        @test all(df2.y .=== [missing, missing, 7, 7])
     end
 
     @testset "Condition on other variable" begin
@@ -348,6 +356,14 @@ end
     @testset "Window functions operate on subset" begin
         df2 = @egen df y = sum(x) @if x < 3
         @test all(df2.y .=== [3, 3, missing, missing])
+    end
+    @testset "Complex conditions" begin
+        df2 = @egen dfxz y = sum(x) @if z == 4 && x > 2
+        @test all(df2.y .=== [missing, missing, missing, 4])
+        df2 = @egen dfxz y = sum(x) @if z == 4 && group in ["blue"]
+        @test all(df2.y .=== [missing, missing, missing, 4])
+        df2 = @egen dfxz y = sum(x) @if x == 4 && group in ["blue"] && z > 2
+        @test all(df2.y .=== [missing, missing, missing, 4])
     end
 end
 
@@ -420,8 +436,55 @@ end
         # use alternating +1 and -1 as error term to avoid numerical instability
         df = DataFrame(x = 1:10, y = 2 .+ 3 .* (1:10) .+ (-1) .^ (1:10))
         @testset "Known values" begin
-            r = @regress df y  x
+            r = @regress df y 1
+            @test r.coef ≈ [18.5]
+            r = @regress df y x
             @test r.coef ≈ [1.6666666666666679, 3.0606060606060606]
+            r = @regress df y -x
+            @test r.coef ≈ [1.6666666666666679, -3.0606060606060606]
+            r = @regress df y x/10
+            @test r.coef ≈ [1.6666666666666679, 30.606060606060606]
+            r = @regress df -y x/10
+            @test r.coef ≈ [-1.6666666666666679, -30.606060606060606]
+            r = @regress df -y -x/10
+            @test r.coef ≈ [-1.6666666666666679, 30.606060606060606]
+        end
+        @testset "Conditions" begin
+            r = @regress df y x @if x < 5
+            @test r.coef ≈ [1.0, 3.4000000000000004]
+            r = @regress df y x @if x < 5 || x > 8 
+            @test r.coef ≈ [1.795294117647062, 3.0423529411764703]
+        end
+    end
+    @testset "Multivariate" begin
+        df = DataFrame(x = 1:10, y = 2 .+ 3 .* (1:10) .+ (-1) .^ (1:10), z = (-1) .^ (1:10), s = ["a", "a", "a", "a", "b", "b", "b", "b", "c", "c"])
+        @testset "Known values" begin
+            r = @regress df y x z fe(s)
+            @test r.coef ≈ [2.9999999999999996, 1.0000000000000002]
+            r = @regress df y x z 
+            @test r.coef ≈ [2.0000000000000013, 3.0, 1.0]
+            r = @regress df y x z z*x fe(s)
+            @test r.coef ≈ [2.9999999999999996, 1.0000000000000002, 0.0]
+            r = @regress df y x z z*x
+            @test r.coef ≈ [2.0000000000000013, 3.0, 1.0000000000000004, -8.881784197001259e-17]
+        end
+        @testset "Conditions" begin
+            r = @regress df y x z fe(s) @if x < 5
+            @test r.coef ≈ [ 3.0000000000000004, 0.9999999999999998]
+            r = @regress df y x z @if x < 5
+            @test r.coef ≈ [1.9999999999999998, 3.0000000000000004, 0.9999999999999998]
+            r = @regress df y x z z*x fe(s) @if x < 5
+            @test r.coef ≈ [3.0000000000000004, 0.9999999999999987, 4.440892098500626e-16]
+            r = @regress df y x z z*x @if x < 5
+            @test r.coef ≈ [1.9999999999999996, 3.0000000000000004, 0.9999999999999987, 4.440892098500626e-16]
+            r = @regress df y x z fe(s) @if x < 5 || x >8
+            @test r.coef ≈ [3.0, 1.0]
+            r = @regress df y x z @if x < 5 || x >8
+            @test r.coef ≈ [2.000000000000003, 2.9999999999999996, 1.0]
+            r = @regress df y x z z*x fe(s) @if x < 5 || x >8
+            @test r.coef ≈ [3.0, 1.0000000000000002, -5.1241062675007215e-17]
+            r = @regress df y x z z*x @if x < 5 || x >8
+            @test r.coef ≈ [2.000000000000003, 2.9999999999999996, 0.9999999999999998, 5.124106267500724e-17]
         end
     end
 end
