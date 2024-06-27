@@ -1,9 +1,11 @@
 module Kezdi
-export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress
+export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress, use, @use
 
 using Reexport
 using Logging
 using InteractiveUtils
+using StatFiles
+
 @reexport using FreqTables: freqtable
 @reexport using FixedEffectModels
 @reexport using Statistics

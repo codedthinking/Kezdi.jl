@@ -1,3 +1,11 @@
+function use(fname::AbstractString)
+    load(fname) |> DataFrame
+end
+
+macro use(fname)
+    :(use($fname)) |> esc
+end
+
 function summarize(df::AbstractDataFrame, column::Symbol)::Summarize
     data = df[!, column] |> skipmissing |> collect
     n = length(data)
