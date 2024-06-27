@@ -18,5 +18,6 @@ include("commands.jl")
 include("macros.jl")
 include("parse.jl")
 include("codegen.jl")
+include("rewrites.jl")
 
 end # module

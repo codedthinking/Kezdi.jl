@@ -1,161 +1,64 @@
-# use multiple dispatch to generate code 
-rewrite(command::Command) = rewrite(Val(command.command), command)
-
-function rewrite(::Val{:summarize}, command::Command)
+function generate_command(command::Command; options=[])
     dfname = command.df
-    column = extract_variable_references(command.arguments[1])
-    bitmask = build_bitmask(command)
-    quote
-        Kezdi.summarize(view($dfname, $bitmask, :), $column[1])
-    end |> esc
-end
-
-function rewrite(::Val{:regress}, command::Command)
-    dfname = command.df
-    bitmask = build_bitmask(command)
-    variables = command.arguments
-    sdf = gensym()
-    quote
-        local $sdf = view($dfname, $bitmask, :)
-        reg($sdf, @formula $(variables[1]) ~ $(sum(variables[2:end])))
-    end |> esc
-end
-
-function rewrite(::Val{:generate}, command::Command)
-    dfname = command.df
-    target_column = get_LHS(command.arguments[1])
-    # check that target_column does not exist in dfname
     df2 = gensym()
     sdf = gensym()
-    bitmask = build_bitmask(df2, command.condition)
-    lhs, rhs = split_assignment(command.arguments[1])
-    RHS = replace_variable_references(sdf, rhs) |> vectorize_function_calls
-    vars = vcat(extract_variable_references(rhs), extract_variable_references(command.condition))
-    var_expr = add_special_variables(df2, vars)
-    quote
-        if !($target_column in names($dfname))
-            local $df2 = copy($dfname)
-            $var_expr
-            $df2[!, $target_column] .= missing
-            local $sdf = view($df2, $bitmask, :)
-            $sdf[!, $target_column] .= $RHS
-            $df2
-        else
-            ArgumentError("Column \"$($target_column)\" already exists in $(names($dfname))") |> throw
-        end
-    end |> esc
-end
+    setup = Expr[]
+    teardown = Expr[]
+    process = (x -> x)
+    tdfunction = gensym()
 
-function rewrite(::Val{:replace}, command::Command)
-    dfname = command.df
-    lhs, rhs = split_assignment(command.arguments[1])
-    target_column = get_LHS(command.arguments[1])
-    # check that target_column does not exist in dfname
-    df2 = gensym()
-    sdf = gensym()
-    third_vector = gensym()
-    bitmask = build_bitmask(df2, command.condition)
-    RHS = replace_variable_references(sdf, rhs) |> vectorize_function_calls
-    #add_special_variables(df2, extract_variable_references(RHS) |> map(x -> x[2]) |> collect)
-    quote
-        if $target_column in names($dfname)
-            local $df2 = copy($dfname)
-            local $sdf = view($df2, $bitmask, :)
-            if eltype($RHS) != eltype($sdf[!, $target_column])
-                local $third_vector = Vector{eltype($RHS)}(undef, nrow($df2))
-                $third_vector[$bitmask] .= $RHS
-                $third_vector[.!$bitmask] .= $df2[!, $target_column][.!$bitmask]
-                $df2[!, $target_column] = $third_vector
-            else
-                $sdf[!, $target_column] .= $RHS
-            end
-            $df2
-        else
-            ArgumentError("Column \"$($target_column)\" does not exist in $(names($dfname))") |> throw
-        end
-    end |> esc
-end
-
-function rewrite(::Val{:collapse}, command::Command)
-    dfname = command.df
-    #target_columns = get_LHS.(command.arguments)
-    bitmask = build_bitmask(command)
-    by_cols = get_by(command)
-    # check that target_column does not exist in dfname
-    df2 = gensym()
-    sdf = gensym()
-    gsdf = gensym()
-    if isnothing(by_cols)
-        combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
-    else
-        combine_epxression = Expr(:call, :combine, gsdf, build_assignment_formula.(command.arguments)...)
+    # check for syntax
+    if !(:ifable in options) && !isnothing(command.condition)
+        ArgumentError("@if not allowed for this command: $(command.command)") |> throw
     end
-    quote
-        local $df2 = copy($dfname)
-        local $sdf = view($df2, $bitmask, :)
-        if isnothing($by_cols)
-            $combine_epxression
+    if (:single_argument in options) && length(command.arguments) != 1
+        ArgumentError("Exactly one argument is required for this command: @$(command.command)") |> throw
+    end
+    if (:assignment in options) && !all(isassignment.(command.arguments))
+        ArgumentError("@$(command.command) requires an assignment like y = x + 1") |> throw
+    end
+
+    push!(setup, :($dfname isa AbstractDataFrame || error("Expected DataFrame as first argument")))
+    push!(setup, :(local $df2 = copy($dfname)))
+    if :variables in options
+        if :ifable in options
+            variables = vcat(extract_variable_references.(command.arguments)..., extract_variable_references(command.condition)...)
         else
-            local $gsdf = groupby($sdf, $by_cols)
-            $combine_epxression
+            variables = vcat(extract_variable_references.(command.arguments)...)
         end
-    end |> esc
-end
-
-function rewrite(::Val{:keep}, command::Command)
-    dfname = command.df
-    bitmask = build_bitmask(command)
-    # check that target_column does not exist in dfname
-    df2 = gensym()
-    quote
-        local $df2 = copy($dfname)
-        view($df2, $bitmask,  isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments))
-    end |> esc
-end
-
-function rewrite(::Val{:drop}, command::Command)
-    dfname = command.df
-    if isnothing(command.condition)
-        return :(select($dfname, Not(collect($(command.arguments))))) |> esc
-    end 
-    bitmask = build_bitmask(dfname, :(!($command.condition)))
-    :($dfname[$bitmask, :]) |> esc
-end
-
-function rewrite(::Val{:egen}, command::Command)
-    dfname = command.df
-    target_column = get_LHS(command.arguments[1])
-    by_cols = get_by(command)
-    bitmask = build_bitmask(command)
-    # check that target_column does not exist in dfname
-    df2 = gensym()
-    sdf = gensym()
-    gsdf = gensym()
-    RHS = gensym()
-    g = gensym()
-    #add_special_variables(df2, extract_variable_references(command.arguments[1].args[2]) |> map(x -> x[2]) |> collect)
-    quote
-        if !($target_column in names($dfname))
-            local $df2 = copy($dfname)
-            $df2[!, $target_column] .= missing
-            local $sdf = view($df2, $bitmask, :)
-            if isnothing($by_cols)
-                local $RHS = $(replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls)
-                $sdf[!, $target_column] .= $RHS
-                $df2
-            else
-                local $gsdf = groupby($sdf, $by_cols)
-                for gr in $gsdf
-                    local $g = gr
-                    local $RHS = $(replace_variable_references(g, command.arguments[1].args[2]) |> vectorize_function_calls)
-                    gr[!, $target_column] .= $RHS
-                end
-                $df2 = combine($gsdf, names($gsdf))
-            end
+    else
+        variables = Symbol[]
+    end
+    if :replace_variables in options
+        process(x) = replace_variable_references(sdf, x)
+    end
+    if :vectorize in options
+        process = vectorize_function_calls ∘ process
+    end
+    if :_n in variables
+        push!(setup, :($(df2)[!, "_n"] .= 1:nrow($df2)))
+        push!(teardown, :(select!($df2, Not(:_n))))
+    end
+    if :_N in variables
+        push!(setup, :($(df2)[!, "_N"] .= nrow($df2)))
+        push!(teardown, :(select!($df2, Not(:_N))))
+    end
+    if :ifable in options
+        condition = vectorize_function_calls(replace_variable_references(df2, command.condition))
+        if isnothing(condition)
+            push!(setup, :(local $sdf = $df2))
         else
-            ArgumentError("Column \"$($target_column)\" already exists in $(names($dfname))") |> throw
+            bitmask = build_bitmask(df2, condition)
+            push!(setup, :(local $sdf = view($df2, $bitmask, :)))
         end
-    end |> esc
+    end
+    push!(setup, quote
+        function $tdfunction(x)
+            $(Expr(:block, teardown...))
+            x
+        end
+    end)
+    GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), tdfunction, collect(process.(command.arguments)))
 end
 
 function get_by(command::Command)
@@ -167,7 +70,7 @@ function get_by(command::Command)
     end
 end
 
-function get_LHS(expr::Expr)
+function get_LHS(expr)
     LHS, RHS = split_assignment(expr)
     LHS |> extract_variable_references |> first |> String
 end
@@ -198,31 +101,20 @@ function build_assignment_formula(expr::Expr)
     )
 end
 
-function build_bitmask(df::Any, condition::Any)
+function build_bitmask(df::Any, condition::Any)::Expr
     condition = condition isa Nothing ? true : condition
     mask = replace_variable_references(df, condition) |> vectorize_function_calls
     bitvector = :(BitVector(zeros(Bool, nrow($(df)))))
-    :($bitvector .|= $mask)
+    :($bitvector .| ($mask))
 end
 
 build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition)
 
-function add_special_variables(df::Any, varlist::Vector{Symbol})
-    exprs = [] 
-    if :_n in varlist
-        push!(exprs, :($(df)[!, "_n"] .= 1:nrow($df)))
-    end
-    if :_N in varlist
-        push!(exprs, :($(df)[!, "_N"] .= nrow($df)))
-    end
-    Expr(:block, exprs...)
-end    
-
 function split_assignment(expr::Any)
-    if expr isa Expr && expr.head == :(=)
+    if isassignment(expr)
         return (expr.args[1], expr.args[2])
     else
-        error("Expected assignment expression, got $expr")
+        ArgumentError("Expected assignment expression, got $expr") |> throw
     end
 end
 
@@ -310,3 +202,17 @@ is_dotted_operator(x::Any) = x isa Symbol && String(x)[1] == '.' && Symbol(Strin
 
 isalphanumeric(c::AbstractChar) = isletter(c) || isdigit(c) || c == '_'
 isalphanumeric(str::AbstractString) = all(isalphanumeric, str)
+
+isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args) == 2
+
+# this is to be deleted after refactoring
+function add_special_variables(df::Any, varlist::Vector{Symbol})
+    exprs = [] 
+    if :_n in varlist
+        push!(exprs, :($(df)[!, "_n"] .= 1:nrow($df)))
+    end
+    if :_N in varlist
+        push!(exprs, :($(df)[!, "_N"] .= nrow($df)))
+    end
+    Expr(:block, exprs...)
+end  
