@@ -11,13 +11,14 @@ function generate_command(command::Command; options=[])
     if !(:ifable in options) && !isnothing(command.condition)
         ArgumentError("@if not allowed for this command: $(command.command)") |> throw
     end
-    if (:single_argument in options) && length(command.arguments) > 1
-        ArgumentError("Exactly one argument is required for this command: $(command.command)") |> throw
+    if (:single_argument in options) && length(command.arguments) != 1
+        ArgumentError("Exactly one argument is required for this command: @$(command.command)") |> throw
     end
     if (:assignment in options) && !all(isassignment.(command.arguments))
-        ArgumentError("$(command.command) requires an assignment like y = x + 1") |> throw
+        ArgumentError("@$(command.command) requires an assignment like y = x + 1") |> throw
     end
 
+    push!(setup, :($dfname isa AbstractDataFrame || error("Expected DataFrame as first argument")))
     push!(setup, :(local $df2 = copy($dfname)))
     if :variables in options
         if :ifable in options
