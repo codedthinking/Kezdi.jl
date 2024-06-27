@@ -2,7 +2,7 @@
 rewrite(command::Command) = rewrite(Val(command.command), command)
 
 function rewrite(::Val{:tabulate}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable])
+    gc = generate_command(command; options=[:variables, :ifable, :nofunction])
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     column = extract_variable_references(command.arguments[1])
     quote
@@ -12,7 +12,7 @@ function rewrite(::Val{:tabulate}, command::Command)
 end
 
 function rewrite(::Val{:summarize}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :single_argument])
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :single_argument, :nofunction])
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     column = extract_variable_references(command.arguments[1])
     quote
@@ -93,7 +93,7 @@ function rewrite(::Val{:collapse}, command::Command)
 end
 
 function rewrite(::Val{:keep}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable])
+    gc = generate_command(command; options=[:variables, :ifable, :nofunction])
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     quote
         $setup
@@ -102,7 +102,7 @@ function rewrite(::Val{:keep}, command::Command)
 end
 
 function rewrite(::Val{:drop}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable])
+    gc = generate_command(command; options=[:variables, :ifable, :nofunction])
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     if isnothing(command.condition)
         return quote

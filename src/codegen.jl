@@ -17,6 +17,9 @@ function generate_command(command::Command; options=[])
     if (:assignment in options) && !all(isassignment.(command.arguments))
         ArgumentError("@$(command.command) requires an assignment like y = x + 1") |> throw
     end
+    if (:nofunction in options) && length(vcat(extract_function_references.(command.arguments)...)) > 0
+        ArgumentError("Function calls are not allowed for this command: @$(command.command)") |> throw
+    end
 
     push!(setup, :($dfname isa AbstractDataFrame || error("Expected DataFrame as first argument")))
     push!(setup, :(local $df2 = copy($dfname)))
