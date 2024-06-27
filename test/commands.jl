@@ -427,7 +427,16 @@ end
         @test t[2] == 2
         @test t[3] == 3
     end
-
+    df = DataFrame(x = [1, 2, 2, 3, 3, 3], y = [0, 0, 0, 1, 1, 1])
+    @testset "Twoway" begin
+        t = @tabulate df x y
+        @test :x in t.dimnames
+        @test :y in t.dimnames
+        @test sum(t) == nrow(df)
+        @test t[1, 1] == 1
+        @test t[2, 1] == 2
+        @test t[3, 2] == 3
+    end
 end
 
 # julia> @summarize DataFrame(x=1:11) x

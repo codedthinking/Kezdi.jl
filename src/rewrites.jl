@@ -4,10 +4,10 @@ rewrite(command::Command) = rewrite(Val(command.command), command)
 function rewrite(::Val{:tabulate}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :nofunction])
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
-    column = extract_variable_references(command.arguments[1])
+    columns = [x[1] for x in extract_variable_references.(command.arguments)]
     quote
         $setup
-        Kezdi.tabulate($sdf, $column[1]) |> $teardown
+        Kezdi.tabulate($sdf, $columns) |> $teardown
     end |> esc
 end
 

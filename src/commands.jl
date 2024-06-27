@@ -6,7 +6,7 @@ macro use(fname)
     :(use($fname)) |> esc
 end
 
-tabulate(df::AbstractDataFrame, column::Symbol) = freqtable(df, column)
+tabulate(df::AbstractDataFrame, columns::Vector{Symbol}) = freqtable(df, columns...)
 
 function summarize(df::AbstractDataFrame, column::Symbol)::Summarize
     data = df[!, column] |> skipmissing |> collect
