@@ -16,7 +16,11 @@ function rewrite(::Val{:regress}, command::Command)
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     quote
         $setup
-        reg($sdf, @formula $(arguments[1]) ~ $(sum(arguments[2:end]))) |> $teardown
+        if length($(arguments[2:end])) == 1
+            reg($sdf, @formula $(arguments[1]) ~ $(arguments[2])) |> $teardown
+        else
+            reg($sdf, @formula $(arguments[1]) ~ $(Expr(:call, :+, arguments[2:end]...))) |> $teardown
+        end
     end |> esc
 end
 
