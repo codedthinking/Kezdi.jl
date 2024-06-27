@@ -1,6 +1,16 @@
 # use multiple dispatch to generate code 
 rewrite(command::Command) = rewrite(Val(command.command), command)
 
+function rewrite(::Val{:tabulate}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
+    column = extract_variable_references(command.arguments[1])
+    quote
+        $setup
+        Kezdi.tabulate($sdf, $column[1]) |> $teardown
+    end |> esc
+end
+
 function rewrite(::Val{:summarize}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :single_argument])
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc

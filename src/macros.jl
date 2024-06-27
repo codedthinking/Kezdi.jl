@@ -36,3 +36,7 @@ end
 macro regress(exprs...)
     :regress |> parse(exprs) |> rewrite
 end
+
+macro tabulate(exprs...)
+    :tabulate |> parse(exprs) |> rewrite
+end

@@ -418,5 +418,17 @@ end
     end
 end
 
+@testset "Tabulate" begin
+    df = DataFrame(x = [1, 2, 2, 3, 3, 3])
+    @testset "Known values" begin
+        t = @tabulate df x
+        @test :x in t.dimnames
+        @test t[1] == 1
+        @test t[2] == 2
+        @test t[3] == 3
+    end
+
+end
+
 # julia> @summarize DataFrame(x=1:11) x
 # Kezdi.Summarize(:x, 11, 11.0, 6.0, 11.0, 3.3166247903554, 0.0, -1.22, 66.0, 1.0, 11.0, 1.0, 1.05, 1.6, 3.25, 6.0, 8.75, 10.4, 10.95, 11.0)
