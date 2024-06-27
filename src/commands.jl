@@ -6,6 +6,11 @@ macro use(fname)
     :(use($fname)) |> esc
 end
 
+distinct(x::AbstractVector) = unique(x)
+distinct(x::Base.SkipMissing) = distinct(collect(x))
+count(x::AbstractVector) = length(collect(skipmissing(x)))
+count(x::Base.SkipMissing) = length(collect(x))
+
 tabulate(df::AbstractDataFrame, columns::Vector{Symbol}) = freqtable(df, columns...)
 
 function summarize(df::AbstractDataFrame, column::Symbol)::Summarize

@@ -1,5 +1,5 @@
 module Kezdi
-export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress, use, @use, @tabulate
+export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress, use, @use, @tabulate, count, distinct
 
 using Reexport
 using Logging
@@ -13,6 +13,7 @@ using StatFiles
 @reexport using DataFrames
 @reexport using StatsBase: mean
 @reexport using With: @with, @with!
+import Base: count
 
 include("consts.jl")
 include("structs.jl")

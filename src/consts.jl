@@ -95,6 +95,8 @@ const DO_NOT_VECTORIZE =(
     :mean,
     :minimum,
     :maximum,
+    :count,
+    :distinct
 )
 
 const OPTIONS = (

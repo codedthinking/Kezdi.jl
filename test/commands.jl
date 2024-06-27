@@ -137,6 +137,14 @@ end
         df2 = @collapse df y = minimum(x), by(group, s)
         @test df2.y == [1, 2, 4, 5]
     end
+
+    @testset "Count function" begin
+        df = DataFrame(x = [1, 2, 2, missing, 3, 3])
+        df2 = @collapse df y = count(x)
+        @test df2.y == [5]
+        df2 = @collapse df y = count(distinct(x))
+        @test df2.y == [3]
+    end
 end
 
 @testset "Egen" begin
