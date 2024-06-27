@@ -118,6 +118,16 @@ function split_assignment(expr::Any)
     end
 end
 
+function extract_function_references(expr::Any)
+    if is_function_call(expr)
+        return vcat([expr.args[1]], extract_function_references.(expr.args[2:end])...)
+    elseif expr isa Expr
+        return vcat(extract_function_references.(expr.args)...)
+    else
+        return Symbol[]
+    end
+end
+
 function extract_variable_references(expr::Any)
     if is_variable_reference(expr)
         return [expr]
@@ -169,7 +179,7 @@ function vectorize_function_calls(expr::Any)
             fname = expr.args[1]
             if vectorized
                 return Expr(expr.head, fname, vectorize_function_calls.(expr.args[2:end])...)
-            elseif fname in DO_NOT_VECTORIZE || (length(methodswith(Vector, eval(fname); supertypes=true)) > 0)
+            elseif fname in DO_NOT_VECTORIZE || (!(fname in OPERATORS) && (length(methodswith(Vector, eval(fname); supertypes=true)) > 0))
                 return Expr(expr.head, fname, 
                     Expr(:call, :skipmissing, 
                     vectorize_function_calls.(expr.args[2:end])...)
@@ -195,7 +205,7 @@ function vectorize_function_calls(expr::Any)
 end
 
 is_variable_reference(x::Any) = x isa Symbol && !in(x, RESERVED_WORDS) && !in(x, TYPES) && isalphanumeric(string(x))
-is_function_call(x::Any) = x isa Expr && ((x.head == :call && !is_operator(x.args[1]))  || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple)) 
+is_function_call(x::Any) = x isa Expr && ((x.head == :call)  || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple)) 
 
 is_operator(x::Any) = x isa Symbol && (in(x, OPERATORS) || is_dotted_operator(x))
 is_dotted_operator(x::Any) = x isa Symbol && String(x)[1] == '.' && Symbol(String(x)[2:end]) in OPERATORS
