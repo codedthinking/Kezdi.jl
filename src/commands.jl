@@ -8,8 +8,8 @@ end
 
 distinct(x::AbstractVector) = unique(x)
 distinct(x::Base.SkipMissing) = distinct(collect(x))
-count(x::AbstractVector) = length(collect(skipmissing(x)))
-count(x::Base.SkipMissing) = length(collect(x))
+rowcount(x::AbstractVector) = length(collect(skipmissing(x)))
+rowcount(x::Base.SkipMissing) = length(collect(x))
 
 tabulate(df::AbstractDataFrame, columns::Vector{Symbol}) = freqtable(df, columns...)
 

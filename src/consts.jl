@@ -95,7 +95,7 @@ const DO_NOT_VECTORIZE =(
     :mean,
     :minimum,
     :maximum,
-    :count,
+    :rowcount,
     :distinct
 )
 

@@ -35,8 +35,6 @@ function rewrite(::Val{:generate}, command::Command)
     (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
     target_column = get_LHS(command.arguments[1])
     LHS, RHS = split_assignment(arguments[1])
-    @warn setup
-    @warn RHS
     quote
         if ($target_column in names($df))
             ArgumentError("Column \"$($target_column)\" already exists in $(names($df))") |> throw

@@ -140,9 +140,9 @@ end
 
     @testset "Count function" begin
         df = DataFrame(x = [1, 2, 2, missing, 3, 3])
-        df2 = @collapse df y = count(x)
+        df2 = @collapse df y = rowcount(x)
         @test df2.y == [5]
-        df2 = @collapse df y = count(distinct(x))
+        df2 = @collapse df y = rowcount(distinct(x))
         @test df2.y == [3]
     end
 end
