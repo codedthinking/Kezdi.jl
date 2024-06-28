@@ -69,8 +69,6 @@ function generate_command(command::Command; options=[], allowed=[])
     GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
 end
 
-
-
 get_by(command::Command) = get_option(command, :by)
 
 function get_option(command::Command, key::Symbol)
@@ -206,9 +204,9 @@ function vectorize_function_calls(expr::Any)
                     vectorize_function_calls.(expr.args[2:end])...)
                 )
             else
-                return Expr(Symbol("."), fname,
-                    Expr(:tuple,     
-                    vectorize_function_calls.(expr.args[2:end])...)
+                return Expr(expr.head,
+                    :_BFA, 
+                    vectorize_function_calls.(expr.args)...
                 )
             end
         elseif is_operator(expr.args[1]) && !is_dotted_operator(expr.args[1])
@@ -235,6 +233,9 @@ isalphanumeric(c::AbstractChar) = isletter(c) || isdigit(c) || c == '_'
 isalphanumeric(str::AbstractString) = all(isalphanumeric, str)
 
 isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args) == 2
+
+# only broadcast first argument. For example, [1, 2, 3] in [2, 3] should evaluate to [false, true, true]
+_BFA(f::Function, xs, args...; kwargs...) = broadcast(x -> f(x, args...; kwargs...), xs)
 
 # this is to be deleted after refactoring
 function add_special_variables(df::Any, varlist::Vector{Symbol})
