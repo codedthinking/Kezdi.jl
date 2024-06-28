@@ -46,6 +46,12 @@
         @test all(df2.y .=== [-1, -2, -3, missing])
     end
 
+    @testset "Lists-valued variables" begin
+        df = DataFrame(x = [[1, 2], [3, 4], [5, 6], [7, 8]])
+        @test (@generate df x1 = getindex(x, 1)).x1 == [1, 3, 5, 7]
+        @test (@generate df x2 = getindex(x, 2)).x2 == [2, 4, 6, 8]
+    end
+
     @testset "Error handling" begin
         @test_throws Exception @generate df x = 1
     end
