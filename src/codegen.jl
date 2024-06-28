@@ -205,7 +205,7 @@ function vectorize_function_calls(expr::Any)
                 )
             else
                 return Expr(expr.head,
-                    :_BFA, 
+                    :(Kezdi.BFA), 
                     vectorize_function_calls.(expr.args)...
                 )
             end
@@ -235,7 +235,7 @@ isalphanumeric(str::AbstractString) = all(isalphanumeric, str)
 isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args) == 2
 
 # only broadcast first argument. For example, [1, 2, 3] in [2, 3] should evaluate to [false, true, true]
-_BFA(f::Function, xs, args...; kwargs...) = broadcast(x -> f(x, args...; kwargs...), xs)
+BFA(f::Function, xs, args...; kwargs...) = broadcast(x -> f(x, args...; kwargs...), xs)
 
 # this is to be deleted after refactoring
 function add_special_variables(df::Any, varlist::Vector{Symbol})
