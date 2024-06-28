@@ -123,11 +123,11 @@ end
 function build_bitmask(df::Any, condition::Any)::Expr
     condition = condition isa Nothing ? true : condition
     mask = replace_variable_references(df, condition) |> vectorize_function_calls
-    bitvector = :(BitVector(falses(nrow($(df)))))
+    bitvector = :(falses(nrow($(df))))
     :($bitvector .| ($mask))
 end
 
-build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(trues(nrow($(command.df))))) : build_bitmask(command.df, command.condition)
+build_bitmask(command::Command) = isnothing(command.condition) ? :(trues(nrow($(command.df)))) : build_bitmask(command.df, command.condition)
 
 function split_assignment(expr::Any)
     if isassignment(expr)

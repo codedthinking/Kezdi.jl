@@ -123,10 +123,10 @@ function rewrite(::Val{:drop}, command::Command)
             select($local_copy, Not(collect($(command.arguments)))) |> $teardown
         end |> esc
     end 
-    bitmask = build_bitmask(local_copy, :(!($command.condition)))
+    bitmask = build_bitmask(local_copy, command.condition)
     return quote
         $setup
-        $local_copy[$bitmask, :] |> $teardown
+        $local_copy[Kezdi.BFA(!, $bitmask), :] |> $teardown
     end |> esc
 end
 
