@@ -291,6 +291,19 @@ end
     end
 end
 
+@testset "x in list" begin
+    df = DataFrame(x = 1:4, group=["red", "red", "blue", "blue"])
+    dfxz = DataFrame(x = 1:4, z = 1:4, group=["red", "red", "blue", "blue"])
+    df2 = @egen df y = sum(x) @if group in ["red", "blue"]
+    @test all(df2.y .== sum(df.x))
+    df2 = @egen df y = sum(x) @if group in ["green", "yellow"]
+    @test all(df2.y .=== missing)
+    df2 = @egen dfxz y = sum(x) @if (z == 4) && (group in ["blue"])
+    @test all(df2.y .=== [missing, missing, missing, 4])
+    df2 = @egen dfxz y = sum(x) @if (x == 4) && (group in ["blue"]) && (z > 2)
+    @test all(df2.y .=== [missing, missing, missing, 4])
+end
+
 @testset "Egen with if" begin
     df = DataFrame(x = 1:4, group=["red", "red", "blue", "blue"])
     dfxz = DataFrame(x = 1:4, z = 1:4, group=["red", "red", "blue", "blue"])
@@ -314,8 +327,6 @@ end
             @test all(df2.y .== sum(df.x))
             df2 = @egen df y = sum(x) @if x < 6 && 2+2 == 4
             @test all(df2.y .== sum(df.x))
-            df = @egen df y = sum(x) @if group in ["red", "blue"]
-            @test all(df.y .== sum(df.x))
             end
         @testset "False" begin
             df2 = @egen df y = sum(x) @if false
@@ -338,8 +349,6 @@ end
             @test all(df2.y .=== missing)
             df2 = @egen df y = sum(x) @if  2+2 == 5 || x > 6
             @test all(df2.y .=== missing)
-            df2 = @egen df y = sum(x) @if group in ["green", "yellow"]
-            @test all(df2.y .=== missing)
             end
     end
     @testset "Known conditions" begin
@@ -359,10 +368,6 @@ end
     end
     @testset "Complex conditions" begin
         df2 = @egen dfxz y = sum(x) @if z == 4 && x > 2
-        @test all(df2.y .=== [missing, missing, missing, 4])
-        df2 = @egen dfxz y = sum(x) @if z == 4 && group in ["blue"]
-        @test all(df2.y .=== [missing, missing, missing, 4])
-        df2 = @egen dfxz y = sum(x) @if x == 4 && group in ["blue"] && z > 2
         @test all(df2.y .=== [missing, missing, missing, 4])
     end
 end
