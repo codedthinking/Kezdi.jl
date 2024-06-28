@@ -52,7 +52,7 @@ function generate_command(command::Command; options=[], allowed=[])
         push!(teardown, :(select!($df2, Not(:_N))))
     end
     if :ifable in options
-        condition = vectorize_function_calls(replace_variable_references(df2, command.condition))
+        condition = command.condition
         if isnothing(condition)
             push!(setup, :(local $sdf = $df2))
         else
