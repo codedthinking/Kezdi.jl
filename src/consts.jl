@@ -90,13 +90,17 @@ const SIDE_EFFECTS = (
     :regress
 )
 
-const DO_NOT_VECTORIZE =(
+const DO_NOT_VECTORIZE = (
     :sum,
     :mean,
     :minimum,
     :maximum,
     :rowcount,
     :distinct
+)
+
+const ALWAYS_VECTORIZE = (
+    :getindex,
 )
 
 const OPTIONS = (

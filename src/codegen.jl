@@ -198,7 +198,7 @@ function vectorize_function_calls(expr::Any)
             fname = expr.args[1]
             if vectorized
                 return Expr(expr.head, fname, vectorize_function_calls.(expr.args[2:end])...)
-            elseif fname in DO_NOT_VECTORIZE || (length(methodswith(Vector, eval(fname); supertypes=true)) > 0)
+            elseif fname in DO_NOT_VECTORIZE || (!(fname in ALWAYS_VECTORIZE) && (length(methodswith(Vector, eval(fname); supertypes=true)) > 0))
                 return Expr(expr.head, fname, 
                     Expr(:call, :skipmissing, 
                     vectorize_function_calls.(expr.args[2:end])...)
