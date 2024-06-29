@@ -1,13 +1,18 @@
 module With
 export @with, @with!
 
-using Base: @isdefined
 include("consts.jl")
 
 aside_commands = SIDE_EFFECTS 
 
 is_aside(x) = false
-is_aside(x::Expr) = x.head == :macrocall && x.args[1] in aside_commands
+is_aside(x::Expr) = begin
+    if Expr in [typeof(arg) for arg in x.args]
+        any(x -> is_aside(x), x.args) 
+    else
+        x.head == :macrocall && x.args[1] in aside_commands 
+    end
+end
 
 
 insert_first_arg(symbol::Symbol, firstarg; assignment = false) = Expr(:call, symbol, firstarg)
@@ -88,7 +93,6 @@ function insert_first_arg(e::Expr, firstarg; assignment = false)
     elseif head == :macrocall &&
         (is_moduled_symbol(args[1]) || args[1] isa Symbol) &&
         args[2] isa LineNumberNode
-
         if args[1] == Symbol("@__dot__")
             error("You can only use the @. macro and automatic first argument insertion if what follows is of the form `[Module.SubModule.]func`")
         end
@@ -107,10 +111,12 @@ end
 
 function rewrite(expr, replacement)
     aside = is_aside(expr)
-    new_expr = expr
+    @info "aside: $aside"
+    @info "head: $(expr.head)"
+    @info "args: $([typeof(arg) for arg in expr.args])"
+    new_expr = insert_first_arg(expr, replacement)
 
     if !aside
-        new_expr = insert_first_arg(expr, replacement)
         replacement = gensym()
         new_expr = :(local $replacement = $new_expr)
     end
@@ -283,7 +289,7 @@ function rewrite_with_block(block)
             push!(rewritten_exprs, expr)
             continue
         end
-
+        
         rewritten, replacement = rewrite(expr, replacement)
         push!(rewritten_exprs, rewritten)
     end
