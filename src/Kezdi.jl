@@ -12,7 +12,6 @@ using StatFiles
 @reexport using CSV
 @reexport using DataFrames
 @reexport using StatsBase: mean
-@reexport using With: @with, @with!
 import Base: count
 
 include("consts.jl")
@@ -22,5 +21,8 @@ include("macros.jl")
 include("parse.jl")
 include("codegen.jl")
 include("rewrites.jl")
+
+include("With.jl")
+@reexport using .With: @with, @with!
 
 end # module

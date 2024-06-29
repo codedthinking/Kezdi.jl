@@ -19,6 +19,7 @@ struct GeneratedCommand
     setup::Expr
     teardown::Symbol
     arguments::Vector{Any}
+    options::Vector{Any}
 end
 
 using DataFrames

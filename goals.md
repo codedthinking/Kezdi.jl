@@ -249,3 +249,20 @@ end
 This can be achieved by `@with` passing a known token inside the code block and `@regress` checks for the existence of this token.
 
 An in-place version of `@with!` should do everything in place. This can mean all commands operating in place (preferred for performance reasons). Like `@with!` transforms `@replace` to `@replace!` and does not need to pass `df` to the next command. Alternatively, `macro @with! df = @with df`. Because all commands work in place in Stata, this may be the preferred mode of operation. 
+
+## 2024-06-28
+### Benefits for Stata users
+1. Free
+2. Speed
+   - StatFiles.jl reading .dta files slowly is a major obstacle
+   - `egen` has to be sped up
+3. Single language
+
+## Programming-related benefits
+4. Use proper data structures
+   - fix `vlist[1]` and `in vlist`
+   - check other data structures like named tuple or dict
+5. Use functions
+   - non-standard evaluation makes it hard to wrap Kezdi.jl code in functions
+6. For loops
+   - implement `scalars()` and automatic expansion of locals in context

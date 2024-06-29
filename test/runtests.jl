@@ -34,4 +34,8 @@ end
 @testset "Code generation" begin
     include("codegen.jl")
 end
+
+@testset "With.jl" begin
+    include("With.jl")
+end
 end # all tests

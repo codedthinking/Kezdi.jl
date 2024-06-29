@@ -3,7 +3,7 @@ rewrite(command::Command) = rewrite(Val(command.command), command)
 
 function rewrite(::Val{:tabulate}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :nofunction])
-    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
     columns = [x[1] for x in extract_variable_references.(command.arguments)]
     quote
         $setup
@@ -13,7 +13,7 @@ end
 
 function rewrite(::Val{:summarize}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :single_argument, :nofunction])
-    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
     column = extract_variable_references(command.arguments[1])
     quote
         $setup
@@ -22,21 +22,30 @@ function rewrite(::Val{:summarize}, command::Command)
 end
 
 function rewrite(::Val{:regress}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable])
-    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
+    gc = generate_command(command; options=[:variables, :ifable], allowed=[:robust, :cluster])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
+    if :robust in get_top_symbol.(options)
+        vcov = :(Vcov.robust())
+    elseif :cluster in get_top_symbol.(options)
+        vars = get_option(command, :cluster)
+        vars = replace_variable_references.(vars)
+        vcov = :(Vcov.cluster($(vars...)))
+    else
+        vcov = :(Vcov.simple())
+    end
     quote
         $setup
         if length($(arguments[2:end])) == 1
-            reg($sdf, @formula $(arguments[1]) ~ $(arguments[2])) |> $teardown
+            reg($sdf, @formula($(arguments[1]) ~ $(arguments[2])), $vcov) |> $teardown
         else
-            reg($sdf, @formula $(arguments[1]) ~ $(Expr(:call, :+, arguments[2:end]...))) |> $teardown
+            reg($sdf, @formula($(arguments[1]) ~ $(Expr(:call, :+, arguments[2:end]...))), $vcov) |> $teardown
         end
     end |> esc
 end
 
 function rewrite(::Val{:generate}, command::Command)
-    gc = generate_command(command; options=[:single_argument, :variables, :ifable, :replace_variables, :vectorize, :assignment])
-    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
+    gc = generate_command(command; options=[:single_argument, :variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
     target_column = get_LHS(command.arguments[1])
     LHS, RHS = split_assignment(arguments[1])
     quote
@@ -53,7 +62,7 @@ end
 
 function rewrite(::Val{:replace}, command::Command)
     gc = generate_command(command; options=[:single_argument, :variables, :ifable, :replace_variables, :vectorize, :assignment])
-    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
     target_column = get_LHS(command.arguments[1])
     LHS, RHS = split_assignment(arguments[1])
     third_vector = gensym()
@@ -77,8 +86,8 @@ function rewrite(::Val{:replace}, command::Command)
 end
 
 function rewrite(::Val{:collapse}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment])
-    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
     by_cols = get_by(command)
     if isnothing(by_cols)
         combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
@@ -98,7 +107,7 @@ end
 
 function rewrite(::Val{:keep}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :nofunction])
-    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
     quote
         $setup
         $sdf[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> $teardown
@@ -107,23 +116,23 @@ end
 
 function rewrite(::Val{:drop}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :nofunction])
-    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
     if isnothing(command.condition)
         return quote
             $setup
             select($local_copy, Not(collect($(command.arguments)))) |> $teardown
         end |> esc
     end 
-    bitmask = build_bitmask(local_copy, :(!($command.condition)))
+    bitmask = build_bitmask(local_copy, command.condition)
     return quote
         $setup
-        $local_copy[$bitmask, :] |> $teardown
+        $local_copy[Kezdi.BFA(!, $bitmask), :] |> $teardown
     end |> esc
 end
 
 function rewrite(::Val{:egen}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment])
-    (; df, local_copy, sdf, gdf, setup, teardown, arguments) = gc
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
     target_column = get_LHS(command.arguments[1])
     by_cols = get_by(command)
     RHS = gensym()

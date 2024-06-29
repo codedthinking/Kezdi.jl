@@ -1,4 +1,4 @@
-function generate_command(command::Command; options=[])
+function generate_command(command::Command; options=[], allowed=[])
     dfname = command.df
     df2 = gensym()
     sdf = gensym()
@@ -6,6 +6,8 @@ function generate_command(command::Command; options=[])
     teardown = Expr[]
     process = (x -> x)
     tdfunction = gensym()
+
+    given_options = get_top_symbol.(command.options)
 
     # check for syntax
     if !(:ifable in options) && !isnothing(command.condition)
@@ -19,6 +21,9 @@ function generate_command(command::Command; options=[])
     end
     if (:nofunction in options) && length(vcat(extract_function_references.(command.arguments)...)) > 0
         ArgumentError("Function calls are not allowed for this command: @$(command.command)") |> throw
+    end
+    for opt in given_options
+        (opt in allowed) || ArgumentError("Invalid option \"$opt\" for this command: @$(command.command)") |> throw
     end
 
     push!(setup, :($dfname isa AbstractDataFrame || error("Expected DataFrame as first argument")))
@@ -47,7 +52,7 @@ function generate_command(command::Command; options=[])
         push!(teardown, :(select!($df2, Not(:_N))))
     end
     if :ifable in options
-        condition = vectorize_function_calls(replace_variable_references(df2, command.condition))
+        condition = command.condition
         if isnothing(condition)
             push!(setup, :(local $sdf = $df2))
         else
@@ -61,15 +66,26 @@ function generate_command(command::Command; options=[])
             x
         end
     end)
-    GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), tdfunction, collect(process.(command.arguments)))
+    GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
 end
 
-function get_by(command::Command)
+get_by(command::Command) = get_option(command, :by)
+
+function get_option(command::Command, key::Symbol)
     options = command.options
     for opt in options
-        if opt isa Expr && opt.head == :call && opt.args[1] == :by
+        if opt isa Expr && opt.head == :call && opt.args[1] == key
             return opt.args[2:end]
         end
+    end
+end
+
+
+function get_top_symbol(expr::Any)
+    if expr isa Expr
+        return get_top_symbol(expr.args[1])
+    else
+        return expr
     end
 end
 
@@ -107,11 +123,11 @@ end
 function build_bitmask(df::Any, condition::Any)::Expr
     condition = condition isa Nothing ? true : condition
     mask = replace_variable_references(df, condition) |> vectorize_function_calls
-    bitvector = :(BitVector(zeros(Bool, nrow($(df)))))
+    bitvector = :(falses(nrow($(df))))
     :($bitvector .| ($mask))
 end
 
-build_bitmask(command::Command) = isnothing(command.condition) ? :(BitVector(fill(1, nrow($(command.df))))) : build_bitmask(command.df, command.condition)
+build_bitmask(command::Command) = isnothing(command.condition) ? :(trues(nrow($(command.df)))) : build_bitmask(command.df, command.condition)
 
 function split_assignment(expr::Any)
     if isassignment(expr)
@@ -182,15 +198,15 @@ function vectorize_function_calls(expr::Any)
             fname = expr.args[1]
             if vectorized
                 return Expr(expr.head, fname, vectorize_function_calls.(expr.args[2:end])...)
-            elseif fname in DO_NOT_VECTORIZE || (length(methodswith(Vector, eval(fname); supertypes=true)) > 0)
+            elseif fname in DO_NOT_VECTORIZE || (!(fname in ALWAYS_VECTORIZE) && (length(methodswith(Vector, eval(fname); supertypes=true)) > 0))
                 return Expr(expr.head, fname, 
                     Expr(:call, :skipmissing, 
                     vectorize_function_calls.(expr.args[2:end])...)
                 )
             else
-                return Expr(Symbol("."), fname,
-                    Expr(:tuple,     
-                    vectorize_function_calls.(expr.args[2:end])...)
+                return Expr(expr.head,
+                    :(Kezdi.BFA), 
+                    vectorize_function_calls.(expr.args)...
                 )
             end
         elseif is_operator(expr.args[1]) && !is_dotted_operator(expr.args[1])
@@ -217,6 +233,9 @@ isalphanumeric(c::AbstractChar) = isletter(c) || isdigit(c) || c == '_'
 isalphanumeric(str::AbstractString) = all(isalphanumeric, str)
 
 isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args) == 2
+
+# only broadcast first argument. For example, [1, 2, 3] in [2, 3] should evaluate to [false, true, true]
+BFA(f::Function, xs, args...; kwargs...) = broadcast(x -> f(x, args...; kwargs...), xs)
 
 # this is to be deleted after refactoring
 function add_special_variables(df::Any, varlist::Vector{Symbol})
