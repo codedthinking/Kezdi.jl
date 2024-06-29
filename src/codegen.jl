@@ -204,9 +204,9 @@ function vectorize_function_calls(expr::Any)
                     vectorize_function_calls.(expr.args[2:end])...)
                 )
             else
-                return Expr(expr.head,
-                    :(Kezdi.BFA), 
-                    vectorize_function_calls.(expr.args)...
+                return Expr(Symbol("."), fname,
+                    Expr(:tuple,   
+                    vectorize_function_calls.(expr.args[2:end])...)
                 )
             end
         elseif is_operator(expr.args[1]) && !is_dotted_operator(expr.args[1])

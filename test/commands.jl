@@ -300,13 +300,13 @@ end
 @testset "x in list" begin
     df = DataFrame(x = 1:4, group=["red", "red", "blue", "blue"])
     dfxz = DataFrame(x = 1:4, z = 1:4, group=["red", "red", "blue", "blue"])
-    df2 = @egen df y = sum(x) @if group in ["red", "blue"]
+    df2 = @egen df y = sum(x) @if group in [["red", "blue"]]
     @test all(df2.y .== sum(df.x))
-    df2 = @egen df y = sum(x) @if group in ["green", "yellow"]
+    df2 = @egen df y = sum(x) @if group in [["green", "yellow"]]
     @test all(df2.y .=== missing)
-    df2 = @egen dfxz y = sum(x) @if (z == 4) && (group in ["blue"])
+    df2 = @egen dfxz y = sum(x) @if (z == 4) && (group in [["blue"]])
     @test all(df2.y .=== [missing, missing, missing, 4])
-    df2 = @egen dfxz y = sum(x) @if (x == 4) && (group in ["blue"]) && (z > 2)
+    df2 = @egen dfxz y = sum(x) @if ((x == 4) && (group in [["blue"]]) && (z > 2))
     @test all(df2.y .=== [missing, missing, missing, 4])
 end
 
@@ -360,7 +360,7 @@ end
     @testset "Known conditions" begin
         df2 = @egen df y = sum(x) @if x < 3
         @test all(df2.y .=== [3, 3, missing, missing])
-        df2 = @egen df y = sum(x) @if group in ["blue"]
+        df2 = @egen df y = sum(x) @if group in [["blue"]]
         @test all(df2.y .=== [missing, missing, 7, 7])
     end
 
