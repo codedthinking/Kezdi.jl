@@ -3,15 +3,12 @@ export @with, @with!
 
 include("consts.jl")
 
-aside_commands = SIDE_EFFECTS 
-
 is_aside(x) = false
-is_aside(x::Expr) = begin
-    if Expr in [typeof(arg) for arg in x.args]
-        any(x -> is_aside(x), x.args) 
-    else
-        x.head == :macrocall && x.args[1] in aside_commands 
+function is_aside(x::Expr)::Bool
+    if x.head == :(=)
+        return is_aside(x.args[2])
     end
+    return x.head == :macrocall && x.args[1] in SIDE_EFFECTS 
 end
 
 
@@ -111,14 +108,12 @@ end
 
 function rewrite(expr, replacement)
     aside = is_aside(expr)
-    @info "aside: $aside"
-    @info "head: $(expr.head)"
-    @info "args: $([typeof(arg) for arg in expr.args])"
     new_expr = insert_first_arg(expr, replacement)
-
     if !aside
         replacement = gensym()
         new_expr = :(local $replacement = $new_expr)
+    else
+        new_expr = :(@show $new_expr)
     end
 
     (new_expr, replacement)
