@@ -85,9 +85,9 @@ const COMMANDS = (
 )
 
 const SIDE_EFFECTS = (
-    :tabulate,
-    :summarize,
-    :regress
+    Symbol("@tabulate"),
+    Symbol("@summarize"),
+    Symbol("@regress")
 )
 
 const DO_NOT_VECTORIZE =(
