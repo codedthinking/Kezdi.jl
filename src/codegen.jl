@@ -198,6 +198,8 @@ function vectorize_function_calls(expr::Any)
             fname = expr.args[1]
             if vectorized
                 return Expr(expr.head, fname, vectorize_function_calls.(expr.args[2:end])...)
+            elseif fname == :DNV
+                return expr.args[2]
             elseif fname in DO_NOT_VECTORIZE || (!(fname in ALWAYS_VECTORIZE) && (length(methodswith(Vector, eval(fname); supertypes=true)) > 0))
                 return Expr(expr.head, fname, 
                     Expr(:call, :skipmissing, 
@@ -236,6 +238,8 @@ isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args
 
 # only broadcast first argument. For example, [1, 2, 3] in [2, 3] should evaluate to [false, true, true]
 BFA(f::Function, xs, args...; kwargs...) = broadcast(x -> f(x, args...; kwargs...), xs)
+# dummy function for do-not-vectorize
+DNV(args...; kwargs...) = error("This function should not be directly called. It is used to indicate that a function should not be vectorized. For example, @generate y = DNV(log(x))")
 
 # this is to be deleted after refactoring
 function add_special_variables(df::Any, varlist::Vector{Symbol})
