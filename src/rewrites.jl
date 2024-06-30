@@ -121,12 +121,10 @@ function rewrite(::Val{:collapse}, command::Command)
     end
     quote
         $setup
-        if isnothing($by_cols)
-            $combine_epxression |> $teardown
-        else
+        if !isnothing($by_cols)
             local $gdf = groupby($sdf, $by_cols)
-            $combine_epxression |> $teardown
         end
+        $combine_epxression |> $teardown
     end |> esc
 end
 
@@ -135,28 +133,21 @@ function rewrite(::Val{:egen}, command::Command)
     (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
     target_column = get_LHS(command.arguments[1])
     by_cols = get_by(command)
-    RHS = gensym()
-    g = gensym()
+    if isnothing(by_cols)
+        transform_expression = Expr(:call, :transform!, sdf, build_assignment_formula.(command.arguments)...)
+    else
+        transform_expression = Expr(:call, :transform!, gdf, build_assignment_formula.(command.arguments)...)
+    end
     quote
         if ($target_column in names($df))
             ArgumentError("Column \"$($target_column)\" already exists in $(names($df))") |> throw
         else
             $setup
-            $local_copy[!, $target_column] .= missing
-            if isnothing($by_cols)
-                local $RHS = $(replace_variable_references(sdf, command.arguments[1].args[2]) |> vectorize_function_calls)
-                $sdf[!, $target_column] .= $RHS
-                $local_copy |> $teardown
-            else
+            if !isnothing($by_cols)
                 local $gdf = groupby($sdf, $by_cols)
-                for i in $gdf
-                    local $g = i
-                    local $RHS = $(replace_variable_references(g, command.arguments[1].args[2]) |> vectorize_function_calls)
-                    $g[!, $target_column] .= $RHS
-                end
-                $local_copy = combine($gdf, names($gdf))
-                $local_copy |> $teardown
             end
+            $transform_expression
+            $local_copy |> $teardown
         end
     end |> esc
 end
