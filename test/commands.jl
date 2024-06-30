@@ -204,11 +204,11 @@ end
         df2 = @egen df y = maximum(x), by(group)
         @test df2.y == [3, 3, 3, 6, 6, 6]
         df2 = @egen df y = sum(x), by(group, s)
-        @test df2.y == [4, 4, 2, 4, 11, 11]
+        @test df2.y == [4, 2, 4, 4, 11, 11]
         df2 = @egen df y = minimum(x), by(group, s)
-        @test df2.y == [1, 1, 2, 4, 5, 5]
+        @test df2.y == [1, 2, 1, 4, 5, 5]
         df2 = @egen df y = maximum(x), by(group, s)
-        @test df2.y == [3, 3, 2, 4, 6, 6]
+        @test df2.y == [3, 2, 3, 4, 6, 6]
     end
 end
 

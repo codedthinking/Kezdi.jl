@@ -2,10 +2,12 @@ function generate_command(command::Command; options=[], allowed=[])
     dfname = command.df
     df2 = gensym()
     sdf = gensym()
+    gdf = gensym()
     setup = Expr[]
     teardown = Expr[]
     process = (x -> x)
     tdfunction = gensym()
+    target_df = df2
 
     given_options = get_top_symbol.(command.options)
 
@@ -43,16 +45,9 @@ function generate_command(command::Command; options=[], allowed=[])
     if :vectorize in options
         process = vectorize_function_calls ∘ process
     end
-    if :_n in variables
-        push!(setup, :($(df2)[!, "_n"] .= 1:nrow($df2)))
-        push!(teardown, :(select!($df2, Not(:_n))))
-    end
-    if :_N in variables
-        push!(setup, :($(df2)[!, "_N"] .= nrow($df2)))
-        push!(teardown, :(select!($df2, Not(:_N))))
-    end
     if :ifable in options
         condition = command.condition
+        target_df = sdf
         if isnothing(condition)
             push!(setup, :(local $sdf = $df2))
         else
@@ -60,13 +55,26 @@ function generate_command(command::Command; options=[], allowed=[])
             push!(setup, :(local $sdf = view($df2, $bitmask, :)))
         end
     end
+    if :by in given_options
+        target_df = gdf
+        by_cols = get_by(command)
+        push!(setup, :(local $gdf = groupby($sdf, $by_cols)))
+    end
+    if :_n in variables
+        push!(setup, :(transform!($target_df, eachindex => :_n)))
+        push!(teardown, :(select!($target_df, Not(:_n))))
+    end
+    if :_N in variables
+        push!(setup, :(transform!($target_df, nrow => :_N)))
+        push!(teardown, :(select!($target_df, Not(:_N))))
+    end
     push!(setup, quote
         function $tdfunction(x)
             $(Expr(:block, teardown...))
             x
         end
     end)
-    GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
+    GeneratedCommand(dfname, df2, sdf, gdf, Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
 end
 
 get_by(command::Command) = get_option(command, :by)

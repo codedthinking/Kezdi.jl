@@ -121,9 +121,6 @@ function rewrite(::Val{:collapse}, command::Command)
     end
     quote
         $setup
-        if !isnothing($by_cols)
-            local $gdf = groupby($sdf, $by_cols)
-        end
         $combine_epxression |> $teardown
     end |> esc
 end
@@ -143,9 +140,6 @@ function rewrite(::Val{:egen}, command::Command)
             ArgumentError("Column \"$($target_column)\" already exists in $(names($df))") |> throw
         else
             $setup
-            if !isnothing($by_cols)
-                local $gdf = groupby($sdf, $by_cols)
-            end
             $transform_expression
             $local_copy |> $teardown
         end
