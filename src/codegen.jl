@@ -2,10 +2,12 @@ function generate_command(command::Command; options=[], allowed=[])
     dfname = command.df
     df2 = gensym()
     sdf = gensym()
+    gdf = gensym()
     setup = Expr[]
     teardown = Expr[]
     process = (x -> x)
     tdfunction = gensym()
+    target_df = df2
 
     given_options = get_top_symbol.(command.options)
 
@@ -28,31 +30,25 @@ function generate_command(command::Command; options=[], allowed=[])
 
     push!(setup, :($dfname isa AbstractDataFrame || error("Expected DataFrame as first argument")))
     push!(setup, :(local $df2 = copy($dfname)))
-    if :variables in options
-        if :ifable in options
-            variables = vcat(extract_variable_references.(command.arguments)..., extract_variable_references(command.condition)...)
-        else
-            variables = vcat(extract_variable_references.(command.arguments)...)
-        end
-    else
-        variables = Symbol[]
-    end
+    variables_condition = (:ifable in options) ? vcat(extract_variable_references(command.condition)...) : Symbol[]
+    variables_RHS = (:variables in options) ? vcat(extract_variable_references.(command.arguments)...) : Symbol[]
     if :replace_variables in options
         process(x) = replace_variable_references(sdf, x)
     end
     if :vectorize in options
         process = vectorize_function_calls ∘ process
     end
-    if :_n in variables
-        push!(setup, :($(df2)[!, "_n"] .= 1:nrow($df2)))
+    if :_n in variables_condition
+        push!(setup, :(transform!($df2, eachindex => :_n)))
         push!(teardown, :(select!($df2, Not(:_n))))
     end
-    if :_N in variables
-        push!(setup, :($(df2)[!, "_N"] .= nrow($df2)))
+    if :_N in variables_condition
+        push!(setup, :(transform!($df2, nrow => :_N)))
         push!(teardown, :(select!($df2, Not(:_N))))
     end
     if :ifable in options
         condition = command.condition
+        target_df = sdf
         if isnothing(condition)
             push!(setup, :(local $sdf = $df2))
         else
@@ -60,13 +56,26 @@ function generate_command(command::Command; options=[], allowed=[])
             push!(setup, :(local $sdf = view($df2, $bitmask, :)))
         end
     end
+    if :by in given_options
+        target_df = gdf
+        by_cols = get_by(command)
+        push!(setup, :(local $gdf = groupby($sdf, $by_cols)))
+    end
+    if :_n in variables_RHS
+        push!(setup, :(transform!($target_df, eachindex => :_n)))
+        push!(teardown, :(select!($target_df, Not(:_n))))
+    end
+    if :_N in variables_RHS
+        push!(setup, :(transform!($target_df, nrow => :_N)))
+        push!(teardown, :(select!($target_df, Not(:_N))))
+    end
     push!(setup, quote
         function $tdfunction(x)
             $(Expr(:block, teardown...))
             x
         end
     end)
-    GeneratedCommand(dfname, df2, sdf, gensym(), Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
+    GeneratedCommand(dfname, df2, target_df, Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
 end
 
 get_by(command::Command) = get_option(command, :by)
@@ -198,15 +207,17 @@ function vectorize_function_calls(expr::Any)
             fname = expr.args[1]
             if vectorized
                 return Expr(expr.head, fname, vectorize_function_calls.(expr.args[2:end])...)
+            elseif fname == :DNV
+                return expr.args[2]
             elseif fname in DO_NOT_VECTORIZE || (!(fname in ALWAYS_VECTORIZE) && (length(methodswith(Vector, eval(fname); supertypes=true)) > 0))
                 return Expr(expr.head, fname, 
                     Expr(:call, :skipmissing, 
                     vectorize_function_calls.(expr.args[2:end])...)
                 )
             else
-                return Expr(expr.head,
-                    :(Kezdi.BFA), 
-                    vectorize_function_calls.(expr.args)...
+                return Expr(Symbol("."), fname,
+                    Expr(:tuple,   
+                    vectorize_function_calls.(expr.args[2:end])...)
                 )
             end
         elseif is_operator(expr.args[1]) && !is_dotted_operator(expr.args[1])
@@ -236,6 +247,8 @@ isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args
 
 # only broadcast first argument. For example, [1, 2, 3] in [2, 3] should evaluate to [false, true, true]
 BFA(f::Function, xs, args...; kwargs...) = broadcast(x -> f(x, args...; kwargs...), xs)
+# dummy function for do-not-vectorize
+DNV(args...; kwargs...) = error("This function should not be directly called. It is used to indicate that a function should not be vectorized. For example, @generate y = DNV(log(x))")
 
 # this is to be deleted after refactoring
 function add_special_variables(df::Any, varlist::Vector{Symbol})

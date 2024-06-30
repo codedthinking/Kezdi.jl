@@ -1,10 +1,4 @@
-function use(fname::AbstractString)
-    load(fname) |> DataFrame
-end
-
-macro use(fname)
-    :(use($fname)) |> esc
-end
+use(fname::AbstractString) = load(fname) |> DataFrame
 
 distinct(x::AbstractVector) = unique(x)
 distinct(x::Base.SkipMissing) = distinct(collect(x))
@@ -51,8 +45,5 @@ function summarize(df::AbstractDataFrame, column::Symbol)::Summarize
     )
 end
 
-function regress(df::AbstractDataFrame, formula::Expr)
-    quote
-        reg($df, $formula)
-    end
-end
+regress(df::AbstractDataFrame, formula::Expr) = :(reg($df, $formula))
+cnt(df::AbstractDataFrame, column::Symbol) = nrow(df) - count(ismissing.(df[!, column]))

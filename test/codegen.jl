@@ -17,4 +17,11 @@ end
         @test_expr vectorize_function_calls(:(wsum(x))) == :(wsum(skipmissing(x)))
         @test_expr vectorize_function_calls(:(std(x))) == :(std(skipmissing(x)))
     end
+
+    @testset "Explicit DNV request" begin
+        @test_expr vectorize_function_calls(:(DNV(x))) == :(x)
+        @test_expr vectorize_function_calls(:(DNV(x + y))) == :(x + y)
+        @test_expr vectorize_function_calls(:(DNV(log(x)))) == :(log(x))
+        @test_expr vectorize_function_calls(:(DNV(log(x) + 1))) == :(log(x) + 1)
+    end
 end
