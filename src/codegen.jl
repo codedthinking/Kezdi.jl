@@ -74,7 +74,7 @@ function generate_command(command::Command; options=[], allowed=[])
             x
         end
     end)
-    GeneratedCommand(dfname, df2, sdf, gdf, Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
+    GeneratedCommand(dfname, df2, target_df, Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
 end
 
 get_by(command::Command) = get_option(command, :by)
