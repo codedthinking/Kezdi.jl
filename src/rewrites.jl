@@ -85,26 +85,6 @@ function rewrite(::Val{:replace}, command::Command)
     end |> esc
 end
 
-function rewrite(::Val{:collapse}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
-    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
-    by_cols = get_by(command)
-    if isnothing(by_cols)
-        combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
-    else
-        combine_epxression = Expr(:call, :combine, gdf, build_assignment_formula.(command.arguments)...)
-    end
-    quote
-        $setup
-        if isnothing($by_cols)
-            $combine_epxression |> $teardown
-        else
-            local $gdf = groupby($sdf, $by_cols)
-            $combine_epxression |> $teardown
-        end
-    end |> esc
-end
-
 function rewrite(::Val{:keep}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :nofunction])
     (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
@@ -127,6 +107,26 @@ function rewrite(::Val{:drop}, command::Command)
     return quote
         $setup
         $local_copy[Kezdi.BFA(!, $bitmask), :] |> $teardown
+    end |> esc
+end
+
+function rewrite(::Val{:collapse}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
+    by_cols = get_by(command)
+    if isnothing(by_cols)
+        combine_epxression = Expr(:call, :combine, sdf, build_assignment_formula.(command.arguments)...)
+    else
+        combine_epxression = Expr(:call, :combine, gdf, build_assignment_formula.(command.arguments)...)
+    end
+    quote
+        $setup
+        if isnothing($by_cols)
+            $combine_epxression |> $teardown
+        else
+            local $gdf = groupby($sdf, $by_cols)
+            $combine_epxression |> $teardown
+        end
     end |> esc
 end
 
