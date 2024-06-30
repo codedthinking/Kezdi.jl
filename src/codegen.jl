@@ -30,20 +30,21 @@ function generate_command(command::Command; options=[], allowed=[])
 
     push!(setup, :($dfname isa AbstractDataFrame || error("Expected DataFrame as first argument")))
     push!(setup, :(local $df2 = copy($dfname)))
-    if :variables in options
-        if :ifable in options
-            variables = vcat(extract_variable_references.(command.arguments)..., extract_variable_references(command.condition)...)
-        else
-            variables = vcat(extract_variable_references.(command.arguments)...)
-        end
-    else
-        variables = Symbol[]
-    end
+    variables_condition = (:ifable in options) ? vcat(extract_variable_references(command.condition)...) : Symbol[]
+    variables_RHS = (:variables in options) ? vcat(extract_variable_references.(command.arguments)...) : Symbol[]
     if :replace_variables in options
         process(x) = replace_variable_references(sdf, x)
     end
     if :vectorize in options
         process = vectorize_function_calls ∘ process
+    end
+    if :_n in variables_condition
+        push!(setup, :(transform!($df2, eachindex => :_n)))
+        push!(teardown, :(select!($df2, Not(:_n))))
+    end
+    if :_N in variables_condition
+        push!(setup, :(transform!($df2, nrow => :_N)))
+        push!(teardown, :(select!($df2, Not(:_N))))
     end
     if :ifable in options
         condition = command.condition
@@ -52,6 +53,7 @@ function generate_command(command::Command; options=[], allowed=[])
             push!(setup, :(local $sdf = $df2))
         else
             bitmask = build_bitmask(df2, condition)
+            @warn bitmask
             push!(setup, :(local $sdf = view($df2, $bitmask, :)))
         end
     end
@@ -60,11 +62,11 @@ function generate_command(command::Command; options=[], allowed=[])
         by_cols = get_by(command)
         push!(setup, :(local $gdf = groupby($sdf, $by_cols)))
     end
-    if :_n in variables
+    if :_n in variables_RHS
         push!(setup, :(transform!($target_df, eachindex => :_n)))
         push!(teardown, :(select!($target_df, Not(:_n))))
     end
-    if :_N in variables
+    if :_N in variables_RHS
         push!(setup, :(transform!($target_df, nrow => :_N)))
         push!(teardown, :(select!($target_df, Not(:_N))))
     end
@@ -74,6 +76,7 @@ function generate_command(command::Command; options=[], allowed=[])
             x
         end
     end)
+    @warn "Origin = $df2, target = $target_df"
     GeneratedCommand(dfname, df2, target_df, Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
 end
 

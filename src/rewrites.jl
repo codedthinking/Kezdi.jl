@@ -46,9 +46,14 @@ end
 function rewrite(::Val{:generate}, command::Command)
     gc = generate_command(command; options=[:single_argument, :variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
     (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    @warn setup
     target_column = get_LHS(command.arguments[1])
     LHS, RHS = split_assignment(arguments[1])
     quote
+        cols1 = names($local_copy)
+        cols2 = names($target_df)
+        @warn "Columns in origin: $cols1"
+        @warn "Columns in target: $cols2"
         if ($target_column in names($df))
             ArgumentError("Column \"$($target_column)\" already exists in $(names($df))") |> throw
         else
