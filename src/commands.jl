@@ -46,3 +46,4 @@ function summarize(df::AbstractDataFrame, column::Symbol)::Summarize
 end
 
 regress(df::AbstractDataFrame, formula::Expr) = :(reg($df, $formula))
+cnt(df::AbstractDataFrame, column::Symbol) = nrow(df) - count(ismissing.(df[!, column]))

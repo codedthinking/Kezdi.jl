@@ -45,13 +45,13 @@ macro count(exprs...)
     :count |> parse(exprs) |> rewrite
 end
 
-macro sort(exprs...)
-    :sort |> parse(exprs) |> rewrite
-end
+# macro sort(exprs...)
+#     :sort |> parse(exprs) |> rewrite
+# end
 
-macro order(exprs...)
-    :order |> parse(exprs) |> rewrite
-end
+# macro order(exprs...)
+#     :order |> parse(exprs) |> rewrite
+# end
 
 macro use(fname)
     :(use($fname)) |> esc

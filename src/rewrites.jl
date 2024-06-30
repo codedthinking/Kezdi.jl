@@ -160,3 +160,13 @@ function rewrite(::Val{:egen}, command::Command)
         end
     end |> esc
 end
+
+function rewrite(::Val{:count}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable, :single_argument, :nofunction, :replace_variables], allowed=[:by])
+    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
+    column = extract_variable_references(command.arguments[1])
+    quote
+        $setup
+        Kezdi.cnt($sdf, $column[1]) |> $teardown
+    end |> esc
+end
