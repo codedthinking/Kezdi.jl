@@ -53,7 +53,6 @@ function generate_command(command::Command; options=[], allowed=[])
             push!(setup, :(local $sdf = $df2))
         else
             bitmask = build_bitmask(df2, condition)
-            @warn bitmask
             push!(setup, :(local $sdf = view($df2, $bitmask, :)))
         end
     end
@@ -76,7 +75,6 @@ function generate_command(command::Command; options=[], allowed=[])
             x
         end
     end)
-    @warn "Origin = $df2, target = $target_df"
     GeneratedCommand(dfname, df2, target_df, Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
 end
 
