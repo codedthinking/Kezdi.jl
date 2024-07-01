@@ -137,11 +137,41 @@ function rewrite(::Val{:egen}, command::Command)
 end
 
 function rewrite(::Val{:count}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable, :single_argument, :nofunction, :replace_variables], allowed=[:by])
-    (; df, local_copy, sdf, gdf, setup, teardown, arguments, options) = gc
-    column = extract_variable_references(command.arguments[1])
+    gc = generate_command(command; options=[:ifable, :nofunction], allowed=[:by])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
         $setup
-        Kezdi.cnt($sdf, $column[1]) |> $teardown
+        Kezdi.counter($target_df) |> $teardown
+    end |> esc
+end
+
+function rewrite(::Val{:sort}, command::Command)
+    gc = generate_command(command; options=[:variables, :nofunction], allowed=[:desc])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    columns = [x[1] for x in extract_variable_references.(command.arguments)]
+    if :desc in get_top_symbol.(options)
+        desc = true
+    else
+        desc = false
+    end
+    quote
+        $setup
+        sort($target_df, $columns, rev=$desc) |> $teardown
+    end |> esc
+end
+
+function rewrite(::Val{:order}, command::Command)
+    gc = generate_command(command; allowed=[:desc])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    columns = [x[1] for x in extract_variable_references.(command.arguments)]
+    if :desc in get_top_symbol.(options)
+        desc = true
+    else
+        desc = false
+    end
+    quote
+        $setup
+        cols = sort(names($target_df), rev=$desc)
+        $target_df[!,cols]|> $teardown
     end |> esc
 end

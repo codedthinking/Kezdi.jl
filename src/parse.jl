@@ -1,3 +1,4 @@
+global_logger(Logging.ConsoleLogger(stderr, Logging.Info))
 function extract_args(arg)::Node
     if arg isa Expr
         if arg.head == :tuple
@@ -45,9 +46,9 @@ function construct_call(node::Node)
     end
 
     if node.type in [:&&, :||] && typeof(node.content) != Expr
-        return Expr(Symbol("." * String(node.type)), node.content...)
+        return Expr(Symbol("." * String(node.type)), replace_logical_operators.(node.content)...)
     end
-
+    
     if typeof(node.content) == Expr
         if node.type in [:&&, :||]
             return Expr(Symbol("." * String(node.type)), node.content.args...)
@@ -56,6 +57,20 @@ function construct_call(node::Node)
     end
 
     return Expr(node.type, node.content...)
+end
+
+function replace_logical_operators(args)
+    if args in [:&&, :||]
+        return Symbol("." * String(args))
+    end
+    return args
+end
+
+function replace_logical_operators(args::Expr)::Expr
+    if args.head in [:&&, :||]
+        return Expr(Symbol("." * String(args.head)), replace_logical_operators.(args.args)...)
+    end
+    return args
 end
 
 function transition(state::Int64, arg::Node)::Int64
