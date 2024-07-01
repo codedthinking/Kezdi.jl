@@ -308,6 +308,10 @@ end
     @test all(df2.y .=== [missing, missing, missing, 4])
     df2 = @generate dfxz y = sum(x) @if x == 4 && group in [["blue"]] && z > 2
     @test all(df2.y .=== [missing, missing, missing, 4])
+    df2 = @generate dfxz y = sum(x) @if x == 4 && group in [["blue"]] && z > 2 && z < 5
+    @test all(df2.y .=== [missing, missing, missing, 4])
+    df2 = @generate dfxz y = sum(x) @if x == 4 && group in [["blue"]] && z > 2 && z < 5 || z < 0
+        @test all(df2.y .=== [missing, missing, missing, 4])
 end
 
 @testset "Egen with if" begin
