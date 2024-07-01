@@ -300,13 +300,13 @@ end
 @testset "x in list" begin
     df = DataFrame(x = 1:4, group=["red", "red", "blue", "blue"])
     dfxz = DataFrame(x = 1:4, z = 1:4, group=["red", "red", "blue", "blue"])
-    df2 = @egen df y = sum(x) @if group in [["red", "blue"]]
+    df2 = @generate df y = sum(x) @if group in [["red", "blue"]]
     @test all(df2.y .== sum(df.x))
-    df2 = @egen df y = sum(x) @if group in [["green", "yellow"]]
+    df2 = @generate df y = sum(x) @if group in [["green", "yellow"]]
     @test all(df2.y .=== missing)
-    df2 = @egen dfxz y = sum(x) @if (z == 4) && (group in [["blue"]])
+    df2 = @generate dfxz y = sum(x) @if z == 4 && group in [["blue"]]
     @test all(df2.y .=== [missing, missing, missing, 4])
-    df2 = @egen dfxz y = sum(x) @if ((x == 4) && (group in [["blue"]]) && (z > 2))
+    df2 = @generate dfxz y = sum(x) @if x == 4 && group in [["blue"]] && z > 2
     @test all(df2.y .=== [missing, missing, missing, 4])
 end
 
@@ -521,5 +521,27 @@ end
     end
 end
 
-# julia> @summarize DataFrame(x=1:11) x
-# Kezdi.Summarize(:x, 11, 11.0, 6.0, 11.0, 3.3166247903554, 0.0, -1.22, 66.0, 1.0, 11.0, 1.0, 1.05, 1.6, 3.25, 6.0, 8.75, 10.4, 10.95, 11.0)
+@testset "Count" begin
+    df = DataFrame(x = 1:10, y = 2 .+ 3 .* (1:10) .+ (-1) .^ (1:10), z = (-1) .^ (1:10), s = ["a", "a", "a", "a", "b", "b", "b", "b", "c", "c"])
+    @testset "Known values" begin
+        c = @count df
+        @test c == 10
+        c = @count df @if s == "a"
+        @test c == 4
+        c = @count df @if s == "b" && x < 5
+        @test c == 0
+        c = @count df, by(s)
+        @test c == [4, 4, 2]
+        c = @count df, by(s, z)
+        @test c == [2,2,2,2,1,1]
+    end
+end
+
+@testset "Use" begin
+    using DataFrames
+    using StatFiles
+    df = load("test/test.dta") |> DataFrame
+    @testset "Known values" begin
+        @test df == @use "test/test.dta"
+    end
+end
