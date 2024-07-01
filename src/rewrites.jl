@@ -159,3 +159,19 @@ function rewrite(::Val{:sort}, command::Command)
         sort($target_df, $columns, rev=$desc) |> $teardown
     end |> esc
 end
+
+function rewrite(::Val{:order}, command::Command)
+    gc = generate_command(command; allowed=[:desc])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    columns = [x[1] for x in extract_variable_references.(command.arguments)]
+    if :desc in get_top_symbol.(options)
+        desc = true
+    else
+        desc = false
+    end
+    quote
+        $setup
+        cols = sort(names($target_df), rev=$desc)
+        $target_df[!,cols]|> $teardown
+    end |> esc
+end

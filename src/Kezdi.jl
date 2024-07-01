@@ -1,5 +1,5 @@
 module Kezdi
-export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress, use, @use, @tabulate, rowcount, distinct, @count, @sort
+export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress, use, @use, @tabulate, rowcount, distinct, @count, @sort, @order
 
 using Reexport
 using Logging

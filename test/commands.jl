@@ -575,3 +575,11 @@ end
         @test all(df2.y .== [0, 0, 1, 1, 1, 0])
     end
 end
+
+@testset "Order" begin
+    df = DataFrame(x = 1:5, y = 2 .+ 3 .* (1:5) .+ (-1) .^ (1:5), z = (-1) .^ (1:5), s = ["a", "a", "a", "b", "c"])
+    df2 = @order df 
+    @test names(df2) == sort(names(df))
+    df2 = @order df, desc
+    @test names(df2) == sort(names(df), rev = true)
+end
