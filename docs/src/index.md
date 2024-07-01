@@ -18,6 +18,8 @@ df = CSV.read("data.csv", DataFrame)
 @with df 
 ```
 
+<script async data-uid="62d7ebb237" src="https://relentless-producer-1210.ck.page/62d7ebb237/index.js"></script>
+
 ## Benefits of using Kezdi.jl
 ### Speed
 
