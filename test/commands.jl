@@ -549,3 +549,29 @@ end
         @test df == @use "test/test.dta"
     end
 end
+
+@testset "Sort" begin
+    df = DataFrame(x = [1, 2, 3, 2, 1, 3], y = [0, 2, 0, 1, 1, 1])
+    @testset "Known values" begin
+        df2 = @sort df x
+        @test all(df2.x .== [1, 1, 2, 2, 3, 3])
+        df2 = @sort df x y
+        @test all(df2.x .== [1, 1, 2, 2, 3, 3])
+        @test all(df2.y .== [0, 1, 1, 2, 0, 1])
+    end
+    @testset "Reverse" begin
+        df2 = @sort df x, desc
+        @test all(df2.x .== [3, 3, 2, 2, 1, 1])
+        df2 = @sort df x y,  desc
+        @test all(df2.x .== [3, 3, 2, 2, 1, 1])
+        @test all(df2.y .== [1, 0, 2, 1, 1, 0])
+    end
+    @testset "Missing values" begin
+        df = DataFrame(x = [1, 2, missing, 3, 3, 3], y = [0, 0, 0, 1, 1, 1])
+        df2 = @sort df x
+        #@test all(df2.x .== [1, 2, 3, 3, 3, missing])
+        df2 = @sort df x y
+        #@test all(df2.x .== [1, 2, 3, 3, 3, missing])
+        @test all(df2.y .== [0, 0, 1, 1, 1, 0])
+    end
+end

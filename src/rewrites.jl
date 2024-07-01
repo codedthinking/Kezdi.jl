@@ -144,3 +144,18 @@ function rewrite(::Val{:count}, command::Command)
         Kezdi.counter($target_df) |> $teardown
     end |> esc
 end
+
+function rewrite(::Val{:sort}, command::Command)
+    gc = generate_command(command; options=[:variables, :nofunction], allowed=[:desc])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    columns = [x[1] for x in extract_variable_references.(command.arguments)]
+    if :desc in get_top_symbol.(options)
+        desc = true
+    else
+        desc = false
+    end
+    quote
+        $setup
+        sort($target_df, $columns, rev=$desc) |> $teardown
+    end |> esc
+end
