@@ -6,22 +6,13 @@ Kezdi
 
 ## Data manipulation
 
-### Filtering columns
+### Filtering columns and rows
 ```@docs
 @keep
 ```
 
 ```@docs
 @drop
-```
-
-### Filtering rows
-```@docs
-@keep_if
-```
-
-```@docs
-@drop_if
 ```
 
 ### Modifying columns
@@ -37,8 +28,22 @@ Kezdi
 @egen
 ```
 
-## Statistics
+### Grouping data
+```@docs
+@collapse
+```
 
+## Exploratory Data Analysis
+
+```@docs
+@tabulate
+```
+
+```@docs
+@summarize
+```
+
+## Regression
 ```@docs
 @regress
 ```
