@@ -13,7 +13,7 @@ function rewrite(::Val{:generate}, command::Command)
             $setup
             $local_copy[!, $target_column] .= missing
             $target_df[!, $target_column] .= $RHS
-            $local_copy |> $teardown
+            $local_copy |> $teardown |> setdf!
         end
     end |> esc
 end
@@ -38,7 +38,7 @@ function rewrite(::Val{:replace}, command::Command)
             else
                 $target_df[!, $target_column] .= $RHS
             end
-            $local_copy |> $teardown
+            $local_copy |> $teardown |> setdf!
         end
     end |> esc
 end
@@ -64,7 +64,7 @@ function rewrite(::Val{:drop}, command::Command)
     bitmask = build_bitmask(local_copy, command.condition)
     return quote
         $setup
-        $local_copy[.!($bitmask), :] |> $teardown
+        $local_copy[.!($bitmask), :] |> $teardown |> setdf!
     end |> esc
 end
 
@@ -74,7 +74,7 @@ function rewrite(::Val{:collapse}, command::Command)
     combine_epxression = Expr(:call, :combine, target_df, build_assignment_formula.(command.arguments)...)
     quote
         $setup
-        $combine_epxression |> $teardown
+        $combine_epxression |> $teardown |> setdf!
     end |> esc
 end
 
@@ -89,7 +89,7 @@ function rewrite(::Val{:egen}, command::Command)
         else
             $setup
             $transform_expression
-            $local_copy |> $teardown
+            $local_copy |> $teardown |> setdf!
         end
     end |> esc
 end
@@ -101,7 +101,7 @@ function rewrite(::Val{:sort}, command::Command)
     desc = :desc in get_top_symbol.(options) ? true : false
     quote
         $setup
-        sort($target_df, $columns, rev=$desc) |> $teardown
+        sort($target_df, $columns, rev=$desc) |> $teardown |> setdf!
     end |> esc
 end
 
@@ -165,6 +165,6 @@ function rewrite(::Val{:order}, command::Command)
             cols = pushfirst!(cols, target_cols...)
         end
 
-        $target_df[!,cols]|> $teardown
+        $target_df[!,cols]|> $teardown |> setdf!
     end |> esc
 end

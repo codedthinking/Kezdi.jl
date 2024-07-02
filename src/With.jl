@@ -1,6 +1,6 @@
 module With
-export @with, @with!
 using ..Kezdi
+export @with, @with!
 
 is_aside(x) = false
 function is_aside(x::Expr)::Bool
@@ -105,20 +105,11 @@ function insert_first_arg(e::Expr, firstarg; assignment = false)
     end
 end
 
-function rewrite(expr, replacement)
-    aside = is_aside(expr)
-    new_expr = insert_first_arg(expr, replacement)
-    if !aside
-        replacement = gensym()
-        new_expr = :(local $replacement = $new_expr)
-    else
-        new_expr = :(display($new_expr))
-    end
-
-    (new_expr, replacement)
+function rewrite(expr)
+    is_aside(expr) ? :($display($expr)) : expr
 end
 
-rewrite(l::LineNumberNode, replacement) = (l, replacement)
+rewrite(l::LineNumberNode) = l
 
 function rewrite_with_block(firstpart, block)
     pushfirst!(block.args, firstpart)
@@ -240,7 +231,6 @@ macro with(initial_value, args...)
     rewrite_with_block(block)
 end
 
-
 macro with!(initial_value, args...)
     block = flatten_to_single_block(initial_value, args...)
     result = rewrite_with_block(block)
@@ -267,10 +257,9 @@ function rewrite_with_block(block)
 
     reconvert_docstrings!(block_expressions)
 
-    # assign first line to first gensym variable
-    firstvar = gensym()
+    # save current dataframe
+    previous_df = gensym()
     rewritten_exprs = []
-    replacement = firstvar
 
     did_first = false
     for expr in block_expressions
@@ -278,18 +267,22 @@ function rewrite_with_block(block)
         # we just do the firstvar transformation for the first non LineNumberNode
         # we encounter
         if !(did_first || expr isa LineNumberNode)
-            expr = :(local $firstvar = $expr)
             did_first = true
-            push!(rewritten_exprs, expr)
+            push!(rewritten_exprs, :(local $previous_df = getdf()))
+            push!(rewritten_exprs, :(setdf!($expr)))
             continue
         end
         
-        rewritten, replacement = rewrite(expr, replacement)
+        rewritten = rewrite(expr)
         push!(rewritten_exprs, rewritten)
     end
-    result = Expr(:block, rewritten_exprs..., replacement)
+    teardown = :(x -> begin
+        setdf!($previous_df)
+        x
+    end)
+    result = Expr(:block, rewritten_exprs...)
 
-    :($(esc(result)))
+    :($(esc(result)) |> $(esc(teardown)))
 end
 
 # if a line in a with is a string, it can be parsed as a docstring
