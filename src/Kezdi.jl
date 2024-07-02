@@ -21,6 +21,7 @@ include("macros.jl")
 include("parse.jl")
 include("codegen.jl")
 include("commands.jl")
+include("side_effects.jl")
 
 include("With.jl")
 @reexport using .With: @with, @with!
