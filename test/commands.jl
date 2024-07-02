@@ -446,6 +446,13 @@ end
     end
 end
 
+@testset "Boolean-valued column" begin
+    df = DataFrame(x=1:4, z=[true, false, true, false])
+    s = @summarize df x @if z
+    @test s.N == 2
+    @test s.mean == 2.0
+end
+
 @testset "Regression" begin
     @testset "Univariate" begin
         # use alternating +1 and -1 as error term to avoid numerical instability
@@ -544,9 +551,9 @@ end
 @testset "Use" begin
     using DataFrames
     using ReadStatTables
-    df = readstat("test/test.dta") |> DataFrame
+    df = readstat("test.dta") |> DataFrame
     @testset "Known values" begin
-        @test df == @use "test/test.dta"
+        @test df == @use "test.dta"
     end
 end
 

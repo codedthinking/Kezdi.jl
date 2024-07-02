@@ -7,7 +7,7 @@ struct Command
     command::Symbol
     df::Any
     arguments::Tuple
-    condition::Union{Expr, Nothing, Bool}
+    condition::Any
     options::Tuple
 end
 
