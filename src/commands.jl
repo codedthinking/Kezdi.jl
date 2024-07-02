@@ -1,50 +1,221 @@
-use(fname::AbstractString) = readstat(fname) |> DataFrame
+# use multiple dispatch to generate code 
+rewrite(command::Command) = rewrite(Val(command.command), command)
 
-distinct(x::AbstractVector) = unique(x)
-distinct(x::Base.SkipMissing) = distinct(collect(x))
-rowcount(x::AbstractVector) = length(collect(skipmissing(x)))
-rowcount(x::Base.SkipMissing) = length(collect(x))
-
-tabulate(df::AbstractDataFrame, columns::Vector{Symbol}) = freqtable(df, columns...)
-
-function summarize(df::AbstractDataFrame, column::Symbol)::Summarize
-    data = df[!, column] |> skipmissing |> collect
-    n = length(data)
-    sum_val = sum(data)
-    mean_val = mean(data)
-    std_dev = std(data)
-    variance = var(data)
-    skewness_val = skewness(data)
-    # julia reports excess kurtosis, so we add 3 to get the kurtosis
-    kurtosis_val = 3.0 + kurtosis(data)
-    
-    percentiles = [1, 5, 10, 25, 50, 75, 90, 95, 99]
-    percentiles_values = quantile(data, percentiles ./ 100; alpha=0.5, beta=0.5)
-
-    Summarize(
-        column,
-        n,
-        n,
-        mean_val,
-        variance,
-        std_dev,
-        skewness_val,
-        kurtosis_val,
-        sum_val,
-        minimum(data),
-        maximum(data),
-        percentiles_values[1],
-        percentiles_values[2],
-        percentiles_values[3],
-        percentiles_values[4],
-        percentiles_values[5],
-        percentiles_values[6],
-        percentiles_values[7],
-        percentiles_values[8],
-        percentiles_values[9]
-    )
+function rewrite(::Val{:tabulate}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable, :nofunction])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    columns = [x[1] for x in extract_variable_references.(command.arguments)]
+    quote
+        $setup
+        Kezdi.tabulate($target_df, $columns) |> $teardown
+    end |> esc
 end
 
-regress(df::AbstractDataFrame, formula::Expr) = :(reg($df, $formula))
-counter(df::AbstractDataFrame) = nrow(df)
-counter(gdf::GroupedDataFrame) = [nrow(df) for df in gdf]
+function rewrite(::Val{:summarize}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :single_argument, :nofunction])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    column = extract_variable_references(command.arguments[1])
+    quote
+        $setup
+        Kezdi.summarize($target_df, $column[1]) |> $teardown
+    end |> esc
+end
+
+function rewrite(::Val{:regress}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable], allowed=[:robust, :cluster])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    if :robust in get_top_symbol.(options)
+        vcov = :(Vcov.robust())
+    elseif :cluster in get_top_symbol.(options)
+        vars = get_option(command, :cluster)
+        vars = replace_variable_references.(vars)
+        vcov = :(Vcov.cluster($(vars...)))
+    else
+        vcov = :(Vcov.simple())
+    end
+    quote
+        $setup
+        if length($(arguments[2:end])) == 1
+            reg($target_df, @formula($(arguments[1]) ~ $(arguments[2])), $vcov) |> $teardown
+        else
+            reg($target_df, @formula($(arguments[1]) ~ $(Expr(:call, :+, arguments[2:end]...))), $vcov) |> $teardown
+        end
+    end |> esc
+end
+
+function rewrite(::Val{:generate}, command::Command)
+    gc = generate_command(command; options=[:single_argument, :variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    target_column = get_LHS(command.arguments[1])
+    LHS, RHS = split_assignment(arguments[1])
+    quote
+        if ($target_column in names($df))
+            ArgumentError("Column \"$($target_column)\" already exists in $(names($df))") |> throw
+        else
+            $setup
+            $local_copy[!, $target_column] .= missing
+            $target_df[!, $target_column] .= $RHS
+            $local_copy |> $teardown
+        end
+    end |> esc
+end
+
+function rewrite(::Val{:replace}, command::Command)
+    gc = generate_command(command; options=[:single_argument, :variables, :ifable, :replace_variables, :vectorize, :assignment])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    target_column = get_LHS(command.arguments[1])
+    LHS, RHS = split_assignment(arguments[1])
+    third_vector = gensym()
+    bitmask = build_bitmask(local_copy, vectorize_function_calls(replace_variable_references(local_copy, command.condition)))
+    quote
+        if !($target_column in names($df))
+            ArgumentError("Column \"$($target_column)\" does not exist in $(names($df))") |> throw
+        else
+            $setup
+            if eltype($RHS) != eltype($target_df[!, $target_column])
+                local $third_vector = Vector{eltype($RHS)}(undef, nrow($local_copy))
+                $third_vector[$bitmask] .= $RHS
+                $third_vector[.!$bitmask] .= $local_copy[!, $target_column][.!$bitmask]
+                $local_copy[!, $target_column] = $third_vector
+            else
+                $target_df[!, $target_column] .= $RHS
+            end
+            $local_copy |> $teardown
+        end
+    end |> esc
+end
+
+function rewrite(::Val{:keep}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable, :nofunction])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    quote
+        $setup
+        $target_df[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> $teardown
+    end |> esc
+end
+
+function rewrite(::Val{:drop}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable, :nofunction])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    if isnothing(command.condition)
+        return quote
+            $setup
+            select($local_copy, Not(collect($(command.arguments)))) |> $teardown
+        end |> esc
+    end 
+    bitmask = build_bitmask(local_copy, command.condition)
+    return quote
+        $setup
+        $local_copy[.!($bitmask), :] |> $teardown
+    end |> esc
+end
+
+function rewrite(::Val{:collapse}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    combine_epxression = Expr(:call, :combine, target_df, build_assignment_formula.(command.arguments)...)
+    quote
+        $setup
+        $combine_epxression |> $teardown
+    end |> esc
+end
+
+function rewrite(::Val{:egen}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    target_column = get_LHS(command.arguments[1])
+    transform_expression = Expr(:call, :transform!, target_df, build_assignment_formula.(command.arguments)...)
+    quote
+        if ($target_column in names($df))
+            ArgumentError("Column \"$($target_column)\" already exists in $(names($df))") |> throw
+        else
+            $setup
+            $transform_expression
+            $local_copy |> $teardown
+        end
+    end |> esc
+end
+
+function rewrite(::Val{:count}, command::Command)
+    gc = generate_command(command; options=[:ifable, :nofunction], allowed=[:by])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    quote
+        $setup
+        Kezdi.counter($target_df) |> $teardown
+    end |> esc
+end
+
+function rewrite(::Val{:sort}, command::Command)
+    gc = generate_command(command; options=[:variables, :nofunction], allowed=[:desc])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    columns = [x[1] for x in extract_variable_references.(command.arguments)]
+    desc = :desc in get_top_symbol.(options) ? true : false
+    quote
+        $setup
+        sort($target_df, $columns, rev=$desc) |> $teardown
+    end |> esc
+end
+
+function rewrite(::Val{:order}, command::Command)
+    gc = generate_command(command; options = [:variables, :nofunction], allowed=[:desc, :last, :after, :before , :alphabetical])
+    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    desc = :desc in get_top_symbol.(options)
+    last = :last in get_top_symbol.(options)
+    after = :after in get_top_symbol.(options)
+    before = :before in get_top_symbol.(options)
+    alphabetical = :alphabetical in get_top_symbol.(options)
+
+    if before && after
+        ArgumentError("Cannot use both `before` and `after` options in @order") |> throw
+    end
+    if last && (before || after)
+        ArgumentError("Cannot use `last` with `before` or `after` options in @order") |> throw
+    end
+    if desc && !alphabetical
+        ArgumentError("Cannot use `desc` without `alphabetical` option in @order") |> throw
+    end
+    
+    if before
+        var = get_option(command, :before)
+    elseif after
+        var = get_option(command, :after)
+    else
+        var = nothing
+    end
+
+    if !isnothing(var) && length(var) > 1
+        ArgumentError("Only one variable can be specified for `before` or `after` options in @order") |> throw
+    end
+
+
+    quote
+        $setup
+        target_cols = collect($(command.arguments))
+        cols = [Symbol(col) for col in names($target_df) if Symbol(col) ∉ target_cols]
+        if $alphabetical
+            cols = sort(cols, rev = $desc)
+        end
+
+        if $after
+            idx = findfirst(x -> x == $var[1], cols)
+            for (i,col) in enumerate(target_cols)
+                insert!(cols, idx + i, col)
+            end
+        end
+
+        if $before
+            idx = findfirst(x -> x == $var[1], cols)
+            for (i,col) in enumerate(target_cols)
+                insert!(cols, idx + i - 1, col)
+            end
+        end
+
+        if $last && !($after || $before)
+            cols = push!(cols, target_cols...)
+        elseif !($after || $before)
+            cols = pushfirst!(cols, target_cols...)
+        end
+
+        $target_df[!,cols]|> $teardown
+    end |> esc
+end
