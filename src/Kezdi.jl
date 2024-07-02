@@ -1,5 +1,5 @@
 module Kezdi
-export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress, use, @use, @tabulate, rowcount, distinct, @count, @sort, @order
+export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress, use, @use, @tabulate, rowcount, distinct, @count, @sort, @order, getdf, setdf!
 
 using Reexport
 using Logging
@@ -24,5 +24,10 @@ include("rewrites.jl")
 
 include("With.jl")
 @reexport using .With: @with, @with!
+
+global _global_dataframe::Union{AbstractDataFrame, Nothing} = nothing
+
+getdf() = _global_dataframe
+setdf!(df::AbstractDataFrame) = global _global_dataframe = df
 
 end # module
