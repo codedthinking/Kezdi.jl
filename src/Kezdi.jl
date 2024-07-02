@@ -21,14 +21,8 @@ include("macros.jl")
 include("parse.jl")
 include("codegen.jl")
 include("rewrites.jl")
-
 include("With.jl")
-@reexport using .With: @with, @with!
 
-global _global_dataframe::Union{AbstractDataFrame, Nothing} = nothing
+@reexport using .With: @with
 
-getdf() = _global_dataframe
-function setdf!(df::Union{AbstractDataFrame, Nothing}) 
-    global _global_dataframe = isnothing(df) ? nothing : deepcopy(df)
-end
 end # module

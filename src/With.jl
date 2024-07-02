@@ -1,14 +1,13 @@
 module With
-export @with, @with!
-
-include("consts.jl")
+using ..Kezdi
+export @with
 
 is_aside(x) = false
 function is_aside(x::Expr)::Bool
     if x.head == :(=)
         return is_aside(x.args[2])
     end
-    return x.head == :macrocall && x.args[1] in SIDE_EFFECTS 
+    return x.head == :macrocall && x.args[1] in Kezdi.SIDE_EFFECTS 
 end
 
 
@@ -107,7 +106,7 @@ function insert_first_arg(e::Expr, firstarg; assignment = false)
 end
 
 function rewrite(expr)
-    is_aside(expr) ? display(expr) : expr
+    is_aside(expr) ? :($display($expr)) : expr
 end
 
 rewrite(l::LineNumberNode) = l

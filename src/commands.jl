@@ -1,4 +1,6 @@
 use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf!
+getdf() = _global_dataframe
+setdf!(df::Union{AbstractDataFrame, Nothing}) = global _global_dataframe = isnothing(df) ? nothing : deepcopy(df)
 
 distinct(x::AbstractVector) = unique(x)
 distinct(x::Base.SkipMissing) = distinct(collect(x))
