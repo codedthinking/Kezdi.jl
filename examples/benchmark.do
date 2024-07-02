@@ -1,6 +1,7 @@
 * Create a dataset with 10,000,000 observations
 clear
 set obs 10000000
+set processors 1
 
 * Generate variable i from 1 to 10,000,000
 gen i = _n

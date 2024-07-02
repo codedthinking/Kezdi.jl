@@ -113,7 +113,7 @@ function rewrite(expr, replacement)
         replacement = gensym()
         new_expr = :(local $replacement = $new_expr)
     else
-        new_expr = :(@show $new_expr)
+        new_expr = :(display($new_expr))
     end
 
     (new_expr, replacement)
