@@ -106,20 +106,11 @@ function insert_first_arg(e::Expr, firstarg; assignment = false)
     end
 end
 
-function rewrite(expr, replacement)
-    aside = is_aside(expr)
-    new_expr = insert_first_arg(expr, replacement)
-    if !aside
-        replacement = gensym()
-        new_expr = :(local $replacement = $new_expr)
-    else
-        new_expr = :(display($new_expr))
-    end
-
-    (new_expr, replacement)
+function rewrite(expr)
+    is_aside(expr) ? display(expr) : expr
 end
 
-rewrite(l::LineNumberNode, replacement) = (l, replacement)
+rewrite(l::LineNumberNode) = l
 
 function rewrite_with_block(firstpart, block)
     pushfirst!(block.args, firstpart)
@@ -268,10 +259,10 @@ function rewrite_with_block(block)
 
     reconvert_docstrings!(block_expressions)
 
-    # assign first line to first gensym variable
-    firstvar = gensym()
+    # save current dataframe
+    previous_df = gensym()
+    current_df = gensym()
     rewritten_exprs = []
-    replacement = firstvar
 
     did_first = false
     for expr in block_expressions
@@ -279,16 +270,19 @@ function rewrite_with_block(block)
         # we just do the firstvar transformation for the first non LineNumberNode
         # we encounter
         if !(did_first || expr isa LineNumberNode)
-            expr = :(local $firstvar = $expr)
             did_first = true
-            push!(rewritten_exprs, expr)
+            push!(rewritten_exprs, :(local $previous_df = getdf()))
+            push!(rewritten_exprs, :(local $current_df = $expr))
+            push!(rewritten_exprs, :(setdf!($current_df)))
             continue
         end
         
-        rewritten, replacement = rewrite(expr, replacement)
+        rewritten = rewrite(expr)
         push!(rewritten_exprs, rewritten)
     end
-    result = Expr(:block, rewritten_exprs..., replacement)
+    push!(rewritten_exprs, :(local $current_df = getdf()))
+    push!(rewritten_exprs, :(setdf!($previous_df)))
+    result = Expr(:block, rewritten_exprs...)
 
     :($(esc(result)))
 end

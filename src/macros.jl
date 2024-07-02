@@ -110,17 +110,17 @@ macro use(fname)
 end
 
 macro list()
-    :(getdf()) |> esc
+    :(getdf() |> display) |> esc
 end
 
 macro head(n=5)
-    :(first(getdf(), $n)) |> esc
+    :(first(getdf(), $n) |> display) |> esc
 end
 
 macro tail(n=5)
-    :(last(getdf(), $n)) |> esc
+    :(last(getdf(), $n) |> display) |> esc
 end
 
 macro names()
-    :(names(getdf())) |> esc
+    :(names(getdf()) |> display) |> esc
 end
