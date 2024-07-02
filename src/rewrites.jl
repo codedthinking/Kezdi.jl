@@ -149,11 +149,7 @@ function rewrite(::Val{:sort}, command::Command)
     gc = generate_command(command; options=[:variables, :nofunction], allowed=[:desc])
     (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
     columns = [x[1] for x in extract_variable_references.(command.arguments)]
-    if :desc in get_top_symbol.(options)
-        desc = true
-    else
-        desc = false
-    end
+    desc = :desc in get_top_symbol.(options) ? true : false
     quote
         $setup
         sort($target_df, $columns, rev=$desc) |> $teardown
@@ -161,17 +157,65 @@ function rewrite(::Val{:sort}, command::Command)
 end
 
 function rewrite(::Val{:order}, command::Command)
-    gc = generate_command(command; allowed=[:desc])
+    gc = generate_command(command; options = [:variables, :nofunction], allowed=[:desc, :last, :after, :before , :alphabetical])
     (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
-    columns = [x[1] for x in extract_variable_references.(command.arguments)]
-    if :desc in get_top_symbol.(options)
-        desc = true
-    else
-        desc = false
+    desc = :desc in get_top_symbol.(options) ? true : false
+    last = :last in get_top_symbol.(options) ? true : false
+    after = :after in get_top_symbol.(options) ? true : false
+    before = :before in get_top_symbol.(options) ? true : false
+    alphabetical = :alphabetical in get_top_symbol.(options) ? true : false
+
+    if before && after
+        ArgumentError("Cannot use both `before` and `after` options in @order") |> throw
     end
+    if last && (before || after)
+        ArgumentError("Cannot use `last` with `before` or `after` options in @order") |> throw
+    end
+    if desc && !alphabetical
+        ArgumentError("Cannot use `desc` without `alphabetical` option in @order") |> throw
+    end
+    
+    if before
+        var = get_option(command, :before)
+    elseif after
+        var = get_option(command, :after)
+    else
+        var = nothing
+    end
+
+    if !isnothing(var) && length(var) > 1
+        ArgumentError("Only one variable can be specified for `before` or `after` options in @order") |> throw
+    end
+
+
     quote
         $setup
-        cols = sort(names($target_df), rev=$desc)
+        target_cols = collect($(command.arguments))
+        cols = [Symbol(col) for col in names($target_df) if Symbol(col) ∉ target_cols]
+        if $alphabetical
+            cols = sort(cols, rev = $desc)
+        end
+
+        if $after
+            idx = findfirst(x -> x == $var[1], cols)
+            for (i,col) in enumerate(target_cols)
+                insert!(cols, idx + i, col)
+            end
+        end
+
+        if $before
+            idx = findfirst(x -> x == $var[1], cols)
+            for (i,col) in enumerate(target_cols)
+                insert!(cols, idx + i - 1, col)
+            end
+        end
+
+        if $last && !($after || $before)
+            cols = push!(cols, target_cols...)
+        elseif !($after || $before)
+            cols = pushfirst!(cols, target_cols...)
+        end
+
         $target_df[!,cols]|> $teardown
     end |> esc
 end

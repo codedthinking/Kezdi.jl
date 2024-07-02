@@ -543,8 +543,8 @@ end
 
 @testset "Use" begin
     using DataFrames
-    using StatFiles
-    df = load("test/test.dta") |> DataFrame
+    using ReadStatTables
+    df = readstat("test/test.dta") |> DataFrame
     @testset "Known values" begin
         @test df == @use "test/test.dta"
     end
@@ -577,9 +577,34 @@ end
 end
 
 @testset "Order" begin
-    df = DataFrame(x = 1:5, y = 2 .+ 3 .* (1:5) .+ (-1) .^ (1:5), z = (-1) .^ (1:5), s = ["a", "a", "a", "b", "c"])
+    df = DataFrame(x = 1:5, z = (-1) .^ (1:5), y = 2 .+ 3 .* (1:5) .+ (-1) .^ (1:5), s = ["a", "a", "a", "b", "c"])
     df2 = @order df 
-    @test names(df2) == sort(names(df))
-    df2 = @order df, desc
+    @test names(df2) == names(df)
+    df2 = @order df, alphabetical
+    @test names(df2) == sort(names(df), rev = false)
+    df2 = @order df, alphabetical desc
     @test names(df2) == sort(names(df), rev = true)
+    df2 = @order df s
+    @test names(df2) == ["s","x","z","y"]
+    df2 = @order df s, alphabetical
+    @test names(df2) == ["s","x","y","z"]
+    df2 = @order df s, alphabetical last
+    @test names(df2) == ["x","y","z","s"]
+    df2 = @order df s, alphabetical desc
+    @test names(df2) == ["s","z","y","x"]
+    df2 = @order df s, alphabetical desc last
+    @test names(df2) == ["z","y","x","s"]
+    df2 = @order df s, after(z)
+    @test names(df2) == ["x","z","s","y"]
+    df2 = @order df s, after(z) alphabetical
+    @test names(df2) == ["x","y","z","s"]
+    df2 = @order df s, after(z) alphabetical desc
+    @test names(df2) == ["z","s","y","x"]
+    df2 = @order df s, before(y)
+    @test names(df2) == ["x","z","s","y"]
+    df2 = @order df s, before(y) alphabetical
+    @test names(df2) == ["x","s","y","z"]
+    df2 = @order df s, before(y) alphabetical desc
+    @test names(df2) == ["z","s","y","x"]
+
 end
