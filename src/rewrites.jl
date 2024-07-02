@@ -159,11 +159,11 @@ end
 function rewrite(::Val{:order}, command::Command)
     gc = generate_command(command; options = [:variables, :nofunction], allowed=[:desc, :last, :after, :before , :alphabetical])
     (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
-    desc = :desc in get_top_symbol.(options) ? true : false
-    last = :last in get_top_symbol.(options) ? true : false
-    after = :after in get_top_symbol.(options) ? true : false
-    before = :before in get_top_symbol.(options) ? true : false
-    alphabetical = :alphabetical in get_top_symbol.(options) ? true : false
+    desc = :desc in get_top_symbol.(options)
+    last = :last in get_top_symbol.(options)
+    after = :after in get_top_symbol.(options)
+    before = :before in get_top_symbol.(options)
+    alphabetical = :alphabetical in get_top_symbol.(options)
 
     if before && after
         ArgumentError("Cannot use both `before` and `after` options in @order") |> throw
