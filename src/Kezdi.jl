@@ -1,5 +1,5 @@
 module Kezdi
-export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress, use, @use, @tabulate, rowcount, distinct, @count, @sort, @order
+export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress, use, @use, @tabulate, rowcount, distinct, @count, @sort, @order, getdf, setdf!, @list, @head, @tail, @names
 
 using Reexport
 using Logging
@@ -21,8 +21,8 @@ include("macros.jl")
 include("parse.jl")
 include("codegen.jl")
 include("rewrites.jl")
-
 include("With.jl")
-@reexport using .With: @with, @with!
+
+@reexport using .With: @with
 
 end # module

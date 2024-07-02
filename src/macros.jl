@@ -108,3 +108,19 @@ end
 macro use(fname)
     :(use($fname)) |> esc
 end
+
+macro list()
+    :(getdf() |> display) |> esc
+end
+
+macro head(n=5)
+    :(first(getdf(), $n) |> display) |> esc
+end
+
+macro tail(n=5)
+    :(last(getdf(), $n) |> display) |> esc
+end
+
+macro names()
+    :(names(getdf()) |> display) |> esc
+end
