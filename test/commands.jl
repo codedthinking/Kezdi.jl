@@ -543,8 +543,8 @@ end
 
 @testset "Use" begin
     using DataFrames
-    using StatFiles
-    df = load("test/test.dta") |> DataFrame
+    using ReadStatTables
+    df = readstat("test/test.dta") |> DataFrame
     @testset "Known values" begin
         @test df == @use "test/test.dta"
     end
