@@ -1,4 +1,4 @@
-use(fname::AbstractString) = load(fname) |> DataFrame
+use(fname::AbstractString) = readstat(fname) |> DataFrame
 
 distinct(x::AbstractVector) = unique(x)
 distinct(x::Base.SkipMissing) = distinct(collect(x))

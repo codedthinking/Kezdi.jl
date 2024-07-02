@@ -4,14 +4,14 @@ export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress
 using Reexport
 using Logging
 using InteractiveUtils
-using StatFiles
+using ReadStatTables
 
 @reexport using FreqTables: freqtable
 @reexport using FixedEffectModels
 @reexport using Statistics
 @reexport using CSV
 @reexport using DataFrames
-@reexport using StatsBase: mean
+@reexport using StatsBase
 import Base: count
 
 include("consts.jl")
