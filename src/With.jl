@@ -1,6 +1,6 @@
 module With
+export @with, @with!
 using ..Kezdi
-export @with
 
 is_aside(x) = false
 function is_aside(x::Expr)::Bool
@@ -105,11 +105,20 @@ function insert_first_arg(e::Expr, firstarg; assignment = false)
     end
 end
 
-function rewrite(expr)
-    is_aside(expr) ? :($display($expr)) : expr
+function rewrite(expr, replacement)
+    aside = is_aside(expr)
+    new_expr = insert_first_arg(expr, replacement)
+    if !aside
+        replacement = gensym()
+        new_expr = :(local $replacement = $new_expr)
+    else
+        new_expr = :(display($new_expr))
+    end
+
+    (new_expr, replacement)
 end
 
-rewrite(l::LineNumberNode) = l
+rewrite(l::LineNumberNode, replacement) = (l, replacement)
 
 function rewrite_with_block(firstpart, block)
     pushfirst!(block.args, firstpart)
@@ -258,9 +267,10 @@ function rewrite_with_block(block)
 
     reconvert_docstrings!(block_expressions)
 
-    # save current dataframe
-    previous_df = gensym()
+    # assign first line to first gensym variable
+    firstvar = gensym()
     rewritten_exprs = []
+    replacement = firstvar
 
     did_first = false
     for expr in block_expressions
@@ -268,22 +278,18 @@ function rewrite_with_block(block)
         # we just do the firstvar transformation for the first non LineNumberNode
         # we encounter
         if !(did_first || expr isa LineNumberNode)
+            expr = :(local $firstvar = $expr)
             did_first = true
-            push!(rewritten_exprs, :(local $previous_df = getdf()))
-            push!(rewritten_exprs, :(setdf!($expr)))
+            push!(rewritten_exprs, expr)
             continue
         end
         
-        rewritten = rewrite(expr)
+        rewritten, replacement = rewrite(expr, replacement)
         push!(rewritten_exprs, rewritten)
     end
-    teardown = :(x -> begin
-        setdf!($previous_df)
-        x
-    end)
-    result = Expr(:block, rewritten_exprs...)
+    result = Expr(:block, rewritten_exprs..., replacement)
 
-    :($(esc(result)) |> $(esc(teardown)))
+    :($(esc(result)))
 end
 
 # if a line in a with is a string, it can be parsed as a docstring

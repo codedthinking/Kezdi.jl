@@ -16,13 +16,14 @@ import Base: count
 
 include("consts.jl")
 include("structs.jl")
-include("commands.jl")
+include("functions.jl")
 include("macros.jl")
 include("parse.jl")
 include("codegen.jl")
-include("rewrites.jl")
-include("With.jl")
+include("commands.jl")
+include("side_effects.jl")
 
+include("With.jl")
 @reexport using .With: @with, @with!
 
 end # module
