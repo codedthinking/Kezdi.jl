@@ -106,7 +106,7 @@ function rewrite(::Val{:drop}, command::Command)
     bitmask = build_bitmask(local_copy, command.condition)
     return quote
         $setup
-        $local_copy[Kezdi.BFA(!, $bitmask), :] |> $teardown |> setdf!
+        $local_copy[.!($bitmask), :] |> $teardown |> setdf!
     end |> esc
 end
 
@@ -116,7 +116,7 @@ function rewrite(::Val{:collapse}, command::Command)
     combine_epxression = Expr(:call, :combine, target_df, build_assignment_formula.(command.arguments)...)
     quote
         $setup
-        $combine_epxression |> $teardown
+        $combine_epxression |> $teardown |> setdf!
     end |> esc
 end
 
