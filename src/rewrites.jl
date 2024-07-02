@@ -55,7 +55,7 @@ function rewrite(::Val{:generate}, command::Command)
             $setup
             $local_copy[!, $target_column] .= missing
             $target_df[!, $target_column] .= $RHS
-            $local_copy |> $teardown
+            $local_copy |> $teardown |> setdf!
         end
     end |> esc
 end
@@ -80,7 +80,7 @@ function rewrite(::Val{:replace}, command::Command)
             else
                 $target_df[!, $target_column] .= $RHS
             end
-            $local_copy |> $teardown
+            $local_copy |> $teardown |> setdf!
         end
     end |> esc
 end
@@ -90,7 +90,7 @@ function rewrite(::Val{:keep}, command::Command)
     (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
         $setup
-        $target_df[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> $teardown
+        $target_df[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> $teardown |> setdf!
     end |> esc
 end
 
@@ -100,13 +100,13 @@ function rewrite(::Val{:drop}, command::Command)
     if isnothing(command.condition)
         return quote
             $setup
-            select($local_copy, Not(collect($(command.arguments)))) |> $teardown
+            select($local_copy, Not(collect($(command.arguments)))) |> $teardown |> setdf!
         end |> esc
     end 
     bitmask = build_bitmask(local_copy, command.condition)
     return quote
         $setup
-        $local_copy[Kezdi.BFA(!, $bitmask), :] |> $teardown
+        $local_copy[Kezdi.BFA(!, $bitmask), :] |> $teardown |> setdf!
     end |> esc
 end
 
@@ -131,7 +131,7 @@ function rewrite(::Val{:egen}, command::Command)
         else
             $setup
             $transform_expression
-            $local_copy |> $teardown
+            $local_copy |> $teardown |> setdf!
         end
     end |> esc
 end
@@ -156,7 +156,7 @@ function rewrite(::Val{:sort}, command::Command)
     end
     quote
         $setup
-        sort($target_df, $columns, rev=$desc) |> $teardown
+        sort($target_df, $columns, rev=$desc) |> $teardown |> setdf!
     end |> esc
 end
 
@@ -172,6 +172,6 @@ function rewrite(::Val{:order}, command::Command)
     quote
         $setup
         cols = sort(names($target_df), rev=$desc)
-        $target_df[!,cols]|> $teardown
+        $target_df[!,cols]|> $teardown |> setdf!
     end |> esc
 end

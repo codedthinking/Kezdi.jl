@@ -28,6 +28,6 @@ include("With.jl")
 global _global_dataframe::Union{AbstractDataFrame, Nothing} = nothing
 
 getdf() = _global_dataframe
-setdf!(df::AbstractDataFrame) = global _global_dataframe = df
+setdf!(df::AbstractDataFrame) = global _global_dataframe = deepcopy(df)
 
 end # module
