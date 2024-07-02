@@ -1,4 +1,11 @@
 # Kezdi.jl
+
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://user.github.io/Kezdi.jl/stable/)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://user.github.io/Kezdi.jl/dev/)
+[![Build Status](https://github.com/user/Kezdi.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/user/Kezdi.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Coverage](https://codecov.io/gh/user/Kezdi.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/user/Kezdi.jl)
+
+
 An umbrella of Julia packages for data analysis, with a focus on economics.
 
 To install,

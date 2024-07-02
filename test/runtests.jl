@@ -22,7 +22,7 @@ vectorize_function_calls = Kezdi.vectorize_function_calls
 parse = Kezdi.parse
 rewrite = Kezdi.rewrite
 
-@testset "All tests" begin
+@testset "Kezdi.jl" begin
 @testset "Parsing" begin
     include("parse.jl")
 end

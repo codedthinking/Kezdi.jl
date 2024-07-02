@@ -1,3 +1,7 @@
+```@meta
+CurrentModule = Kezdi
+```
+
 # Kezdi.jl Documentation
 
 ```@docs
@@ -82,3 +86,10 @@ df = CSV.read("data.csv", DataFrame)
 ## Gotchas for Stata users
 ### All commands begin with `@`
 ### `@collapse` has same syntax as `@egen`
+
+```@index
+```
+
+```@autodocs
+Modules = [Kezdi]
+```
