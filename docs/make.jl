@@ -1,3 +1,3 @@
 using Documenter, Kezdi
 
-makedocs(sitename="Kezdi.jl", strict=true)
+makedocs(sitename="Kezdi.jl")

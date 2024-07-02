@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="174.41937"
+   height="91.754913"
+   viewBox="0 0 174.41937 91.754913"
+   fill="none"
+   version="1.1"
+   id="svg12"
+   sodipodi:docname="kezdi-jl-logo.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs12" />
+  <sodipodi:namedview
+     id="namedview12"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.7978523"
+     inkscape:cx="102.75739"
+     inkscape:cy="25.376608"
+     inkscape:window-width="1304"
+     inkscape:window-height="861"
+     inkscape:window-x="0"
+     inkscape:window-y="37"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg12" />
+  <path
+     d="m 20.378125,61.128595 v 8.7685 c 0,0.786 0.6345,1.4204 1.4204,1.4204 h 7.3482 c 0.7859,0 1.4203,-0.6344 1.4203,-1.4204 v -7.3481 c 0,-0.786 -0.6344,-1.4204 -1.4203,-1.4204 z"
+     fill="#d4d2e3"
+     id="path1" />
+  <path
+     d="M 20.377825,40.750795 H 1.420385 C 0.634439,40.750795 0,41.385195 0,42.171195 v 17.537 c 0,0.7859 0.634439,1.4204 1.420385,1.4204 h 18.95744 z"
+     fill="#e61e25"
+     id="path2" />
+  <path
+     d="m 20.378125,1.420385 v 39.33041 h 39.3305 c 0.7859,0 1.4204,-0.6344 1.4204,-1.4204 V 1.420385 C 61.129025,0.634435 60.494525,0 59.708625,0 h -37.9101 c -0.7859,0 -1.4204,0.634435 -1.4204,1.420385 z"
+     fill="#d4d2e3"
+     id="path3" />
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:33.3333px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000"
+     x="37.908043"
+     y="85.0681"
+     id="text12"><tspan
+       sodipodi:role="line"
+       id="tspan14"
+       x="37.908043"
+       y="85.0681">Kezdi</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:33.3333px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#e61e25;fill-opacity:1"
+     x="140.32109"
+     y="84.870155"
+     id="text12-5"><tspan
+       sodipodi:role="line"
+       id="tspan13"
+       x="140.32109"
+       y="84.870155">.jl</tspan></text>
+</svg>
