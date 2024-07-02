@@ -25,11 +25,11 @@ df = CSV.read("data.csv", DataFrame)
 
 | Command      | Stata | Julia 1st run | Julia 2nd run | Speedup |
 | ------------ | ----- | ------------- | ------------- | ------- |
-| `@egen`      | 4.90s | 1.60s         | 0.41s         | 10x     |
-| `@collapse`  | 0.92s | 0.18s         | 0.13s         | 8x      |
-| `@regress`   | 0.89s | 1.93s         | 0.16s         | 6x      |
-| `@tabulate`  | 2.14s | 0.46s         | 0.10s         | 20x     |
-| `@summarize` | 10.40s | 0.58s         | 0.37s         | 28x     |
+| `@egen`      | 4.90s | 1.23s         | 0.37s         | 13x     |
+| `@collapse`  | 0.92s | 0.26s         | 0.15s         | 8x      |
+| `@regress`   | 0.89s | 1.94s         | 0.14s         | 6x      |
+| `@tabulate`  | 2.14s | 0.46s         | 0.09s         | 20x     |
+| `@summarize` | 10.40s | 0.60s         | 0.37s         | 28x     |
 
 ## Commands
 

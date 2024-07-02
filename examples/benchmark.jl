@@ -5,17 +5,29 @@ using Pkg; Pkg.precompile()
 df = DataFrame(i = 1:10_000_000)
 df.g = rand(0:99, nrow(df))
 
-@time @egen df mean_i = mean(i), by(g)
-@time @egen df mean_i = mean(i), by(g)
+setdf!(df)
 
-@time @collapse df mean_i = mean(i), by(g)
-@time @collapse df mean_i = mean(i), by(g)
+println("Egen")
+@time @egen mean_i = mean(i), by(g)
+@drop mean_i
+@time @egen mean_i = mean(i), by(g)
+@drop mean_i
 
-@time @tabulate df g
-@time @tabulate df g
+println("Collapse")
+@time @collapse mean_i = mean(i), by(g)
+setdf!(df)
+@time @collapse mean_i = mean(i), by(g)
 
-@time @summarize df g
-@time @summarize df g
+println("Tabulate")
+setdf!(df)
+@time @tabulate g
+setdf!(df)
+@time @tabulate g
 
-@time @regress df i g @if g > 50
-@time @regress df i g @if g > 50
+println("Summarize")
+@time @summarize g
+@time @summarize g
+
+println("Regress")
+@time @regress i g @if g > 50
+@time @regress i g @if g > 50
