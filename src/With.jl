@@ -260,7 +260,6 @@ function rewrite_with_block(block)
 
     # save current dataframe
     previous_df = gensym()
-    current_df = gensym()
     rewritten_exprs = []
 
     did_first = false
@@ -271,19 +270,20 @@ function rewrite_with_block(block)
         if !(did_first || expr isa LineNumberNode)
             did_first = true
             push!(rewritten_exprs, :(local $previous_df = getdf()))
-            push!(rewritten_exprs, :(local $current_df = $expr))
-            push!(rewritten_exprs, :(setdf!($current_df)))
+            push!(rewritten_exprs, :(setdf!($expr)))
             continue
         end
         
         rewritten = rewrite(expr)
         push!(rewritten_exprs, rewritten)
     end
-    push!(rewritten_exprs, :(local $current_df = getdf()))
-    push!(rewritten_exprs, :(setdf!($previous_df)))
+    teardown = :(x -> begin
+        setdf!($previous_df)
+        x
+    end)
     result = Expr(:block, rewritten_exprs...)
 
-    :($(esc(result)))
+    :($(esc(result)) |> $(esc(teardown)))
 end
 
 # if a line in a with is a string, it can be parsed as a docstring

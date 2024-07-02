@@ -23,6 +23,6 @@ include("codegen.jl")
 include("rewrites.jl")
 include("With.jl")
 
-@reexport using .With: @with
+@reexport using .With: @with, @with!
 
 end # module
