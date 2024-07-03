@@ -1,8 +1,25 @@
 use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf
+
+"""
+    getdf() -> AbstractDataFrame
+
+Return the global data frame.
+"""
 getdf() = _global_dataframe
+
+"""
+    setdf(df::Union{AbstractDataFrame, Nothing})
+
+Set the global data frame.
+"""
 setdf(df::Union{AbstractDataFrame, Nothing}) = global _global_dataframe = df
 display_and_return(x) = (display(x); x)
 
+"""
+    distinct(x::AbstractVector) = unique(x)
+
+Convenience function to get the distinct values of a vector.
+"""
 distinct(x::AbstractVector) = unique(x)
 distinct(x::Base.SkipMissing) = distinct(collect(x))
 rowcount(x::AbstractVector) = length(collect(skipmissing(x)))
