@@ -79,6 +79,6 @@ counter(gdf::GroupedDataFrame) = [nrow(df) for df in gdf]
 """
     DNV(f(x))
 
-Indicate that the function `f` should not be vectorized. The name DNB is only used for parsing, do not call it directly.
+Indicate that the function `f` should not be vectorized. The name DNV is only used for parsing, do not call it directly.
 """
 DNV(args...; kwargs...) = error("This function should not be directly called. It is used to indicate that a function should not be vectorized. For example, @generate y = DNV(log(x))")
