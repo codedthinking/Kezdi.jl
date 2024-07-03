@@ -4,7 +4,7 @@ function rewrite(::Val{:tabulate}, command::Command)
     columns = [x[1] for x in extract_variable_references.(command.arguments)]
     quote
         $setup
-        Kezdi.tabulate($target_df, $columns) |> $teardown
+        Kezdi.tabulate($target_df, $columns) |> Kezdi.display_and_return |> $teardown
     end |> esc
 end
 
@@ -14,7 +14,7 @@ function rewrite(::Val{:summarize}, command::Command)
     column = extract_variable_references(command.arguments[1])
     quote
         $setup
-        Kezdi.summarize($target_df, $column[1]) |> $teardown
+        Kezdi.summarize($target_df, $column[1]) |> Kezdi.display_and_return |> $teardown
     end |> esc
 end
 
@@ -35,7 +35,7 @@ function rewrite(::Val{:regress}, command::Command)
         if length($(arguments[2:end])) == 1
             reg($target_df, @formula($(arguments[1]) ~ $(arguments[2])), $vcov) |> $teardown
         else
-            reg($target_df, @formula($(arguments[1]) ~ $(Expr(:call, :+, arguments[2:end]...))), $vcov) |> $teardown
+            reg($target_df, @formula($(arguments[1]) ~ $(Expr(:call, :+, arguments[2:end]...))), $vcov) |> Kezdi.display_and_return |> $teardown
         end
     end |> esc
 end
@@ -45,7 +45,7 @@ function rewrite(::Val{:count}, command::Command)
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
         $setup
-        Kezdi.counter($target_df) |> $teardown
+        Kezdi.counter($target_df) |> Kezdi.display_and_return |> $teardown
     end |> esc
 end
 
