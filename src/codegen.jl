@@ -267,5 +267,3 @@ isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args
 
 # only broadcast first argument. For example, [1, 2, 3] in [2, 3] should evaluate to [false, true, true]
 BFA(f::Function, xs, args...; kwargs...) = broadcast(x -> f(x, args...; kwargs...), xs)
-# dummy function for do-not-vectorize
-DNV(args...; kwargs...) = error("This function should not be directly called. It is used to indicate that a function should not be vectorized. For example, @generate y = DNV(log(x))")

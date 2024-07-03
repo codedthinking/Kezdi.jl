@@ -74,3 +74,11 @@ end
 regress(df::AbstractDataFrame, formula::Expr) = :(reg($df, $formula))
 counter(df::AbstractDataFrame) = nrow(df)
 counter(gdf::GroupedDataFrame) = [nrow(df) for df in gdf]
+
+# dummy function for do-not-vectorize
+"""
+    DNV(f(x))
+
+Indicate that the function `f` should not be vectorized. The name DNB is only used for parsing, do not call it directly.
+"""
+DNV(args...; kwargs...) = error("This function should not be directly called. It is used to indicate that a function should not be vectorized. For example, @generate y = DNV(log(x))")

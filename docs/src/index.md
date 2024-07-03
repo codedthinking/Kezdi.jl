@@ -5,11 +5,17 @@ CurrentModule = Kezdi
 # Kezdi.jl Documentation
 Kezdi.jl is a Julia package that provides a Stata-like interface for data manipulation and analysis. It is designed to be easy to use for Stata users who are transitioning to Julia.[^stata] 
 
-It imports and reexports CSV, DataFrames, FixedEffectModels, FreqTables, ReadStatTables, Statistics, and StatsBase. 
+It imports and reexports [CSV](https://csv.juliadata.org/stable/), [DataFrames](https://dataframes.juliadata.org/stable/), [FixedEffectModels](https://fixedeffectmodelsjl.readthedocs.io/en/latest/), [FreqTables](https://github.com/nalimilan/FreqTables.jl), [ReadStatTables](https://github.com/piever/ReadStatTables.jl), [Statistics](https://docs.julialang.org/en/v1/stdlib/Statistics/), and [StatsBase](https://juliastats.org/StatsBase.jl/stable/). These packages are not covered in this documentation, but you can find more information by following the links.
 
 ## Getting started
+!!! warning "Kezdi.jl is in beta"
+    `Kezdi.jl` is currently in beta. We have close to 300 unit tests and a large code coverage. [![Coverage](https://codecov.io/gh/codedthinking/Kezdi.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/codedthinking/Kezdi.jl) The package, however, is not guaranteed to be bug-free. If you encounter any issues, please report them as a [GitHub issue](https://github.com/codedthinking/Kezdi.jl/issues/new).
+
+    If you would like to receive updates on the package, please star the repository on GitHub and sign up for [email notifications here](https://relentless-producer-1210.ck.page/62d7ebb237).
+
+
 ### Installation
-`Kezdi.jl` is currently in beta. To install the package, run the following command in Julia's REPL:
+To install the package, run the following command in Julia's REPL:
 
 ```julia
 using Pkg; Pkg.add(url="https://github.com/codedthinking/Kezdi.jl")
@@ -58,8 +64,6 @@ end
     @regress log(MPG) log(Horsepower) log(Weight) log(Displacement) fe(Cylinders), robust 
 end
 ```
-
-<script async data-uid="62d7ebb237" src="https://relentless-producer-1210.ck.page/62d7ebb237/index.js"></script>
 
 ## Benefits of using Kezdi.jl
 ### Free and open-source
@@ -180,6 +184,10 @@ getdf
 @with
 ```
 
+```@docs
+@with!
+```
+
 ## Differences to standard Julia and DataFrames syntax
 To maximize convenience for Stata users, Kezdi.jl has a number of differences to standard Julia and DataFrames syntax.
 
@@ -197,12 +205,24 @@ Due to this non-standard syntax, Kezdi.jl uses the comma to separate options.
 @regress log(MPG) log(Horsepower), robust
 ```
 
+Here `log(MPG)` and `log(Horsepower)` are the dependent and independent variables, respectively, and `robust` is an option. Options may also have arguments, like
+
+```julia
+@regress log(MPG) log(Horsepower), cluster(Cylinders)
+```
+
 ### Automatic variable name substitution
 Column names of the data frame can be used directly in the commands without the need to prefix them with the data frame name or using a Symbol.
 
 ```julia 
 @generate logHP = log(Horsepower)
 ```
+
+!!! warning "No symbols or special strings"
+    Other data manipulation packages in Julia require column names to be passed as symbols or strings. Kezdi.jl does not require this, and it will not work if you try to use symbols or strings.
+
+!!! danger "Reserved words cannot be used as variable names"
+    Julia reserved words, like `begin`, `export`, `function` and standard types like `String`, `Int`, `Float64`, etc., cannot be used as variable names in Kezdi.jl. If you have a column with a reserved word, rename it *before* passing it to Kezdi.jl.
 
 ### Automatic vectorization
 All functions are automatically vectorized, so there is no need to use the `.` operator to broadcast functions over elements of a column. 
@@ -211,7 +231,7 @@ All functions are automatically vectorized, so there is no need to use the `.` o
 @generate logHP = log(Horsepower)
 ```
 
-If you want to turn off automatic vectorization, use the convenience function `DNV()` ("do not vectorize").
+If you want to turn off automatic vectorization, use the convenience function [`DNV`](@ref) ("do not vectorize").
 
 ```julia
 @generate logHP = DNV(log(Horsepower))
@@ -243,16 +263,16 @@ Almost every command can be followed by an `@if` condition that filters the data
 !!! tip "Note: vector functions in `@if` conditions"
     Autovectorization rules also apply to `@if` conditions. If you use a vector function, it will be evaluated on the *entire* column, before subseting the data frame. By contrast, vector functions in `@generate` or `@collapse` commands are evaluated on the subset of rows that satisfy the condition.
 
-```julia
-@generate HP_p75 = median(Horsepower) @if Horsepower > median(Horsepower)
-```
+    ```julia
+    @generate HP_p75 = median(Horsepower) @if Horsepower > median(Horsepower)
+    ```
 
-This code computes the median of horsepower values *above the median*, that is, the 75th percentile of the horsepower distribution. Of course, you can more easily do this calculation with `@summarize`:
+    This code computes the median of horsepower values *above the median*, that is, the 75th percentile of the horsepower distribution. Of course, you can more easily do this calculation with `@summarize`:
 
-```julia
-s = @summarize Horsepower
-s.p75
-```
+    ```julia
+    s = @summarize Horsepower
+    s.p75
+    ```
 
 ### Handling missing values
 Kezdi.jl ignores missing values when aggregating over entire columns. 
@@ -275,10 +295,28 @@ end
 
 ## Differences to Stata syntax
 ### All commands begin with `@`
+To allow for Stata-like syntax, all commands begin with `@`. These are macros that rewrite your Kezdi.jl code to `DataFrames.jl` commands.
+
+```julia
+@tabulate Gear
+@keep @if Gear == 4
+@keep Model MPG Horsepower Weight Displacement Cylinders
+```
+
+### `@if` condition also begins with `@`
+[The `@if` condition](@ref) is non-standard behavior in Julia, so it is also implemented as a macro.
+
 ### `@collapse` has same syntax as `@egen`
+Unlike Stata, where `egen` and `collapse` have different syntax, Kezdi.jl uses the same syntax for both commands.
+
+```julia
+@egen mean_HP = mean(Horsepower), by(Cylinders)
+@collapse mean_HP = mean(Horsepower), by(Cylinders)
+```
+
 ### Different function names
-- rowcount
-- ismissing
+To maintain compatibility with Julia, we had to rename some functions. For example, `count` is called `rowcount`, `missing` is called `ismissing` in Kezdi.jl.
+
 
 ## Convenience functions
 ```@docs
@@ -289,8 +327,16 @@ distinct
 rowcount
 ```
 
+```@docs
+DNV
+```
+
 
 ## Acknowledgements
 [^stata]: Stata is a registered trademark of StataCorp LLC. Kezdi.jl is not affiliated with StataCorp LLC.
 
-The package is built on top of [DataFrames.jl](https://dataframes.juliadata.org/stable/), [FreqTables.jl](https://github.com/nalimilan/FreqTables.jl) and [FixedEffectModels.jl](https://github.com/FixedEffects/FixedEffectModels.jl). 
+Inspiration for the package came from [Tidier.jl](https://tidierjl.readthedocs.io/en/latest/), a similar package launched by Karandeep Singh that provides a dplyr-like interface for Julia. Johannes Boehm has also developed a similar package, [Douglass.jl](https://github.com/jmboehm/Douglass.jl).
+
+The package is built on top of [DataFrames.jl](https://dataframes.juliadata.org/stable/), [FreqTables.jl](https://github.com/nalimilan/FreqTables.jl) and [FixedEffectModels.jl](https://github.com/FixedEffects/FixedEffectModels.jl). The `@with` function relies on [Chain.jl](https://github.com/jkrumbiegel/Chain.jl) by Julius Krumbiegel.
+
+The package is named after [Gabor Kezdi](https://kezdigabor.life/), a Hungarian economist who has made significant contributions to [teaching data analysis](https://gabors-data-analysis.com/).
