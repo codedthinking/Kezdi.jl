@@ -15,7 +15,7 @@ It imports and reexports CSV, DataFrames, FixedEffectModels, FreqTables, ReadSta
 using Pkg; Pkg.add(url="https://github.com/codedthinking/Kezdi.jl")
 ```
 
-Every Kezdi.jl command is a macro that begins with `@`. These commands operate on a global `DataFrame` that is set using the `setdf` function. 
+Every Kezdi.jl command is a macro that begins with `@`. These commands operate on a global `DataFrame` that is set using the `setdf` function. Alternatively, commands can be executed within a `@with` block that sets the `DataFrame` for the duration of the block.
 
 ### Example
 ```julia
@@ -36,6 +36,28 @@ setdf(dataset("datasets", "mtcars"))
 @regress log(MPG) log(Horsepower) log(Weight) log(Displacement) fe(Cylinders), robust 
 ```
 
+Alternatively, you can use the `@with` block to avoid writing to a global `DataFrame`:
+```julia
+using Kezdi
+using RDatasets
+
+df = dataset("datasets", "mtcars")
+
+renamed_df = @with df begin
+    @rename HP Horsepower
+    @rename Disp Displacement
+    @rename WT Weight
+    @rename Cyl Cylinders
+end
+
+@with renamed_df begin
+    @tabulate Gear
+    @keep @if Gear == 4
+    @keep MPG Horsepower Weight Displacement Cylinders
+    @summarize MPG
+    @regress log(MPG) log(Horsepower) log(Weight) log(Displacement) fe(Cylinders), robust 
+end
+```
 <script async data-uid="62d7ebb237" src="https://relentless-producer-1210.ck.page/62d7ebb237/index.js"></script>
 
 ## Benefits of using Kezdi.jl
@@ -149,25 +171,118 @@ getdf
 @regress
 ```
 
-## Use on another DataFrame
+### Use on another DataFrame
 ```@docs
 @with
 ```
 
-## Gotchas for Julia users
-### Everything is a macro
-### Comma is used for options
-### Automatic variable name substitution
-### Automatic vectorization
-### Handling missing values
+## Differences to standard Julia and DataFrames syntax
+To maximize convenience for Stata users, Kezdi.jl has a number of differences to standard Julia and DataFrames syntax.
 
-## Gotchas for Stata users
+### Everything is a macro
+While there are a few convenience functions, most Kezdi.jl commands are macros that begin with `@`.
+
+```julia
+@tabulate Gear
+```
+
+### Comma is used for options
+Due to this non-standard syntax, Kezdi.jl uses the comma to separate options.
+
+```julia
+@regress log(MPG) log(Horsepower), robust
+```
+
+### Automatic variable name substitution
+Column names of the data frame can be used directly in the commands without the need to prefix them with the data frame name or using a Symbol.
+
+```julia 
+@generate logHP = log(Horsepower)
+```
+
+### Automatic vectorization
+All functions are automatically vectorized, so there is no need to use the `.` operator to broadcast functions over elements of a column. 
+
+```julia
+@generate logHP = log(Horsepower)
+```
+
+If you want to turn off automatic vectorization, use the convenience function `DNV()` ("do not vectorize").
+
+```julia
+@generate logHP = DNV(log(Horsepower))
+```
+
+The exception is when the function operates on Vectors, in which case Kezdi.jl understands you want to apply the function to the entire column.
+
+```julia
+@collapse mean_HP = mean(Horsepower), by(Cylinders)
+```
+
+If you need to apply a function to individual elements of a column, you need to vectorize it with adding `.` after the function name:
+
+```julia
+@generate words = split(Model, " ")
+@generate n_words = length.(words)
+```
+
+!!! tip "Note: `length(words)` vs `length.(words)`" 
+    Here, `words` becomes a vector of vectors, where each element is a vector of words in the corresponding `Model` string. The function `legth.` will operate on each cell in `words`, counting the number of words in each `Model` string. By contrast, `length(words)` would return the number of elements in the `words` vector, which is the number of rows in the DataFrame.
+
+### The `@if` condition
+Almost every command can be followed by an `@if` condition that filters the data frame. The command will only be executed on the subset of rows for which the condition evaluates to `true`. The condition can use any combination of column names and functions.
+
+```julia
+@summarize MPG @if Horsepower > median(Horsepower)
+```
+
+!!! tip "Note: vector functions in `@if` conditions"
+    Autovectorization rules also apply to `@if` conditions. If you use a vector function, it will be evaluated on the *entire* column, before subseting the data frame. By contrast, vector functions in `@generate` or `@collapse` commands are evaluated on the subset of rows that satisfy the condition.
+
+```julia
+@generate HP_p75 = median(Horsepower) @if Horsepower > median(Horsepower)
+```
+
+This code computes the median of horsepower values *above the median*, that is, the 75th percentile of the horsepower distribution. Of course, you can more easily do this calculation with `@summarize`:
+
+```julia
+s = @summarize Horsepower
+s.p75
+```
+
+### Handling missing values
+Kezdi.jl ignores missing values when aggregating over entire columns. 
+
+```julia
+@with DataFrame(A = [1, 2, missing, 4]) begin
+    @collapse mean_A = mean(A)
+end
+```
+returns `mean_A = 2.33`.
+
+### Row-count variables
+The variable `_n` refers to the row number in the data frame, `_N` denotes the total number of rows. These can be used in `@if` conditions, as well.
+
+```julia
+@with DataFrame(A = [1, 2, 3, 4]) begin
+    @keep @if _n < 3
+end
+```
+
+## Differences to Stata syntax
 ### All commands begin with `@`
 ### `@collapse` has same syntax as `@egen`
+### Different function names
+- rowcount
+- ismissing
 
-## Convenience function
+## Convenience functions
 ```@docs
 distinct
+```
+
+```@docs
+rowcount
 ```
 
 
