@@ -249,15 +249,3 @@ isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args
 BFA(f::Function, xs, args...; kwargs...) = broadcast(x -> f(x, args...; kwargs...), xs)
 # dummy function for do-not-vectorize
 DNV(args...; kwargs...) = error("This function should not be directly called. It is used to indicate that a function should not be vectorized. For example, @generate y = DNV(log(x))")
-
-# this is to be deleted after refactoring
-function add_special_variables(df::Any, varlist::Vector{Symbol})
-    exprs = [] 
-    if :_n in varlist
-        push!(exprs, :($(df)[!, "_n"] .= 1:nrow($df)))
-    end
-    if :_N in varlist
-        push!(exprs, :($(df)[!, "_N"] .= nrow($df)))
-    end
-    Expr(:block, exprs...)
-end  
