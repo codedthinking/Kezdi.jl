@@ -5,7 +5,6 @@
 [![Build Status](https://github.com/codedthinking/Kezdi.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/codedthinking/Kezdi.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/codedthinking/Kezdi.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/codedthinking/Kezdi.jl)
 
-
 Kezdi.jl is a Julia package that provides a Stata-like interface for data manipulation and analysis. It is designed to be easy to use for Stata users who are transitioning to Julia.[^stata] 
 
 It imports and reexports [CSV](https://csv.juliadata.org/stable/), [DataFrames](https://dataframes.juliadata.org/stable/), [FixedEffectModels](https://fixedeffectmodelsjl.readthedocs.io/en/latest/), [FreqTables](https://github.com/nalimilan/FreqTables.jl), [ReadStatTables](https://github.com/piever/ReadStatTables.jl), [Statistics](https://docs.julialang.org/en/v1/stdlib/Statistics/), and [StatsBase](https://juliastats.org/StatsBase.jl/stable/). These packages are not covered in this documentation, but you can find more information by following the links.
