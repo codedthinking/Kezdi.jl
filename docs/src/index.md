@@ -180,6 +180,10 @@ getdf
 @with
 ```
 
+```@docs
+@with!
+```
+
 ## Differences to standard Julia and DataFrames syntax
 To maximize convenience for Stata users, Kezdi.jl has a number of differences to standard Julia and DataFrames syntax.
 
