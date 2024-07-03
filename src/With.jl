@@ -269,7 +269,7 @@ function rewrite_with_block(block)
         if !(did_first || expr isa LineNumberNode)
             did_first = true
             push!(rewritten_exprs, :(local $previous_df = getdf()))
-            push!(rewritten_exprs, :(setdf!($expr)))
+            push!(rewritten_exprs, :(setdf($expr)))
             continue
         end
         
@@ -277,7 +277,7 @@ function rewrite_with_block(block)
         push!(rewritten_exprs, rewritten)
     end
     teardown = :(x -> begin
-        setdf!($previous_df)
+        setdf($previous_df)
         x
     end)
     result = Expr(:block, rewritten_exprs...)

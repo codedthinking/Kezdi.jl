@@ -1,6 +1,6 @@
-use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf!
+use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf
 getdf() = _global_dataframe
-setdf!(df::AbstractDataFrame) = global _global_dataframe = df
+setdf(df::Union{AbstractDataFrame, Nothing}) = global _global_dataframe = df
 
 distinct(x::AbstractVector) = unique(x)
 distinct(x::Base.SkipMissing) = distinct(collect(x))

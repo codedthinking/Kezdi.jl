@@ -5,7 +5,7 @@ using Pkg; Pkg.precompile()
 df = DataFrame(i = 1:10_000_000)
 df.g = rand(0:99, nrow(df))
 
-setdf!(df)
+setdf(df)
 
 println("Egen")
 @time @egen mean_i = mean(i), by(g)
@@ -15,13 +15,13 @@ println("Egen")
 
 println("Collapse")
 @time @collapse mean_i = mean(i), by(g)
-setdf!(df)
+setdf(df)
 @time @collapse mean_i = mean(i), by(g)
 
 println("Tabulate")
-setdf!(df)
+setdf(df)
 @time @tabulate g
-setdf!(df)
+setdf(df)
 @time @tabulate g
 
 println("Summarize")
