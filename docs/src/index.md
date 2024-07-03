@@ -335,7 +335,7 @@ DNV
 ## Acknowledgements
 [^stata]: Stata is a registered trademark of StataCorp LLC. Kezdi.jl is not affiliated with StataCorp LLC.
 
-Inspiration for the package came from [Tidier.jl](https://tidierjl.readthedocs.io/en/latest/), a similar package launched by Karandeep Singh that provides a dplyr-like interface for Julia. Johannes Boehm has also developed a similar package, [Douglass.jl](https://github.com/jmboehm/Douglass.jl).
+Inspiration for the package came from [Tidier.jl](https://tidierorg.github.io/Tidier.jl/stable/), a similar package launched by Karandeep Singh that provides a dplyr-like interface for Julia. Johannes Boehm has also developed a similar package, [Douglass.jl](https://github.com/jmboehm/Douglass.jl).
 
 The package is built on top of [DataFrames.jl](https://dataframes.juliadata.org/stable/), [FreqTables.jl](https://github.com/nalimilan/FreqTables.jl) and [FixedEffectModels.jl](https://github.com/FixedEffects/FixedEffectModels.jl). The `@with` function relies on [Chain.jl](https://github.com/jkrumbiegel/Chain.jl) by Julius Krumbiegel.
 
