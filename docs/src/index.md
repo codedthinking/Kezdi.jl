@@ -24,11 +24,14 @@ using Pkg; Pkg.add(url="https://github.com/codedthinking/Kezdi.jl")
 Every Kezdi.jl command is a macro that begins with `@`. These commands operate on a global `DataFrame` that is set using the `setdf` function. Alternatively, commands can be executed within a `@with` block that sets the `DataFrame` for the duration of the block.
 
 ### Example
-```julia
+```@setup mtcars
 using Kezdi
 using RDatasets
 
-setdf(dataset("datasets", "mtcars"))
+df = dataset("datasets", "mtcars")
+```
+```@repl mtcars
+setdf(df)
 
 @rename HP Horsepower
 @rename Disp Displacement
@@ -43,12 +46,7 @@ setdf(dataset("datasets", "mtcars"))
 ```
 
 Alternatively, you can use the `@with` block to avoid writing to a global `DataFrame`:
-```julia
-using Kezdi
-using RDatasets
-
-df = dataset("datasets", "mtcars")
-
+```@repl mtcars
 renamed_df = @with df begin
     @rename HP Horsepower
     @rename Disp Displacement
@@ -76,6 +74,8 @@ end
 | `@tabulate`  | 2.14s | 0.46s         | 0.10s         | 20x     |
 | `@summarize` | 10.40s | 0.58s         | 0.37s         | 28x     |
 | `@regress`   | 0.89s | 1.93s         | 0.16s         | 6x      |
+
+See the benchmarking code for [Stata](https://github.com/codedthinking/Kezdi.jl/blob/main/examples/benchmark.do) and [Kezdi.jl](https://github.com/codedthinking/Kezdi.jl/blob/main/examples/benchmark.jl).
 
 ### Use any Julia function
 ```julia
