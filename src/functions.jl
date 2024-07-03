@@ -22,6 +22,12 @@ Convenience function to get the distinct values of a vector.
 """
 distinct(x::AbstractVector) = unique(x)
 distinct(x::Base.SkipMissing) = distinct(collect(x))
+
+"""
+    rowcount(x::AbstractVector) = length(collect(skipmissing(x)))
+
+Count the number of non-missing values in a vector.
+"""
 rowcount(x::AbstractVector) = length(collect(skipmissing(x)))
 rowcount(x::Base.SkipMissing) = length(collect(x))
 
