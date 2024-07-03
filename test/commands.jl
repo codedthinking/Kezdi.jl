@@ -610,3 +610,13 @@ end
         @test_throws Exception @with df @rename a b c
     end
 end
+
+@testset "Global df is modified" begin
+    df = DataFrame(x=1:4)
+    setdf(df)
+    @keep @if x <= 3
+    @test nrow(getdf()) == 3
+
+    @drop @if x == 1
+    @test nrow(getdf()) == 2
+end
