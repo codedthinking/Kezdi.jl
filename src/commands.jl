@@ -61,7 +61,7 @@ function rewrite(::Val{:keep}, command::Command)
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
         $setup
-        $target_df[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> $teardown
+        $target_df[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> $teardown |> setdf
     end |> esc
 end
 
@@ -71,7 +71,7 @@ function rewrite(::Val{:drop}, command::Command)
     if isnothing(command.condition)
         return quote
             $setup
-            select($local_copy, Not(collect($(command.arguments)))) |> $teardown
+            select($local_copy, Not(collect($(command.arguments)))) |> $teardown |> setdf
         end |> esc
     end 
     bitmask = build_bitmask(local_copy, command.condition)
