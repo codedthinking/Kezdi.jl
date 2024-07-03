@@ -1,5 +1,4 @@
 function generate_command(command::Command; options=[], allowed=[])
-    dfname = command.df
     df2 = gensym()
     sdf = gensym()
     gdf = gensym()
@@ -28,8 +27,8 @@ function generate_command(command::Command; options=[], allowed=[])
         (opt in allowed) || ArgumentError("Invalid option \"$opt\" for this command: @$(command.command)") |> throw
     end
 
-    push!(setup, :($dfname isa AbstractDataFrame || error("Expected DataFrame as first argument")))
-    push!(setup, :(local $df2 = copy($dfname)))
+    push!(setup, :(getdf() isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a global DataFrame set by setdf()")))
+    push!(setup, :(local $df2 = copy(getdf())))
     variables_condition = (:ifable in options) ? vcat(extract_variable_references(command.condition)...) : Symbol[]
     variables_RHS = (:variables in options) ? vcat(extract_variable_references.(command.arguments)...) : Symbol[]
     if :replace_variables in options
@@ -75,7 +74,7 @@ function generate_command(command::Command; options=[], allowed=[])
             x
         end
     end)
-    GeneratedCommand(dfname, df2, target_df, Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
+    GeneratedCommand(df2, target_df, Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
 end
 
 get_by(command::Command) = get_option(command, :by)
