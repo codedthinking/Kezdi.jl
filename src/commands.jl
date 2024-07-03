@@ -3,31 +3,31 @@ rewrite(command::Command) = rewrite(Val(command.command), command)
 
 function rewrite(::Val{:generate}, command::Command)
     gc = generate_command(command; options=[:single_argument, :variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
-    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
     target_column = get_LHS(command.arguments[1])
     LHS, RHS = split_assignment(arguments[1])
     quote
-        if ($target_column in names($df))
-            ArgumentError("Column \"$($target_column)\" already exists in $(names($df))") |> throw
+        if ($target_column in names(getdf()))
+            ArgumentError("Column \"$($target_column)\" already exists in $(names(getdf()))") |> throw
         else
             $setup
             $local_copy[!, $target_column] .= missing
             $target_df[!, $target_column] .= $RHS
-            $local_copy |> $teardown
+            $local_copy |> $teardown |> setdf
         end
     end |> esc
 end
 
 function rewrite(::Val{:replace}, command::Command)
     gc = generate_command(command; options=[:single_argument, :variables, :ifable, :replace_variables, :vectorize, :assignment])
-    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
     target_column = get_LHS(command.arguments[1])
     LHS, RHS = split_assignment(arguments[1])
     third_vector = gensym()
     bitmask = build_bitmask(local_copy, vectorize_function_calls(replace_variable_references(local_copy, command.condition)))
     quote
-        if !($target_column in names($df))
-            ArgumentError("Column \"$($target_column)\" does not exist in $(names($df))") |> throw
+        if !($target_column in names(getdf()))
+            ArgumentError("Column \"$($target_column)\" does not exist in $(names(getdf()))") |> throw
         else
             $setup
             if eltype($RHS) != eltype($target_df[!, $target_column])
@@ -38,14 +38,14 @@ function rewrite(::Val{:replace}, command::Command)
             else
                 $target_df[!, $target_column] .= $RHS
             end
-            $local_copy |> $teardown
+            $local_copy |> $teardown |> setdf
         end
     end |> esc
 end
 
 function rewrite(::Val{:keep}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :nofunction])
-    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
         $setup
         $target_df[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> $teardown
@@ -54,7 +54,7 @@ end
 
 function rewrite(::Val{:drop}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :nofunction])
-    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
     if isnothing(command.condition)
         return quote
             $setup
@@ -64,50 +64,50 @@ function rewrite(::Val{:drop}, command::Command)
     bitmask = build_bitmask(local_copy, command.condition)
     return quote
         $setup
-        $local_copy[.!($bitmask), :] |> $teardown
+        $local_copy[.!($bitmask), :] |> $teardown |> setdf
     end |> esc
 end
 
 function rewrite(::Val{:collapse}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
-    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
     combine_epxression = Expr(:call, :combine, target_df, build_assignment_formula.(command.arguments)...)
     quote
         $setup
-        $combine_epxression |> $teardown
+        $combine_epxression |> $teardown |> setdf
     end |> esc
 end
 
 function rewrite(::Val{:egen}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
-    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
     target_column = get_LHS(command.arguments[1])
     transform_expression = Expr(:call, :transform!, target_df, build_assignment_formula.(command.arguments)...)
     quote
-        if ($target_column in names($df))
-            ArgumentError("Column \"$($target_column)\" already exists in $(names($df))") |> throw
+        if ($target_column in names(getdf()))
+            ArgumentError("Column \"$($target_column)\" already exists in $(names(getdf()))") |> throw
         else
             $setup
             $transform_expression
-            $local_copy |> $teardown
+            $local_copy |> $teardown |> setdf
         end
     end |> esc
 end
 
 function rewrite(::Val{:sort}, command::Command)
     gc = generate_command(command; options=[:variables, :nofunction], allowed=[:desc])
-    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
     columns = [x[1] for x in extract_variable_references.(command.arguments)]
     desc = :desc in get_top_symbol.(options) ? true : false
     quote
         $setup
-        sort($target_df, $columns, rev=$desc) |> $teardown
+        sort($target_df, $columns, rev=$desc) |> $teardown |> setdf
     end |> esc
 end
 
 function rewrite(::Val{:order}, command::Command)
     gc = generate_command(command; options = [:variables, :nofunction], allowed=[:desc, :last, :after, :before , :alphabetical])
-    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
     desc = :desc in get_top_symbol.(options)
     last = :last in get_top_symbol.(options)
     after = :after in get_top_symbol.(options)
@@ -165,6 +165,6 @@ function rewrite(::Val{:order}, command::Command)
             cols = pushfirst!(cols, target_cols...)
         end
 
-        $target_df[!,cols]|> $teardown
+        $target_df[!,cols]|> $teardown |> setdf
     end |> esc
 end

@@ -1,4 +1,7 @@
-use(fname::AbstractString) = readstat(fname) |> DataFrame
+use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf
+getdf() = _global_dataframe
+setdf(df::Union{AbstractDataFrame, Nothing}) = global _global_dataframe = df
+display_and_return(x) = (display(x); x)
 
 distinct(x::AbstractVector) = unique(x)
 distinct(x::Base.SkipMissing) = distinct(collect(x))

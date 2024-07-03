@@ -3,7 +3,7 @@ using Kezdi
 df = CSV.read("~/Downloads/data/export_CAN_2023.csv", DataFrame)
 names(df)
 
-df = @keep df ISO_COUNTRY_CODE WIN_COUNTRY_CODE AWARD_VALUE_EURO
+df = @keep ISO_COUNTRY_CODE WIN_COUNTRY_CODE AWARD_VALUE_EURO
 
 function distance(country1, country2)
     country1 == country2 ? 0.0 : 1.0

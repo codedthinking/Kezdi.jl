@@ -1,6 +1,6 @@
 function rewrite(::Val{:tabulate}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :nofunction])
-    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
     columns = [x[1] for x in extract_variable_references.(command.arguments)]
     quote
         $setup
@@ -10,7 +10,7 @@ end
 
 function rewrite(::Val{:summarize}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :single_argument, :nofunction])
-    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
     column = extract_variable_references(command.arguments[1])
     quote
         $setup
@@ -20,7 +20,7 @@ end
 
 function rewrite(::Val{:regress}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable], allowed=[:robust, :cluster])
-    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
     if :robust in get_top_symbol.(options)
         vcov = :(Vcov.robust())
     elseif :cluster in get_top_symbol.(options)
@@ -41,8 +41,8 @@ function rewrite(::Val{:regress}, command::Command)
 end
 
 function rewrite(::Val{:count}, command::Command)
-    gc = generate_command(command; options=[:ifable, :nofunction], allowed=[:by])
-    (; df, local_copy, target_df, setup, teardown, arguments, options) = gc
+    gc = generate_command(command; options=[:ifable, :nofunction], allowed=[])
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
         $setup
         Kezdi.counter($target_df) |> $teardown

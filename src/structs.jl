@@ -5,14 +5,12 @@ end
 
 struct Command 
     command::Symbol
-    df::Any
     arguments::Tuple
     condition::Any
     options::Tuple
 end
 
 struct GeneratedCommand
-    df::Any
     local_copy::Symbol
     target_df::Union{Symbol, Nothing}
     setup::Expr
@@ -70,6 +68,3 @@ function Base.show(io::IO, s::Summarize)
     println(io, "  p95 = ", s.p95)
     println(io, "  p99 = ", s.p99)
 end
-
-# if DataFrame is not explicitly defined, use the first argument
-Command(command::Symbol, arguments::Tuple, condition, options) = Command(command, arguments[1], arguments[2:end], condition, options)

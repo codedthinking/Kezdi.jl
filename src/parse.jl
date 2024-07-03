@@ -108,7 +108,7 @@ end
 
 function parse(exprs::Tuple, command::Symbol)::Command
     ast = scan(exprs)
-    @debug "AST is $ast"
+    @debug "Expressions are $exprs, AST is $ast"
     arguments = Vector{Node}()
     options = Vector{Node}()
     condition = nothing
