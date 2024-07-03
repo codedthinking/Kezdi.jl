@@ -4,10 +4,6 @@ CurrentModule = Kezdi
 
 # Kezdi.jl Documentation
 
-```@docs
-Kezdi
-```
-
 ## Getting started
 ### Installation
 ```julia
@@ -74,6 +70,11 @@ df = CSV.read("data.csv", DataFrame)
 
 ```@docs
 @regress
+```
+
+## With Module
+```@docs
+@with
 ```
 
 ## Gotchas for Julia users
