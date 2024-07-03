@@ -121,7 +121,7 @@ end
 Display the entire data frame or the rows for which the condition is true.
 """
 macro list(exprs...)
-    :order |> parse(exprs) |> rewrite
+    :list |> parse(exprs) |> rewrite
 end
 
 
