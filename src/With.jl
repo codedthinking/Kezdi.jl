@@ -111,120 +111,28 @@ function rewrite_with_block(firstpart, block)
 end
 
 """
-    @with(expr, exprs...)
+    @with df begin
+        # do something with df
+    end
 
-Rewrites a series of expressions into a with, where the result of one expression
-is inserted into the next expression following certain rules.
+The `@with` macro is a convenience macro that allows you to set the current data frame and perform operations on it in a single block. The first argument is the data frame to set as the current data frame, and the second argument is a block of code to execute. The data frame is set as the current data frame for the duration of the block, and then restored to its previous value after the block is executed.
 
-**Rule 1**
-
-Any `expr` that is a `begin ... end` block is flattened.
-For example, these two pseudocodes are equivalent:
-
-```julia
-@with a b c d e f
-
-@with a begin
-    b
-    c
-    d
-end e f
-```
-
-**Rule 2**
-
-Any expression but the first (in the flattened representation) will have the preceding result
-inserted as its first argument, unless at least one underscore `_` is present.
-In that case, all underscores will be replaced with the preceding result.
-
-If the expression is a symbol, the symbol is treated equivalently to a function call.
-
-For example, the following code block
-
-```julia
-@with begin
-    x
-    f()
-    @g()
-    h
-    @i
-    j(123, _)
-    k(_, 123, _)
-end
-```
-
-is equivalent to
-
-```julia
-begin
-    local temp1 = f(x)
-    local temp2 = @g(temp1)
-    local temp3 = h(temp2)
-    local temp4 = @i(temp3)
-    local temp5 = j(123, temp4)
-    local temp6 = k(temp5, 123, temp5)
-end
-```
-
-**Rule 3**
-
-An expression that begins with `@aside` does not pass its result on to the following expression.
-Instead, the result of the previous expression will be passed on.
-This is meant for inspecting the state of the with.
-The expression within `@aside` will not get the previous result auto-inserted, you can use
-underscores to reference it.
-
-```julia
-@with begin
-    [1, 2, 3]
-    filter(isodd, _)
-    @aside @info "There are \$(length(_)) elements after filtering"
-    sum
-end
-```
-
-**Rule 4**
-
-It is allowed to start an expression with a variable assignment.
-In this case, the usual insertion rules apply to the right-hand side of that assignment.
-This can be used to store intermediate results.
-
-```julia
-@with begin
-    [1, 2, 3]
-    filtered = filter(isodd, _)
-    sum
-end
-
-filtered == [1, 3]
-```
-
-**Rule 5**
-
-The `@.` macro may be used with a symbol to broadcast that function over the preceding result.
-
-```julia
-@with begin
-    [1, 2, 3]
-    @. sqrt
-end
-```
-
-is equivalent to
-
-```julia
-@with begin
-    [1, 2, 3]
-    sqrt.(_)
-end
-```
-
+The macro returns the value of the last expression in the block.
 """
 macro with(initial_value, args...)
     block = flatten_to_single_block(initial_value, args...)
     rewrite_with_block(block)
 end
 
+"""
+    @with! df begin
+        # do something with df
+    end
+
+The `@with!` macro is a convenience macro that allows you to set the current data frame and perform operations on it in a single block. The first argument is the data frame to set as the current data frame, and the second argument is a block of code to execute. The data frame is set as the current data frame for the duration of the block, and then restored to its previous value after the block is executed.
+
+The macro does not have a return value, it overwrites the data frame directly.
+"""
 macro with!(initial_value, args...)
     block = flatten_to_single_block(initial_value, args...)
     result = rewrite_with_block(block)
