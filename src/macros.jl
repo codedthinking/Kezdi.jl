@@ -116,21 +116,22 @@ macro order(exprs...)
 end
 
 """
+    @list [@if condition]
+
+Display the entire data frame or the rows for which the condition is true.
+"""
+macro list(exprs...)
+    :order |> parse(exprs) |> rewrite
+end
+
+
+"""
     @use "filename.dta"
 
 Read the data from the file `filename.dta` and set it as the global data frame.
 """
 macro use(fname)
     :(use($fname)) |> esc
-end
-
-"""
-    @list
-
-Display the entire data frame.
-"""
-macro list()
-    :(getdf() |> display_and_return) |> esc
 end
 
 """

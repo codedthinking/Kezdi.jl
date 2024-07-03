@@ -1,7 +1,7 @@
 name = "Kezdi"
 uuid = "48308a23-c29e-446c-b4c0-d9446a767439"
 authors = ["Miklos Koren <miklos.koren@gmail.com>", "Gergely Attila Kiss <corra971407@gmail.com>"]
-version = "0.4.2"
+version = "0.4.3"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
