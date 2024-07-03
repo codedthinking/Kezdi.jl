@@ -49,3 +49,12 @@ function rewrite(::Val{:count}, command::Command)
     end |> esc
 end
 
+function rewrite(::Val{:list}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    quote
+        $setup
+        $target_df |> Kezdi.display_and_return |> $teardown
+    end |> esc
+end
+

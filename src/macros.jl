@@ -98,9 +98,9 @@ macro count(exprs...)
 end
 
 """
-    @sort y1 y2 ...
+    @sort y1 y2 ...[, desc]
 
-Sort the data frame by the variables `y1`, `y2`, etc. in ascending order.
+Sort the data frame by the variables `y1`, `y2`, etc. By default, the variables are sorted in ascending order. If `desc` is provided, the variables are sorted in descending order
 """
 macro sort(exprs...)
     :sort |> parse(exprs) |> rewrite
@@ -116,21 +116,22 @@ macro order(exprs...)
 end
 
 """
+    @list [@if condition]
+
+Display the entire data frame or the rows for which the condition is true.
+"""
+macro list(exprs...)
+    :list |> parse(exprs) |> rewrite
+end
+
+
+"""
     @use "filename.dta"
 
 Read the data from the file `filename.dta` and set it as the global data frame.
 """
 macro use(fname)
     :(use($fname)) |> esc
-end
-
-"""
-    @list
-
-Display the entire data frame.
-"""
-macro list()
-    :(getdf() |> display_and_return) |> esc
 end
 
 """
