@@ -598,3 +598,15 @@ end
     @test names(df2) == ["z","s","y","x"]
 
 end
+
+@testset "Rename" begin
+    df = DataFrame(a=1:10)
+    @testset "Known values" begin
+        df2 = @with df @rename a b
+        @test names(df2) == ["b"]
+    end
+
+    @testset "Error handling" begin
+        @test_throws Exception @with df @rename a b c
+    end
+end

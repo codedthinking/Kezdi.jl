@@ -125,10 +125,6 @@ macro names()
     :(names(getdf()) |> display_and_return) |> esc
 end
 
-macro ephemeral(exprs...)
-    local df = gensym()
-    quote
-        $df = getdf()    
-        @with $df $(Expr(:block, exprs...))
-    end |> esc
+macro rename(exprs...)
+    :rename |> parse(exprs) |> rewrite
 end

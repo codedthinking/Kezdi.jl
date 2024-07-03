@@ -1,6 +1,19 @@
 # use multiple dispatch to generate code 
 rewrite(command::Command) = rewrite(Val(command.command), command)
 
+function rewrite(::Val{:rename}, command::Command)
+    gc = generate_command(command; options=[:variables], allowed=[])
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    quote
+        if (length($arguments) != 2)
+            ArgumentError("Syntax is @rename oldname newname") |> throw
+        else
+            $setup
+            rename!($local_copy, $arguments[1] => $arguments[2]) |> $teardown |> setdf
+        end
+    end |> esc
+end
+
 function rewrite(::Val{:generate}, command::Command)
     gc = generate_command(command; options=[:single_argument, :variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
