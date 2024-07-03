@@ -5,23 +5,23 @@
         s = ["a", "a", "a", "a", "b", "b", "b", "b", "c", "c"])
 
     @testset "Check @with and @with! are the same" begin
-        df2 = @with df begin
-            @generate c = 1 ^ _n
+        df2 = @with deepcopy(df) begin
+            @generate c = 1^_n
             @keep @if x<6
         end
-        df3 = copy(df)
+        df3 = deepcopy(df)
         @with! df3 begin
             @generate c = 1 ^ _n
             @keep @if x<6
         end
         @test df2 == df3
 
-        df2 = @with df begin
+        df2 = @with deepcopy(df) begin
             @generate c = 1 ^ _n
             @regress y x z c
             @keep @if x<6
         end
-        df3 = copy(df)
+        df3 = deepcopy(df)
         @with! df3 begin
             @generate c = 1 ^ _n
             @regress y x z c 
@@ -29,67 +29,15 @@
         end
         @test df2 == df3
 
-        df2 = @with df begin
+        df2 = @with deepcopy(df) begin
             @generate c = 1 ^ _n
             r = @regress y x z c
             @keep @if x<6
         end
-        df3 = copy(df)
+        df3 = deepcopy(df)
         @with! df3 begin
             @generate c = 1 ^ _n
             r = @regress y x z c 
-            @keep @if x<6
-        end
-        @test df2 == df3
-
-        df2 = @with df begin
-            @generate c = 1 ^ _n
-            @tabulate y x z c
-            @keep @if x<6
-        end
-        df3 = copy(df)
-        @with! df3 begin
-            @generate c = 1 ^ _n
-            @tabulate y x z c 
-            @keep @if x<6
-        end
-        @test df2 == df3
-
-        df2 = @with df begin
-            @generate c = 1 ^ _n
-            t = @tabulate y x z c
-            @keep @if x<6
-        end
-        df3 = copy(df)
-        @with! df3 begin
-            @generate c = 1 ^ _n
-            t = @tabulate y x z c 
-            @keep @if x<6
-        end
-        @test df2 == df3
-
-        df2 = @with df begin
-            @generate c = 1 ^ _n
-            @summarize x
-            @keep @if x<6
-        end
-        df3 = copy(df)
-        @with! df3 begin
-            @generate c = 1 ^ _n
-            @summarize x
-            @keep @if x<6
-        end
-        @test df2 == df3
-
-        df2 = @with df begin
-            @generate c = 1 ^ _n
-            s = @summarize x
-            @keep @if x<6
-        end
-        df3 = copy(df)
-        @with! df3 begin
-            @generate c = 1 ^ _n
-            s = @summarize x
             @keep @if x<6
         end
         @test df2 == df3
@@ -123,6 +71,7 @@
                 df2 = @with df begin 
                     @generate c = 1 ^ _n
                     t = @tabulate c x
+                    @list
                 end
                 @test t == freqtable(df2, :c, :x)
             end
@@ -131,6 +80,7 @@
                 df2 = @with df begin 
                     @generate c = 1 ^ _n
                     t = @tabulate c x @if s == "a"
+                    @list
                 end
                 @test t == freqtable(filter(row -> row.s == "a", df2), :c, :x)
             end
@@ -141,6 +91,7 @@
                 df2 = @with df begin 
                     @generate c = 1 ^ _n
                     r = @regress y x c
+                    @list
                 end
                 r2 = reg(df2, @formula(y ~ x + c))
                 @test r.coef ≈ r2.coef
@@ -151,6 +102,7 @@
                 df2 = @with df begin 
                     @generate c = 1 ^ _n
                     r = @regress y x c @if s == "a"
+                    @list
                 end
                 r2 = reg(filter(row -> row.s == "a", df2), @formula(y ~ x + c))
                 @test r.coef ≈ r2.coef

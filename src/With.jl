@@ -105,12 +105,6 @@ function insert_first_arg(e::Expr, firstarg; assignment = false)
     end
 end
 
-function rewrite(expr)
-    is_aside(expr) ? :($display($expr)) : expr
-end
-
-rewrite(l::LineNumberNode) = l
-
 function rewrite_with_block(firstpart, block)
     pushfirst!(block.args, firstpart)
     rewrite_with_block(block)
@@ -273,8 +267,7 @@ function rewrite_with_block(block)
             continue
         end
         
-        rewritten = rewrite(expr)
-        push!(rewritten_exprs, rewritten)
+        push!(rewritten_exprs, expr)
     end
     teardown = :(x -> begin
         setdf($previous_df)

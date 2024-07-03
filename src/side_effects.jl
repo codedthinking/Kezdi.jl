@@ -41,7 +41,7 @@ function rewrite(::Val{:regress}, command::Command)
 end
 
 function rewrite(::Val{:count}, command::Command)
-    gc = generate_command(command; options=[:ifable, :nofunction], allowed=[:by])
+    gc = generate_command(command; options=[:ifable, :nofunction], allowed=[])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
         $setup

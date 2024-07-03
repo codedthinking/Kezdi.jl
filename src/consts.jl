@@ -87,7 +87,12 @@ const COMMANDS = (
 const SIDE_EFFECTS = (
     Symbol("@tabulate"),
     Symbol("@summarize"),
-    Symbol("@regress")
+    Symbol("@regress"),
+    Symbol("@list"),
+    Symbol("@head"),
+    Symbol("@tail"),
+    Symbol("@names"),
+    Symbol("@count")
 )
 
 const DO_NOT_VECTORIZE = (

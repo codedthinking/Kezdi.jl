@@ -110,19 +110,19 @@ macro use(fname)
 end
 
 macro list()
-    :(getdf() |> display) |> esc
+    :(getdf() |> display_and_return) |> esc
 end
 
 macro head(n=5)
-    :(first(getdf(), $n) |> display) |> esc
+    :(first(getdf(), $n) |> display_and_return) |> esc
 end
 
 macro tail(n=5)
-    :(last(getdf(), $n) |> display) |> esc
+    :(last(getdf(), $n) |> display_and_return) |> esc
 end
 
 macro names()
-    :(names(getdf()) |> display) |> esc
+    :(names(getdf()) |> display_and_return) |> esc
 end
 
 macro ephemeral(exprs...)
