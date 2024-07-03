@@ -210,9 +210,10 @@ function vectorize_function_calls(expr::Any)
                 return expr.args[2]
             elseif fname in DO_NOT_VECTORIZE || (!(fname in ALWAYS_VECTORIZE) && (length(methodswith(Vector, eval(fname); supertypes=true)) > 0))
                 return Expr(expr.head, fname, 
-                    Expr(:call, :skipmissing, 
+                Expr(:call, :collect, 
+                Expr(:call, :skipmissing, 
                     vectorize_function_calls.(expr.args[2:end])...)
-                )
+                ))
             else
                 return Expr(Symbol("."), fname,
                     Expr(:tuple,   
@@ -233,11 +234,31 @@ function vectorize_function_calls(expr::Any)
     end
 end
 
+function get_dot_parts(ex::Expr)
+    is_dot_reference(ex) || error("Expected a dot reference, got $ex")
+    parts = []
+    while is_dot_reference(ex)
+        push!(parts, ex.args[2].value)
+        ex = ex.args[1]
+    end
+    push!(parts, ex)
+    reverse(parts)
+end
+
 is_variable_reference(x::Any) = x isa Symbol && !in(x, RESERVED_WORDS) && !in(x, TYPES) && isalphanumeric(string(x))
 is_function_call(x::Any) = x isa Expr && ((x.head == :call && !is_operator(x.args[1]))  || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple)) 
 
 is_operator(x::Any) = x isa Symbol && (in(x, OPERATORS) || is_dotted_operator(x))
 is_dotted_operator(x::Any) = x isa Symbol && String(x)[1] == '.' && Symbol(String(x)[2:end]) in OPERATORS
+
+is_dot_reference(x) = false
+function is_dot_reference(e::Expr)
+    e.head == :. &&
+        length(e.args) == 2 &&
+        (e.args[1] isa Symbol || is_dot_reference(e.args[1])) &&
+        e.args[2] isa QuoteNode &&
+        e.args[2].value isa Symbol
+end
 
 isalphanumeric(c::AbstractChar) = isletter(c) || isdigit(c) || c == '_'
 isalphanumeric(str::AbstractString) = all(isalphanumeric, str)
