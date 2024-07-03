@@ -3,10 +3,6 @@ CurrentModule = Kezdi
 ```
 
 # Kezdi.jl Documentation
-```@docs
-Kezdi
-```
-
 ## Getting started
 ### Installation
 `Kezdi.jl` is currently in beta. To install the package, run the following command in Julia's REPL:
