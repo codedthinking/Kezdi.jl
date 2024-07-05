@@ -121,6 +121,8 @@ end
         @test df2.y == [4]
         df2 = @with df @collapse y = mean(x)
         @test df2.y == [2.0]
+        df2 = @with DataFrame(x=[1, Inf, 3]) @collapse y = sum(x)
+        @test df2.y == [4.0]
     end
     @testset "Vectorized does not collapse" begin
         df = DataFrame(x=1:4, z= 5:8)
@@ -442,6 +444,17 @@ end
 
     @testset "Missing values" begin
         df = DataFrame(x=[1, missing, 3])
+        s = @with df @summarize x
+        @test s.N == 2
+        @test s.mean == 2.0        
+    end
+
+    @testset "Other NaN values" begin
+        df = DataFrame(x=[1, NaN, 3])
+        s = @with df @summarize x
+        @test s.N == 2
+        @test s.mean == 2.0
+        df = DataFrame(x=[1, Inf, 3])
         s = @with df @summarize x
         @test s.N == 2
         @test s.mean == 2.0        
