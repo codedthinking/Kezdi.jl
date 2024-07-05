@@ -69,11 +69,11 @@ end
 
 | Command      | Stata | Julia 1st run | Julia 2nd run | Speedup |
 | ------------ | ----- | ------------- | ------------- | ------- |
-| `@egen`      | 4.90s | 1.60s         | 0.41s         | 10x     |
-| `@collapse`  | 0.92s | 0.18s         | 0.13s         | 8x      |
-| `@tabulate`  | 2.14s | 0.46s         | 0.10s         | 20x     |
-| `@summarize` | 10.40s | 0.58s         | 0.37s         | 28x     |
-| `@regress`   | 0.89s | 1.93s         | 0.16s         | 6x      |
+| `@egen`      | 4.90s | 1.36s         | 0.59s         | 8x     |
+| `@collapse`  | 0.92s | 0.39s         | 0.39s         | 2x      |
+| `@tabulate`  | 2.14s | 0.68s         | 0.10s         | 21x     |
+| `@summarize` | 10.40s | 0.58s         | 0.46s         | 22x     |
+| `@regress`   | 0.89s | 1.95s         | 0.14s         | 6x      |
 
 See the benchmarking code for [Stata](https://github.com/codedthinking/Kezdi.jl/blob/main/examples/benchmark.do) and [Kezdi.jl](https://github.com/codedthinking/Kezdi.jl/blob/main/examples/benchmark.jl).
 
@@ -329,6 +329,10 @@ rowcount
 
 ```@docs
 DNV
+```
+
+```@docs
+keep_only_values
 ```
 
 

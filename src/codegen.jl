@@ -209,17 +209,21 @@ function vectorize_function_calls(expr::Any)
             elseif fname == :DNV
                 return expr.args[2]
             elseif fname in DO_NOT_VECTORIZE || (!(fname in ALWAYS_VECTORIZE) && (length(methodswith(Vector, eval(fname); supertypes=true)) > 0))
-                return Expr(expr.head, fname, 
-                Expr(:call, :collect, 
-                Expr(:call, :skipmissing, 
-                    vectorize_function_calls.(expr.args[2:end])...)
-                ))
+                skipmissing_each_arg = [Expr(:call, :keep_only_values, vectorize_function_calls(arg)) for arg in expr.args[2:end]]
+                return Expr(expr.head, fname, skipmissing_each_arg...)
             else
                 return Expr(Symbol("."), fname,
                     Expr(:tuple,   
                     vectorize_function_calls.(expr.args[2:end])...)
                 )
             end
+        elseif is_operator(expr.head) && !is_dotted_operator(expr.head) && expr.head in SYNTACTIC_OPERATORS
+            # special handling of syntactic operators like &&, ||, etc. 
+            # these are not called as a function
+            op = expr.head
+            dot_op = Symbol("." * String(op))
+            return Expr(dot_op,    
+                    vectorize_function_calls.(expr.args)...)
         elseif is_operator(expr.args[1]) && !is_dotted_operator(expr.args[1])
             op = expr.args[1]
             dot_op = Symbol("." * String(op))

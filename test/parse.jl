@@ -12,8 +12,8 @@ TEST_CASES = [
     (ex="@mockmacro x @if x < 0", command=:summarize, arguments=[:x], condition=:(x < 0), options=[]),
     (ex="@mockmacro x @if ln(x) < 0", command=:summarize, arguments=[:x], condition=:(ln(x) < 0), options=[]),
     (ex="@mockmacro x @if x < 0, detail", command=:summarize, arguments=[:x], condition=:(x < 0), options=[:detail]),
-    (ex="@mockmacro x @if x < 0 && y > 0", command=:summarize, arguments=[:x], condition=:(x < 0 .&& y > 0), options=[]),   
-    (ex="@mockmacro x @if x < 0 && y > 0, detail", command=:summarize, arguments=[:x], condition=:(x < 0 .&& y > 0), options=[:detail]),   
+    (ex="@mockmacro x @if x < 0 && y > 0", command=:summarize, arguments=[:x], condition=:(x < 0 && y > 0), options=[]),   
+    (ex="@mockmacro x @if x < 0 && y > 0, detail", command=:summarize, arguments=[:x], condition=:(x < 0 && y > 0), options=[:detail]),   
 ]
 
 
