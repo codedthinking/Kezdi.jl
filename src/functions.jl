@@ -24,17 +24,17 @@ distinct(x::AbstractVector) = unique(x)
 distinct(x::Base.SkipMissing) = distinct(collect(x))
 
 """
-    rowcount(x::AbstractVector) = length(collect(skipmissing(x)))
+    rowcount(x::AbstractVector) = length(keep_only_values(x))
 
-Count the number of non-missing values in a vector.
+Count the number of valid values in a vector.
 """
-rowcount(x::AbstractVector) = length(collect(skipmissing(x)))
+rowcount(x::AbstractVector) = length(keep_only_values(x))
 rowcount(x::Base.SkipMissing) = length(collect(x))
 
 tabulate(df::AbstractDataFrame, columns::Vector{Symbol}) = freqtable(df, columns...)
 
 function summarize(df::AbstractDataFrame, column::Symbol)::Summarize
-    data = df[!, column] |> skipmissing |> collect
+    data = df[!, column] |> keep_only_values
     n = length(data)
     sum_val = sum(data)
     mean_val = mean(data)
@@ -93,4 +93,4 @@ isvalue(x::Number) = isinf(x) || isnan(x) ? false : true
 
 Return a vector with only the values of `x`, excluding any `missing`` values, `nothing`s, `Inf`a and `NaN`s.
 """
-keep_only_values(x) = filter(isvalue, x)
+keep_only_values(x) = filter(isvalue, collect(skipmissing(x)))
