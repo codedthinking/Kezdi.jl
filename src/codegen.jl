@@ -220,6 +220,13 @@ function vectorize_function_calls(expr::Any)
                     vectorize_function_calls.(expr.args[2:end])...)
                 )
             end
+        elseif is_operator(expr.head) && !is_dotted_operator(expr.head) && expr.head in SYNTACTIC_OPERATORS
+            # special handling of syntactic operators like &&, ||, etc. 
+            # these are not called as a function
+            op = expr.head
+            dot_op = Symbol("." * String(op))
+            return Expr(dot_op,    
+                    vectorize_function_calls.(expr.args)...)
         elseif is_operator(expr.args[1]) && !is_dotted_operator(expr.args[1])
             op = expr.args[1]
             dot_op = Symbol("." * String(op))
