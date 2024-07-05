@@ -331,6 +331,10 @@ rowcount
 DNV
 ```
 
+```@docs
+keep_only_values
+```
+
 
 ## Acknowledgements
 [^stata]: Stata is a registered trademark of StataCorp LLC. Kezdi.jl is not affiliated with StataCorp LLC.
