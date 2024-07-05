@@ -379,6 +379,8 @@ end
     @testset "Complex conditions" begin
         df2 = @with dfxz @egen y = sum(x) @if z == 4 && x > 2
         @test all(df2.y .=== [missing, missing, missing, 4])
+        df2 = @with dfxz @egen y = sum(x) @if z == 4 && x > 2 && !ismissing(x)
+        @test all(df2.y .=== [missing, missing, missing, 4])
     end
 end
 
