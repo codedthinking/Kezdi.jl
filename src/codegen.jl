@@ -208,7 +208,7 @@ function vectorize_function_calls(expr::Any)
                 return Expr(expr.head, fname, vectorize_function_calls.(expr.args[2:end])...)
             elseif fname == :DNV
                 return expr.args[2]
-            elseif fname in DO_NOT_VECTORIZE || (!(fname in ALWAYS_VECTORIZE) && (length(methodswith(Vector, eval(fname); supertypes=true)) > 0))
+            elseif fname in DO_NOT_VECTORIZE || (!(fname in ALWAYS_VECTORIZE) && operates_on_vector(fname))
                 skipmissing_each_arg = [Expr(:call, :keep_only_values, vectorize_function_calls(arg)) for arg in expr.args[2:end]]
                 return Expr(expr.head, fname, skipmissing_each_arg...)
             else
@@ -268,6 +268,17 @@ isalphanumeric(c::AbstractChar) = isletter(c) || isdigit(c) || c == '_'
 isalphanumeric(str::AbstractString) = all(isalphanumeric, str)
 
 isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args) == 2
+function operates_on_vector(expr::Any) 
+    try
+        length(methodswith(Vector, eval(expr); supertypes=true)) > 0
+    catch e
+        if isa(e, UndefVarError)
+            return false
+        else
+            rethrow(e)
+        end
+    end
+end
 
 # only broadcast first argument. For example, [1, 2, 3] in [2, 3] should evaluate to [false, true, true]
 BFA(f::Function, xs, args...; kwargs...) = broadcast(x -> f(x, args...; kwargs...), xs)

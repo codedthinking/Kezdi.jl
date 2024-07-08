@@ -17,6 +17,7 @@ using ReadStatTables
 @reexport using CSV
 @reexport using DataFrames
 @reexport using StatsBase
+@reexport using Dates
 import Base: count
 
 include("consts.jl")
