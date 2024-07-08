@@ -335,6 +335,9 @@ DNV
 keep_only_values
 ```
 
+```@docs
+ismissing
+```
 
 ## Acknowledgements
 [^stata]: Stata is a registered trademark of StataCorp LLC. Kezdi.jl is not affiliated with StataCorp LLC.
