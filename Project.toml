@@ -1,16 +1,18 @@
 name = "Kezdi"
 uuid = "48308a23-c29e-446c-b4c0-d9446a767439"
 authors = ["Miklos Koren <miklos.koren@gmail.com>", "Gergely Attila Kiss <corra971407@gmail.com>"]
-version = "0.4.4"
+version = "0.4.5"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Expronicon = "6b7a57c9-7cc1-4fdf-b7f5-e857abae3636"
 FixedEffectModels = "9d5cd8c9-2029-5cab-9928-427838db53e3"
 FreqTables = "da1fdf0e-e0ff-5433-a45f-9bb5ff651cb1"
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+Missings = "e1d29d7a-bbdc-5cf2-9ac0-f12de2c33e28"
 RDatasets = "ce6b1742-4840-55fa-b093-852dadbb1d8b"
 ReadStatTables = "52522f7a-9570-4e34-8ac6-c005c74d4b84"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
@@ -23,12 +25,12 @@ DataFrames = "1"
 Expronicon = "0.10"
 FixedEffectModels = "1"
 FreqTables = "0.4"
+RDatasets = "0.7"
 ReadStatTables = "0.3"
 Reexport = "1"
 Statistics = "1"
 StatsBase = "0.34"
 julia = "1.6.7"
-RDatasets = "0.7"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

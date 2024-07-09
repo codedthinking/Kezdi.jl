@@ -284,6 +284,43 @@ end
 ```
 returns `mean_A = 2.33`.
 
+Other functions typically return `missing` if any of the values are missing. If a function does not accept missing values, Kezdi.jl will pass it through `passmissing` to handle missing values.
+
+You can also manually check for missing values with the `ismissing` function.
+
+```julia
+@with DataFrame(x = [1, 2, missing, 4]) begin
+    @generate y = log(x)
+end
+```
+returns 
+```julia
+4×2 DataFrame
+ Row │ x        y
+     │ Int64?   Float64?
+─────┼─────────────────────────
+   1 │       1        0.0
+   2 │       2        0.693147
+   3 │ missing  missing
+   4 │       4        1.38629
+```
+
+The same will hold for `Dates.year`, even though this function does not accept missing values.
+
+```julia
+julia> @with DataFrame(x = [1, 2, missing, 4]) begin
+           @generate y = Dates.year(x)
+       end
+4×2 DataFrame
+ Row │ x        y
+     │ Int64?   Int64?
+─────┼──────────────────
+   1 │       1        1
+   2 │       2        1
+   3 │ missing  missing
+   4 │       4        1
+```
+
 ### Row-count variables
 The variable `_n` refers to the row number in the data frame, `_N` denotes the total number of rows. These can be used in `@if` conditions, as well.
 
@@ -317,6 +354,24 @@ Unlike Stata, where `egen` and `collapse` have different syntax, Kezdi.jl uses t
 ### Different function names
 To maintain compatibility with Julia, we had to rename some functions. For example, `count` is called `rowcount`, `missing` is called `ismissing` in Kezdi.jl.
 
+### Missing values
+In Julia, the result of any operation involving a missing value is `missing`. The only exception is the `ismissing` function, which returns `true` if the value is missing and `false` otherwise. You *cannot* check for missing values with `== missing`.
+
+For convenience, Kezdi.jl has special rules about [Handling missing values](@ref). We also extended the `ismissing` function to work with multiple arguments.
+
+```julia
+@with DataFrame(x = [1, 2, missing, 4], y = [1, missing, 3, 4]) begin
+    @generate z = ismissing(x, y)
+end
+4×3 DataFrame
+ Row │ x        y        z
+     │ Int64?   Int64?   Bool
+─────┼─────────────────────────
+   1 │       1        1  false
+   2 │       2  missing   true
+   3 │ missing        3   true
+   4 │       4        4  false
+```
 
 ## Convenience functions
 ```@docs
@@ -335,6 +390,9 @@ DNV
 keep_only_values
 ```
 
+```@docs
+ismissing
+```
 
 ## Acknowledgements
 [^stata]: Stata is a registered trademark of StataCorp LLC. Kezdi.jl is not affiliated with StataCorp LLC.

@@ -24,4 +24,13 @@ end
         @test_expr vectorize_function_calls(:(DNV(log(x)))) == :(log(x))
         @test_expr vectorize_function_calls(:(DNV(log(x) + 1))) == :(log(x) + 1)
     end
+
+    @testset "Unknown functions are vectorized" begin
+        df2 = @with DataFrame(x = 1:10) @generate y = Dates.year(x)
+        @test df2.y == Dates.year.(df2.x)
+    end
+
+    @testset "Unknown functions are passed through `passmissing`" begin
+        @test_expr vectorize_function_calls(:(y = Dates.year(x))) == :(y = (passmissing(Dates.year)).(x))
+    end
 end

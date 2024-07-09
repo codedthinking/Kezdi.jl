@@ -94,3 +94,10 @@ isvalue(x::Number) = isinf(x) || isnan(x) ? false : true
 Return a vector with only the values of `x`, excluding any `missing`` values, `nothing`s, `Inf`a and `NaN`s.
 """
 keep_only_values(x) = filter(isvalue, collect(skipmissing(x)))
+
+"""
+    ismissing(args...) -> Bool
+
+Return `true` if any of the arguments is `missing`.
+"""
+Base.ismissing(args...) = any(ismissing.(args))
