@@ -321,6 +321,16 @@ julia> @with DataFrame(x = [1, 2, missing, 4]) begin
    4 │       4        1
 ```
 
+!!! warning "In `@if` conditions, `missing` is treated as `false`"
+    In `@if` conditions, `missing` is treated as `false`. This is expected behavior from users, because when they test for a condition, they expect it to be `true`, not `missing`.
+
+    ```julia
+    @with DataFrame(x = [1, 2, missing, 4]) begin
+        @keep @if x <= 2
+    end
+    ```
+    returns `[1, 2]`.
+
 ### Row-count variables
 The variable `_n` refers to the row number in the data frame, `_N` denotes the total number of rows. These can be used in `@if` conditions, as well.
 
@@ -372,6 +382,18 @@ end
    3 │ missing        3   true
    4 │       4        4  false
 ```
+
+Missing is not greater than anything, so comparison with missing values will always return `missing`. 
+
+!!! warning "In `@if` conditions, `missing` is treated as `false`"
+    In `@if` conditions, `missing` is treated as `false`. This is expected behavior from users, because when they test for a condition, they expect it to be `true`, not `missing`.
+
+    ```julia
+    @with DataFrame(x = [1, 2, missing, 4]) begin
+        @keep @if x <= 2
+    end
+    ```
+    returns `[1, 2]`.
 
 ## Convenience functions
 ```@docs

@@ -224,6 +224,14 @@ end
     @test all(df2.a .== [3, 4])
 end
 
+@testset "Keep if with missing" begin
+    df = DataFrame(a=1:4, b= [5, missing, 7, 8])
+    df2 = @with df @keep a @if !ismissing(b)
+    @test df2.a == [1, 3, 4]
+    df2 = @with df @keep a @if b > 6
+    @test df2.a == [3, 4]
+end
+
 @testset "Drop if" begin
     df = DataFrame(a=1:4, b= 5:8)
     @test "a" in names(@with df @drop b)
