@@ -532,6 +532,20 @@ end
             @test r.coef ≈ [2.000000000000003, 2.9999999999999996, 0.9999999999999998, 5.124106267500724e-17]
         end
     end
+
+    @testset "Missing values" begin
+        df = DataFrame(x=[1, 1, missing, 3, 3, 3], y=[0, 0, 0, 1, 1, 1])
+        r = @with df @regress y x
+        @test r.nobs == 5
+        @test r.coef ≈ [-0.5, 0.5]
+        df = DataFrame(x=[1, 1, 0, exp(1), exp(1), exp(1)], y=[0, 0, 0, 1, 1, 1])
+        r = @with df @regress y log(x)
+        @test r.nobs == 5
+        @test r.coef ≈ [0.0, 1.0]
+        r = @with df @regress log(x) y
+        @test r.nobs == 5
+        @test r.coef ≈ [0.0, 1.0]
+    end
 end
 
 @testset "Tabulate" begin
