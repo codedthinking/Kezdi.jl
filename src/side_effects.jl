@@ -33,7 +33,6 @@ function rewrite(::Val{:regress}, command::Command)
     # validate everything except fixed effects
     to_validate = [x for x in arguments if get_top_symbol(x) != :fe]
     additional_condition = build_bitmask(target_df, :(Kezdi.isvalue($(to_validate...))))
-    nobs_to_drop = 
     quote
         $setup
         if sum(.!$additional_condition) > 0
