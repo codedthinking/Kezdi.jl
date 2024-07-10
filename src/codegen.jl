@@ -131,8 +131,7 @@ end
 function build_bitmask(df::Any, condition::Any)::Expr
     condition = condition isa Nothing ? true : condition
     mask = replace_variable_references(df, condition) |> vectorize_function_calls
-    bitvector = :(falses(nrow($(df))))
-    :($bitvector .| ($mask))
+    :(falses(nrow($(df))) .| Missings.replace($mask, false))
 end
 
 build_bitmask(command::Command) = isnothing(command.condition) ? :(trues(nrow($(command.df)))) : build_bitmask(command.df, command.condition)

@@ -30,12 +30,18 @@ function rewrite(::Val{:regress}, command::Command)
     else
         vcov = :(Vcov.simple())
     end
+    # validate everything except fixed effects
+    to_validate = [x for x in arguments if get_top_symbol(x) != :fe]
+    additional_condition = build_bitmask(target_df, :(Kezdi.isvalue($(to_validate...))))
     quote
         $setup
+        if sum(.!$additional_condition) > 0
+            display("Dropping $(sum(.!$additional_condition)) row(s) due to missing values.")
+        end
         if length($(arguments[2:end])) == 1
-            reg($target_df, @formula($(arguments[1]) ~ $(arguments[2])), $vcov) |> $teardown
+            reg(view($target_df, $additional_condition, :), @formula($(arguments[1]) ~ $(arguments[2])), $vcov) |> $teardown
         else
-            reg($target_df, @formula($(arguments[1]) ~ $(Expr(:call, :+, arguments[2:end]...))), $vcov) |> Kezdi.display_and_return |> $teardown
+            reg(view($target_df, $additional_condition, :), @formula($(arguments[1]) ~ $(Expr(:call, :+, arguments[2:end]...))), $vcov) |> Kezdi.display_and_return |> $teardown
         end
     end |> esc
 end

@@ -3,6 +3,12 @@
     @test_expr replace_variable_references(:(f(x, <=))) == :(f(:x, <=))
 end
 
+@testset "Bitmask" begin
+    df = DataFrame(x = [1, 2, missing, 4])
+    @test_expr Kezdi.build_bitmask(:df, :(x < 4)) == :(falses(nrow(df)) .| Missings.replace(df.x .< 4, false))
+    @test eval(Kezdi.build_bitmask(:(DataFrame(x = [1, 2, missing, 4])), :(2 < 4))) == [true, true, true, true]
+end
+
 @testset "Vectorize function calls" begin
     @test_expr vectorize_function_calls(:(log(x))) == :(log.(x))
     @test_expr vectorize_function_calls(:(x + y)) == :(x .+ y) 

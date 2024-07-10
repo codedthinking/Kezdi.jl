@@ -87,6 +87,7 @@ isvalue(x) = true
 isvalue(::Missing) = false
 isvalue(::Nothing) = false
 isvalue(x::Number) = isinf(x) || isnan(x) ? false : true
+isvalue(args...) = all(isvalue.(args))
 
 """
     keep_only_values(x::AbstractVector) -> AbstractVector
