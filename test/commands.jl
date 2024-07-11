@@ -51,7 +51,7 @@
         @test (@with df @generate x1 = getindex(x, 1)).x1 == [1, 3, 5, 7]
         @test (@with df @generate x2 = getindex(x, 2)).x2 == [2, 4, 6, 8]
         df = DataFrame(text = ["a,b", "c,d,e", "f"])
-        df2 = @with df @generate n_terms = length.(split.(text))
+        df2 = @with df @generate n_terms = length.(split.(text, ","))
         @test df2.n_terms == [2, 3, 1]
     end
 end
