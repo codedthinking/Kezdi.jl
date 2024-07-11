@@ -69,13 +69,13 @@ end
 
 | Command      | Stata | Julia 1st run | Julia 2nd run | Speedup |
 | ------------ | ----- | ------------- | ------------- | ------- |
-| `@egen`      | 4.90s | 1.36s         | 0.59s         | 8x     |
-| `@collapse`  | 0.92s | 0.39s         | 0.39s         | 2x      |
-| `@tabulate`  | 2.14s | 0.68s         | 0.10s         | 21x     |
-| `@summarize` | 10.40s | 0.58s         | 0.46s         | 22x     |
-| `@regress`   | 0.89s | 1.95s         | 0.14s         | 6x      |
+| `@egen`      | 4.90s | 1.36s         | 0.36s         | 14x     |
+| `@collapse`  | 0.92s | 0.39s         | 0.28s         | 3x      |
+| `@tabulate`  | 2.14s | 0.68s         | 0.09s         | 24x     |
+| `@summarize` | 10.40s | 0.58s         | 0.36s         | 29x     |
+| `@regress`   | 0.89s | 1.95s         | 0.11s         | 8x      |
 
-See the benchmarking code for [Stata](https://github.com/codedthinking/Kezdi.jl/blob/main/examples/benchmark.do) and [Kezdi.jl](https://github.com/codedthinking/Kezdi.jl/blob/main/examples/benchmark.jl).
+See the benchmarking code for [Stata](https://github.com/codedthinking/Kezdi.jl/blob/main/docs/examples/benchmark.do) and [Kezdi.jl](https://github.com/codedthinking/Kezdi.jl/blob/main/docs/examples/benchmark.jl).
 
 ### Use any Julia function
 ```julia

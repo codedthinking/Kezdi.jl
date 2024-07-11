@@ -43,8 +43,9 @@ function rewrite(::Val{:replace}, command::Command)
             ArgumentError("Column \"$($target_column)\" does not exist in $(names(getdf()))") |> throw
         else
             $setup
-            if eltype($RHS) != eltype($target_df[!, $target_column])
-                local $third_vector = Vector{eltype($RHS)}(undef, nrow($local_copy))
+            eltype_RHS = $RHS isa AbstractVector ? eltype($RHS) : typeof($RHS)
+            if eltype_RHS != eltype($target_df[!, $target_column])
+                local $third_vector = Vector{eltype_RHS}(undef, nrow($local_copy))
                 $third_vector[$bitmask] .= $RHS
                 $third_vector[.!$bitmask] .= $local_copy[!, $target_column][.!$bitmask]
                 $local_copy[!, $target_column] = $third_vector
