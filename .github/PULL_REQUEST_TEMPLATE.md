@@ -1,8 +1,8 @@
 ### Summary
 <!-- Please include a summary of the changes made. -->
 
-### Bugs Fixed
-<!-- List any bugs that were fixed with this PR. -->
+### Related Issues
+<!-- List any bugs or feature requests that were fixed with this PR. -->
 - #123
 
 ### Number of Passing Unit Tests
@@ -10,5 +10,7 @@
 Tests passing: 0/0
 
 ### Checklist
-- [ ] Unit tests have been updated
+- [ ] Unit tests have been added 
 - [ ] Documentation has been updated
+- [ ] No change to public API, documentation not required
+- [ ] Version number has been bumped in Project.toml
