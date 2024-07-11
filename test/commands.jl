@@ -104,6 +104,14 @@ end
     end
 end
 
+@testset "Constant string value" begin
+    df = DataFrame(s= ["a", "b", "c"])
+    df2 = @with df @replace s = "string"
+    @test all(df2.s .== "string")
+    df2 = @with df @replace s = "string" @if s == "a"
+    @test df2.s == ["string", "b", "c"]
+end
+
 @testset "Collapse" begin
     @testset "Non-vectorized aggregators" begin
         df = DataFrame(x=1:4, z= 5:8)
