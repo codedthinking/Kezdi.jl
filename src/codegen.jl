@@ -31,19 +31,23 @@ function generate_command(command::Command; options=[], allowed=[])
     push!(setup, :(local $df2 = copy(getdf())))
     variables_condition = (:ifable in options) ? vcat(extract_variable_references(command.condition)...) : Symbol[]
     variables_RHS = (:variables in options) ? vcat(extract_variable_references.(command.arguments)...) : Symbol[]
+    variables = vcat(variables_condition, variables_RHS)
     if :replace_variables in options
         process(x) = replace_variable_references(sdf, x)
     end
     if :vectorize in options
         process = vectorize_function_calls ∘ process
     end
-    if :_n in variables_condition
-        push!(setup, :(transform!($df2, eachindex => :_n)))
-        push!(teardown, :(select!($df2, Not(:_n))))
+    # where should special variables be created?
+    # when grouped by, then couting rows should be done on the grouped data
+    _n_goes_to = :by in given_options ? gdf : df2
+    if :_n in variables
+        push!(setup, :(transform!($_n_goes_to, eachindex => :_n)))
+        push!(teardown, :(select!($_n_goes_to, Not(:_n))))
     end
-    if :_N in variables_condition
-        push!(setup, :(transform!($df2, nrow => :_N)))
-        push!(teardown, :(select!($df2, Not(:_N))))
+    if :_N in variables
+        push!(setup, :(transform!($_n_goes_to, nrow => :_N)))
+        push!(teardown, :(select!($_n_goes_to, Not(:_N))))
     end
     if :ifable in options
         condition = command.condition
@@ -59,14 +63,6 @@ function generate_command(command::Command; options=[], allowed=[])
         target_df = gdf
         by_cols = get_by(command)
         push!(setup, :(local $gdf = groupby($sdf, $by_cols)))
-    end
-    if :_n in variables_RHS
-        push!(setup, :(transform!($target_df, eachindex => :_n)))
-        push!(teardown, :(select!($target_df, Not(:_n))))
-    end
-    if :_N in variables_RHS
-        push!(setup, :(transform!($target_df, nrow => :_N)))
-        push!(teardown, :(select!($target_df, Not(:_N))))
     end
     push!(setup, quote
         function $tdfunction(x)
