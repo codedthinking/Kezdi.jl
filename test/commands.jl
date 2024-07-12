@@ -86,6 +86,19 @@ end
         @test eltype(df.x) == eltype(df3.x)
     end
 
+    @testset "Mixed types" begin
+        df = DataFrame(x=[1, 2, 3])
+        @test eltype((@with df @replace x = 1.1 @if _n == 1).x) <: AbstractFloat
+        @test eltype((@with df @replace x = missing @if _n == 1).x) == Union{Missing, Int}
+        @test eltype((@with df @replace x = "a" @if _n == 1).x) == Any
+        df = DataFrame(x=[missing, 2, 3])
+        @test eltype((@with df @replace x = 1 @if _n == 1).x) == Int
+        df = DataFrame(x=[1.1, 2, 3])
+        @test eltype((@with df @replace x = 1 @if _n == 1).x) == Int
+        df = DataFrame(x=[1, 2, missing])
+        @test eltype((@with df @replace x = 1.1 @if _n == 1).x) == Union{T, Missing} where T <: AbstractFloat
+    end
+
     @testset "Error handling" begin
         @test_throws Exception @with df @replace y = 1
     end
