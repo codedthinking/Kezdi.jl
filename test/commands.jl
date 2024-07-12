@@ -46,6 +46,16 @@
         @test all(df2.y .=== [-1, -2, -3, missing])
     end
 
+    @testset "_n and _N with @if" begin
+        df = DataFrame(x=1:4)
+        df2 = @with df @generate z = 9 @if _n >= 2
+        @test all(df2.z .=== [missing, 9, 9, 9])
+        df2 = @with df @generate z = _n
+        @test df2.z == [1, 2, 3, 4]
+        df2 = @with df @generate z = _n @if _n >= 2
+        @test all(df2.z .=== [missing, 2, 3, 4])
+    end
+
     @testset "Lists-valued variables" begin
         df = DataFrame(x=[[1, 2], [3, 4], [5, 6], [7, 8]])
         @test (@with df @generate x1 = getindex(x, 1)).x1 == [1, 3, 5, 7]
