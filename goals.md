@@ -266,3 +266,67 @@ An in-place version of `@with!` should do everything in place. This can mean all
    - non-standard evaluation makes it hard to wrap Kezdi.jl code in functions
 6. For loops
    - implement `scalars()` and automatic expansion of locals in context
+
+# 2024-07-12 In-flight debugging session
+```julia
+julia> using Kezdi
+
+julia> module MyModule
+       myfunc(x) = 2x
+       end
+Main.MyModule
+
+julia> df = DataFrame(x = 1:10)
+10×1 DataFrame
+ Row │ x
+     │ Int64
+─────┼───────
+   1 │     1
+   2 │     2
+   3 │     3
+   4 │     4
+   5 │     5
+   6 │     6
+   7 │     7
+   8 │     8
+   9 │     9
+  10 │    10
+
+julia> @with df @generate y = MyModule.myfunc(x)
+10×2 DataFrame
+ Row │ x      y
+     │ Int64  Int64
+─────┼──────────────
+   1 │     1      2
+   2 │     2      4
+   3 │     3      6
+   4 │     4      8
+   5 │     5     10
+   6 │     6     12
+   7 │     7     14
+   8 │     8     16
+   9 │     9     18
+  10 │    10     20
+```
+
+How about aggreator function?
+
+```julia
+julia> module MyModule
+       myfunc(x) = 2x
+       myaggreg(v::Vector) = sum(x.^2)
+       end
+WARNING: replacing module MyModule.
+Main.MyModule
+
+julia> @with df @egen y = MyModule.myaggreg(x)
+┌ Warning: transform!(var"##237", [:x] => (((x,)->(passmissing(MyModule.myaggreg)).(x)) => $(QuoteNode("y"))))
+└ @ Kezdi ~/Tresorit/Mac/code/julia/Kezdi.jl/src/commands.jl:100
+ERROR: MethodError: no method matching myaggreg(::Int64)
+
+Closest candidates are:
+  myaggreg(::Vector)
+   @ Main.MyModule REPL[8]:3
+```
+
+This means it was vectorized at compile time, but it is found at runtime.

@@ -1,3 +1,10 @@
+module MyModule
+myfunc(x) = 2x
+myaggreg(v::Vector) = sum(x.^2)
+mymiss(::Missing) = missing
+mymiss(x) = 3x
+end
+
 @testset "Replace variable references" begin
     @test_expr replace_variable_references(:(x + y + f(z) - g.(x))) == :(:x + :y + f(:z) - g.(:x))
     @test_expr replace_variable_references(:(f(x, <=))) == :(f(:x, <=))
@@ -38,5 +45,11 @@ end
 
     @testset "Unknown functions are passed through `passmissing`" begin
         @test_expr vectorize_function_calls(:(y = Dates.year(x))) == :(y = (passmissing(Dates.year)).(x))
+    end
+    @testset "Functions in other modules" begin
+        using .MyModule
+        @test vectorize_function_calls(:(MyModule.myfunc(x))) == :((passmissing(MyModule.myfunc)).(x))       
+        @test vectorize_function_calls(:(MyModule.myaggreg(x))) == :(MyModule.myfunc(keep_only_values(x)))  
+        @test vectorize_function_calls(:(MyModule.mymiss(x))) == :(MyModule.mymiss.(x))     
     end
 end
