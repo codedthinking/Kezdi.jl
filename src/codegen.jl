@@ -246,7 +246,7 @@ end
 
 function get_dot_parts(ex::Expr)
     is_dot_reference(ex) || error("Expected a dot reference, got $ex")
-    parts = []
+    parts = Symbol[]
     while is_dot_reference(ex)
         push!(parts, ex.args[2].value)
         ex = ex.args[1]
@@ -274,29 +274,31 @@ isalphanumeric(c::AbstractChar) = isletter(c) || isdigit(c) || c == '_'
 isalphanumeric(str::AbstractString) = all(isalphanumeric, str)
 
 isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args) == 2
-function operates_on_vector(expr::Any) 
+operates_on_missing(expr::Any) = (expr isa Symbol && expr == :ismissing) || operates_on_type(expr, Missing)
+operates_on_vector(expr::Any) = operates_on_type(expr, Vector)
+
+function operates_on_type(expr::Any, T::Type)
     try
-        length(methodswith(Vector, eval(expr); supertypes=true)) > 0
+        return length(methodswith(T, eval(expr); supertypes=true)) > 0
     catch e
-        if isa(e, UndefVarError)
+        !isa(e, UndefVarError) && rethrow(e)
+        modules_and_symbols = get_dot_parts(expr)
+        wrapped_in_Main = [:Main, modules_and_symbols...] |> wrap_in_module
+        try
+            return length(methodswith(T, eval(wrapped_in_Main); supertypes=true)) > 0
+        catch ee
+            !isa(ee, UndefVarError) && rethrow(ee)
             return false
-        else
-            rethrow(e)
         end
+        error("This branch should never be reached!")
     end
 end
 
-function operates_on_missing(expr::Any)
-    expr isa Symbol && expr == :ismissing && return true 
-    try
-        length(methodswith(Missing, eval(expr); supertypes=true)) > 0
-    catch e
-        if isa(e, UndefVarError)
-            return false
-        else
-            rethrow(e)
-        end
-    end
+
+function wrap_in_module(names::Vector{T}) where T <: Union{Symbol, Expr} 
+    length(names) == 1 && return names[1]
+    length(names) == 2 && return :($(names[1]).$(names[2]))
+    wrap_in_module(Union{Symbol, Expr}[:($(names[1]).$(names[2])), names[3:end]...])
 end
 
 # only broadcast first argument. For example, [1, 2, 3] in [2, 3] should evaluate to [false, true, true]

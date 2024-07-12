@@ -49,7 +49,7 @@ end
     @testset "Functions in other modules" begin
         using .MyModule
         @test vectorize_function_calls(:(MyModule.myfunc(x))) == :((passmissing(MyModule.myfunc)).(x))       
-        @test vectorize_function_calls(:(MyModule.myaggreg(x))) == :(MyModule.myfunc(keep_only_values(x)))  
+        @test vectorize_function_calls(:(MyModule.myaggreg(x))) == :(MyModule.myaggreg(keep_only_values(x)))  
         @test vectorize_function_calls(:(MyModule.mymiss(x))) == :(MyModule.mymiss.(x))     
     end
 end
