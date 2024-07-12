@@ -244,6 +244,7 @@ function vectorize_function_calls(expr::Any)
     end
 end
 
+get_dot_parts(ex::Symbol) = [ex]
 function get_dot_parts(ex::Expr)
     is_dot_reference(ex) || error("Expected a dot reference, got $ex")
     parts = Symbol[]
@@ -278,20 +279,15 @@ operates_on_missing(expr::Any) = (expr isa Symbol && expr == :ismissing) || oper
 operates_on_vector(expr::Any) = operates_on_type(expr, Vector)
 
 function operates_on_type(expr::Any, T::Type)
+    modules_and_symbols = get_dot_parts(expr)
+    wrapped_in_Main = [:Main, modules_and_symbols...] |> wrap_in_module
     try
-        return length(methodswith(T, eval(expr); supertypes=true)) > 0
-    catch e
-        !isa(e, UndefVarError) && rethrow(e)
-        modules_and_symbols = get_dot_parts(expr)
-        wrapped_in_Main = [:Main, modules_and_symbols...] |> wrap_in_module
-        try
-            return length(methodswith(T, eval(wrapped_in_Main); supertypes=true)) > 0
-        catch ee
-            !isa(ee, UndefVarError) && rethrow(ee)
-            return false
-        end
-        error("This branch should never be reached!")
+        return length(methodswith(T, eval(wrapped_in_Main); supertypes=true)) > 0
+    catch ee
+        !isa(ee, UndefVarError) && rethrow(ee)
+        return false
     end
+    error("This branch should never be reached!")
 end
 
 
