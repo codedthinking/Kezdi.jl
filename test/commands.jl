@@ -242,6 +242,18 @@ end
         df2 = @with df @egen y = maximum(x), by(group, s)
         @test df2.y == [3, 2, 3, 4, 6, 6]
     end
+
+    @testset "_n and _N with @if" begin
+        df = DataFrame(x=1:6, g=[:a, :a, :a, :a, :b, :b])
+        df2 = @with df @egen z = 9 @if _n >= 2, by(g)
+        @test all(df2.z .=== [missing, 9, 9, 9, missing, 9])
+        df2 = @with df @egen z = _n, by(g)
+        @test df2.z == [1, 2, 3, 4, 1, 2]
+        df2 = @with df @egen z = _N, by(g)
+        @test df2.z == [4, 4, 4, 4, 2, 2]
+        df2 = @with df @egen z = _n @if _n >= 2, by(g)
+        @test all(df2.z .=== [missing, 2, 3, 4, missing, 2])
+    end
 end
 
 @testset "Keep if" begin
