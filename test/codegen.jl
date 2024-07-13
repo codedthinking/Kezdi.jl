@@ -52,4 +52,11 @@ end
         @test vectorize_function_calls(:(MyModule.myaggreg(x))) == :(MyModule.myaggreg(keep_only_values(x)))  
         @test vectorize_function_calls(:(MyModule.mymiss(x))) == :(MyModule.mymiss.(x))     
     end
+
+    @testset "Functions in other modules with DNV" begin
+        using .MyModule
+        @test vectorize_function_calls(:(DNV(MyModule.myfunc(x)))) == :(MyModule.myfunc(x))
+        @test vectorize_function_calls(:(DNV(MyModule.myaggreg(x)))) == :(MyModule.myaggreg(x))
+        @test vectorize_function_calls(:(DNV(MyModule.mymiss(x)))) == :(MyModule.mymiss(x))
+    end
 end
