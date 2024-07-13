@@ -4,12 +4,13 @@ Kezdi.jl is a Julia package for data manipulation and analysis. It is inspired b
 module Kezdi
 export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress, use, @use, @tabulate, @count, @sort, @order, getdf, setdf, @list, @head, @tail, @names, @rename
 
-export display_and_return, keep_only_values, rowcount, distinct
+export display_and_return, keep_only_values, rowcount, distinct, _Kezdi_local_context
 
 using Reexport
 using Logging
 using InteractiveUtils
 using ReadStatTables
+import ScopedValues
 
 @reexport using FreqTables: freqtable
 @reexport using FixedEffectModels
@@ -31,5 +32,6 @@ include("side_effects.jl")
 
 include("With.jl")
 @reexport using .With: @with, @with!
+context = ScopedValues.ScopedValue(Context())
 
 end # module

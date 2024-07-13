@@ -51,31 +51,25 @@ function rewrite_with_block(block)
 
     reconvert_docstrings!(block_expressions)
 
-    # save current dataframe
-    previous_df = gensym()
     rewritten_exprs = []
 
     did_first = false
+    local df
     for expr in block_expressions
         # could be an expression first or a LineNumberNode, so a bit convoluted
         # we just do the firstvar transformation for the first non LineNumberNode
         # we encounter
         if !(did_first || expr isa LineNumberNode)
             did_first = true
-            push!(rewritten_exprs, :(local $previous_df = getdf()))
-            push!(rewritten_exprs, :(setdf($expr)))
+            df = expr
             continue
         end
         
         push!(rewritten_exprs, expr)
     end
-    teardown = :(x -> begin
-        setdf($previous_df)
-        x
-    end)
     result = Expr(:block, rewritten_exprs...)
 
-    :($(esc(result)) |> $(esc(teardown)))
+    :($(esc(:(Kezdi.ScopedValues.@with Kezdi.context => setdf($df) $result)) ))
 end
 
 # if a line in a with is a string, it can be parsed as a docstring

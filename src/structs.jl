@@ -19,6 +19,13 @@ struct GeneratedCommand
     options::Vector{Any}
 end
 
+struct Context 
+    df::Any
+    scalars::Vector{Symbol}
+    flags::Set{Symbol}
+end
+Context() = Context(nothing, Symbol[], DEFAULT_FLAGS)
+
 using DataFrames
 using Statistics
 using StatsBase

@@ -3,16 +3,17 @@ use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf
 """
     getdf() -> AbstractDataFrame
 
-Return the global data frame.
+Return the data frame set in the current scope.
 """
-getdf() = _global_dataframe
+getdf() = Kezdi.context[].df
 
 """
     setdf(df::Union{AbstractDataFrame, Nothing})
 
-Set the global data frame.
+Return a Kezdi.Context with the DataFrame set.
 """
-setdf(df::Union{AbstractDataFrame, Nothing}) = global _global_dataframe = df
+setdf(df::Union{AbstractDataFrame, Nothing}) = Context(df, Kezdi.context[].scalars, Kezdi.context[].flags)
+
 display_and_return(x) = (display(x); x)
 
 """
