@@ -279,22 +279,12 @@ operates_on_missing(expr::Any) = (expr isa Symbol && expr == :ismissing) || oper
 operates_on_vector(expr::Any) = operates_on_type(expr, Vector)
 
 function operates_on_type(expr::Any, T::Type)
-    modules_and_symbols = get_dot_parts(expr)
-    wrapped_in_Main = [:Main, modules_and_symbols...] |> wrap_in_module
     try
-        return length(methodswith(T, eval(wrapped_in_Main); supertypes=true)) > 0
+        return length(methodswith(T, Main.eval(expr); supertypes=true)) > 0
     catch ee
         !isa(ee, UndefVarError) && rethrow(ee)
         return false
     end
-    error("This branch should never be reached!")
-end
-
-
-function wrap_in_module(names::Vector{T}) where T <: Union{Symbol, Expr} 
-    length(names) == 1 && return names[1]
-    length(names) == 2 && return :($(names[1]).$(names[2]))
-    wrap_in_module(Union{Symbol, Expr}[:($(names[1]).$(names[2])), names[3:end]...])
 end
 
 # only broadcast first argument. For example, [1, 2, 3] in [2, 3] should evaluate to [false, true, true]
