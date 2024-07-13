@@ -101,7 +101,7 @@ end
 
     @testset "Variable reference and function call" begin
         @test Kezdi.is_variable_reference(:x)
-        @test Kezdi.is_variable_reference(:(x.y))
+        @test !Kezdi.is_variable_reference(:(x.y))
         @test !Kezdi.is_variable_reference(:(log(x)))
         @test Kezdi.is_function_call(:(log(x)))
         @test Kezdi.is_function_call(:(log.(x)))
