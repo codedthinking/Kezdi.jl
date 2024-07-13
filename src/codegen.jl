@@ -6,6 +6,7 @@ function generate_command(command::Command; options=[], allowed=[])
     teardown = Expr[]
     process = (x -> x)
     tdfunction = gensym()
+    # this points to the DataFrame that the command will return to the user
     target_df = df2
 
     given_options = get_top_symbol.(command.options)
@@ -40,14 +41,18 @@ function generate_command(command::Command; options=[], allowed=[])
     end
     # where should special variables be created?
     # when grouped by, then couting rows should be done on the grouped data
-    _n_goes_to = :by in given_options ? gdf : df2
+    _n_goes_to = df2
+    if :by in given_options && (:_n in variables || :_N in variables)
+        by_cols = get_by(command)
+        _n_goes_to = :(groupby($df2, $by_cols))
+    end
     if :_n in variables
         push!(setup, :(transform!($_n_goes_to, eachindex => :_n)))
-        push!(teardown, :(select!($_n_goes_to, Not(:_n))))
+        push!(teardown, :(select!($df2, Not(:_n))))
     end
     if :_N in variables
         push!(setup, :(transform!($_n_goes_to, nrow => :_N)))
-        push!(teardown, :(select!($_n_goes_to, Not(:_N))))
+        push!(teardown, :(select!($df2, Not(:_N))))
     end
     if :ifable in options
         condition = command.condition
