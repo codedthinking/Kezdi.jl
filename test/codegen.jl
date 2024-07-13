@@ -70,6 +70,8 @@ end
         @test !Kezdi.operates_on_type(:sum, Missing)
         @test !Kezdi.operates_on_type(:log, AbstractVector)
 
+        @test_throws Exception Kezdi.operates_on_type(4, Missing)
+
         @test Kezdi.operates_on_missing(:log)
         @test !Kezdi.operates_on_missing(:sum)
         @test Kezdi.operates_on_vector(:mean)

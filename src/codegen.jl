@@ -287,6 +287,3 @@ function operates_on_type(expr::Any, T::Type)
         return false
     end
 end
-
-# only broadcast first argument. For example, [1, 2, 3] in [2, 3] should evaluate to [false, true, true]
-BFA(f::Function, xs, args...; kwargs...) = broadcast(x -> f(x, args...; kwargs...), xs)

@@ -347,6 +347,13 @@ end
         df2 = @with df @generate y = sum(x) @if x < 3
         @test all(df2.y .=== [3, 3, missing, missing])
     end
+
+    @testset "Errors" begin
+        @test_throws Exception Main.eval(:(@with DataFrame(a=1:10) @generate y))
+        @test_throws Exception Main.eval(:(@with DataFrame(a=1:10) @generate y x))
+        @test_throws Exception Main.eval(:(@with DataFrame(a=1:10) @generate y = x z = w))
+        @test_throws Exception Main.eval(:(@with DataFrame(a=1:10) @generate y, by(z)))
+    end
 end
 
 @testset "x in list" begin
