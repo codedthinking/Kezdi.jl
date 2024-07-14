@@ -11,8 +11,9 @@ function is_aside(x::Expr)::Bool
 end
 
 
-insert_first_arg(symbol::Symbol, firstarg; assignment = false) = Expr(:call, symbol, firstarg)
-insert_first_arg(any, firstarg; assignment = false) = insertionerror(any)
+function call_with_context(e::Expr, firstarg)
+    :(Kezdi.ScopedValues.@with Kezdi.context => $firstarg $e)
+end
 
 function insertionerror(expr)
     error(
@@ -40,77 +41,12 @@ function is_moduled_symbol(e::Expr)
         e.args[2].value isa Symbol
 end
 
-function insert_first_arg(e::Expr, firstarg; assignment = false)
-    head = e.head
-    args = e.args
-    # variable = ...
-    # set assignment = true and rerun with right hand side
-    if !assignment && head == :(=) && length(args) == 2
-        if !(args[1] isa Symbol)
-            error("You can only use assignment syntax with a Symbol as a variable name, not $(args[1]).")
-        end
-        variable = args[1]
-        righthandside = insert_first_arg(args[2], firstarg; assignment = true)
-        :($variable = $righthandside)
-    # Module.SubModule.symbol
-    elseif is_moduled_symbol(e)
-        Expr(:call, e, firstarg)
-
-    # f(args...) --> f(firstarg, args...)
-    elseif head == :call && length(args) > 0
-        if length(args) ≥ 2 && Meta.isexpr(args[2], :parameters)
-            Expr(head, args[1:2]..., firstarg, args[3:end]...)
-        elseif args[1] in [:env, :scalars]
-            # does not have to insert first argument into $e
-            Expr(head, args...)
-        else
-            Expr(head, args[1], firstarg, args[2:end]...)
-        end
-
-    # f.(args...) --> f.(firstarg, args...)
-    elseif head == :. &&
-            length(args) > 1 &&
-            args[1] isa Symbol &&
-            args[2] isa Expr &&
-            args[2].head == :tuple
-
-        Expr(head, args[1], Expr(args[2].head, firstarg, args[2].args...))
-
-    # @. [Module.SubModule.]somesymbol --> somesymbol.(firstarg)
-    elseif head == :macrocall &&
-            length(args) == 3 &&
-            args[1] == Symbol("@__dot__") &&
-            args[2] isa LineNumberNode &&
-            (is_moduled_symbol(args[3]) || args[3] isa Symbol)
-
-        Expr(:., args[3], Expr(:tuple, firstarg))
-
-    # @macro(args...) --> @macro(firstarg, args...)
-    elseif head == :macrocall &&
-        (is_moduled_symbol(args[1]) || args[1] isa Symbol) &&
-        args[2] isa LineNumberNode
-        if args[1] == Symbol("@__dot__")
-            error("You can only use the @. macro and automatic first argument insertion if what follows is of the form `[Module.SubModule.]func`")
-        end
-
-        if length(args) >= 3 && args[3] isa Expr && args[3].head == :parameters
-            # macros can have keyword arguments after ; as well
-            Expr(head, args[1], args[2], args[3], firstarg, args[4:end]...)
-        else
-            Expr(head, args[1], args[2], firstarg, args[3:end]...)
-        end
-
-    else
-        insertionerror(e)
-    end
-end
-
 function rewrite(expr, replacement)
     aside = is_aside(expr)
-    new_expr = insert_first_arg(expr, replacement)
+    new_expr = call_with_context(expr, replacement)
     if !aside
         replacement = gensym()
-        new_expr = :(local $replacement = $new_expr)
+        new_expr = :(local $replacement = Kezdi.Context($new_expr, Symbol[], Set{Symbol}()))
     else
         new_expr = :(display($new_expr))
     end
@@ -267,18 +203,17 @@ function rewrite_with_block(block)
 
     reconvert_docstrings!(block_expressions)
 
-    # assign first line to first gensym variable
-    firstvar = gensym()
+    local_context = gensym()
+    replacement = local_context
     rewritten_exprs = []
-    replacement = firstvar
 
     did_first = false
     for expr in block_expressions
         # could be an expression first or a LineNumberNode, so a bit convoluted
-        # we just do the firstvar transformation for the first non LineNumberNode
+        # we just do the local_context transformation for the first non LineNumberNode
         # we encounter
         if !(did_first || expr isa LineNumberNode)
-            expr = :(local $firstvar = $expr)
+            expr = :(local $local_context = Kezdi.Context($expr, Symbol[], Set{Symbol}()))
             did_first = true
             push!(rewritten_exprs, expr)
             continue
@@ -287,6 +222,7 @@ function rewrite_with_block(block)
         rewritten, replacement = rewrite(expr, replacement)
         push!(rewritten_exprs, rewritten)
     end
+    
     result = Expr(:block, rewritten_exprs..., replacement)
 
     :($(esc(result)))

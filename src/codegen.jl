@@ -1,4 +1,6 @@
 function generate_command(command::Command; options=[], allowed=[])
+    df = :(Kezdi.context[].df)
+
     df2 = gensym()
     sdf = gensym()
     gdf = gensym()
@@ -28,8 +30,8 @@ function generate_command(command::Command; options=[], allowed=[])
         (opt in allowed) || ArgumentError("Invalid option \"$opt\" for this command: @$(command.command)") |> throw
     end
 
-    push!(setup, :(Kezdi.context[].df isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a global DataFrame set by setdf()")))
-    push!(setup, :(local $df2 = copy(Kezdi.context[].df)))
+    push!(setup, :($df isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a DataFrame")))
+    push!(setup, :(local $df2 = copy($df)))
     variables_condition = (:ifable in options) ? vcat(extract_variable_references(command.condition)...) : Symbol[]
     variables_RHS = (:variables in options) ? vcat(extract_variable_references.(command.arguments)...) : Symbol[]
     variables = vcat(variables_condition, variables_RHS)
@@ -88,7 +90,6 @@ function get_option(command::Command, key::Symbol)
         end
     end
 end
-
 
 function get_top_symbol(expr::Any)
     if expr isa Expr

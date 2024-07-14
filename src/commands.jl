@@ -9,7 +9,7 @@ function rewrite(::Val{:rename}, command::Command)
             ArgumentError("Syntax is @rename oldname newname") |> throw
         else
             $setup
-            rename!($local_copy, $arguments[1] => $arguments[2]) |> $teardown |> setdf
+            rename!($local_copy, $arguments[1] => $arguments[2]) |> $teardown
         end
     end |> esc
 end
@@ -26,7 +26,7 @@ function rewrite(::Val{:generate}, command::Command)
             $setup
             $local_copy[!, $target_column] .= missing
             $target_df[!, $target_column] .= $RHS
-            $local_copy |> $teardown |> setdf
+            $local_copy |> $teardown
         end
     end |> esc
 end
@@ -53,7 +53,7 @@ function rewrite(::Val{:replace}, command::Command)
             else
                 $target_df[!, $target_column] .= $RHS
             end
-            $local_copy |> $teardown |> setdf
+            $local_copy |> $teardown
         end
     end |> esc
 end
@@ -63,7 +63,7 @@ function rewrite(::Val{:keep}, command::Command)
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
         $setup
-        $target_df[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> $teardown |> setdf
+        $target_df[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> $teardown
     end |> esc
 end
 
@@ -73,13 +73,13 @@ function rewrite(::Val{:drop}, command::Command)
     if isnothing(command.condition)
         return quote
             $setup
-            select($local_copy, Not(collect($(command.arguments)))) |> $teardown |> setdf
+            select($local_copy, Not(collect($(command.arguments)))) |> $teardown
         end |> esc
     end 
     bitmask = build_bitmask(local_copy, command.condition)
     return quote
         $setup
-        $local_copy[.!($bitmask), :] |> $teardown |> setdf
+        $local_copy[.!($bitmask), :] |> $teardown
     end |> esc
 end
 
@@ -89,7 +89,7 @@ function rewrite(::Val{:collapse}, command::Command)
     combine_epxression = Expr(:call, :combine, target_df, build_assignment_formula.(command.arguments)...)
     quote
         $setup
-        $combine_epxression |> $teardown |> setdf
+        $combine_epxression |> $teardown
     end |> esc
 end
 
@@ -104,7 +104,7 @@ function rewrite(::Val{:egen}, command::Command)
         else
             $setup
             $transform_expression
-            $local_copy |> $teardown |> setdf
+            $local_copy |> $teardown
         end
     end |> esc
 end
@@ -116,7 +116,7 @@ function rewrite(::Val{:sort}, command::Command)
     desc = :desc in get_top_symbol.(options) ? true : false
     quote
         $setup
-        sort($target_df, $columns, rev=$desc) |> $teardown |> setdf
+        sort($target_df, $columns, rev=$desc) |> $teardown
     end |> esc
 end
 
@@ -180,7 +180,7 @@ function rewrite(::Val{:order}, command::Command)
             cols = pushfirst!(cols, target_cols...)
         end
 
-        $target_df[!,cols]|> $teardown |> setdf
+        $target_df[!,cols]|> $teardown
     end |> esc
 end
 

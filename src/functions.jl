@@ -7,13 +7,6 @@ Return the data frame set in the current scope.
 """
 getdf() = Kezdi.context[].df
 
-"""
-    setdf(df::Union{AbstractDataFrame, Nothing})
-
-Return a Kezdi.Context with the DataFrame set.
-"""
-setdf(df::Union{AbstractDataFrame, Nothing}) = Context(df, Kezdi.context[].scalars, Kezdi.context[].flags)
-
 display_and_return(x) = (display(x); x)
 
 """
