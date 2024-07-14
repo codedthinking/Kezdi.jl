@@ -11,50 +11,31 @@ function is_aside(x::Expr)::Bool
 end
 
 
-function call_with_context(e::Expr, firstarg)
-    :(Kezdi.ScopedValues.@with Kezdi.runtime_context => $firstarg $e)
-end
-
-function insertionerror(expr)
-    error(
-        """Can't insert a first argument into:
-        $expr.
-
-        First argument insertion works with expressions like these, where [Module.SubModule.] is optional:
-
-        [Module.SubModule.]func
-        [Module.SubModule.]func(args...)
-        [Module.SubModule.]func(args...; kwargs...)
-        [Module.SubModule.]@macro
-        [Module.SubModule.]@macro(args...)
-        @. [Module.SubModule.]func
-        """
-    )
-end
-
-is_moduled_symbol(x) = false
-function is_moduled_symbol(e::Expr)
-    e.head == :. &&
-        length(e.args) == 2 &&
-        (e.args[1] isa Symbol || is_moduled_symbol(e.args[1])) &&
-        e.args[2] isa QuoteNode &&
-        e.args[2].value isa Symbol
+function call_with_context(e::Expr, firstarg; assignment = false)
+    head = e.head
+    args = e.args
+    # set assignment = true and rerun with right hand side
+    if !assignment && head == :(=) && length(args) == 2
+        if !(args[1] isa Symbol)
+            error("You can only use assignment syntax with a Symbol as a variable name, not $(args[1]).")
+        end
+        variable = args[1]
+        righthandside = call_with_context(args[2], firstarg; assignment = true)
+        return :($variable = $righthandside)
+    end
+    :(Kezdi.ScopedValues.@with Kezdi.runtime_context => Kezdi.RuntimeContext($firstarg) $e)
 end
 
 function rewrite(expr, replacement)
     aside = is_aside(expr)
     new_expr = call_with_context(expr, replacement)
-    if !aside
-        replacement = gensym()
-        new_expr = :(local $replacement = Kezdi.RuntimeContext($new_expr))
-    else
-        new_expr = :(display($new_expr))
-    end
+    replacement = gensym()
+    new_expr = :(local $replacement = $new_expr)
 
-    (new_expr, replacement)
+    (new_expr, replacement, aside)
 end
 
-rewrite(l::LineNumberNode, replacement) = (l, replacement)
+rewrite(l::LineNumberNode, replacement) = (l, replacement, true)
 
 function rewrite_with_block(firstpart, block)
     pushfirst!(block.args, firstpart)
@@ -203,8 +184,9 @@ function rewrite_with_block(block)
 
     reconvert_docstrings!(block_expressions)
 
-    local_context = gensym()
-    replacement = local_context
+    local_value = gensym()
+    replaced_value = local_value
+    current_df = local_value
     rewritten_exprs = []
 
     did_first = false
@@ -213,17 +195,20 @@ function rewrite_with_block(block)
         # we just do the local_context transformation for the first non LineNumberNode
         # we encounter
         if !(did_first || expr isa LineNumberNode)
-            expr = :(local $local_context = Kezdi.RuntimeContext($expr))
+            expr = :(local $local_value = $expr)
             did_first = true
             push!(rewritten_exprs, expr)
             continue
         end
         
-        rewritten, replacement = rewrite(expr, replacement)
+        rewritten, replaced_value, aside = rewrite(expr, current_df)
         push!(rewritten_exprs, rewritten)
+        if !aside
+            push!(rewritten_exprs, :(local $current_df = $replaced_value))
+        end
     end
     
-    result = Expr(:block, rewritten_exprs..., replacement)
+    result = Expr(:block, rewritten_exprs..., replaced_value)
 
     :($(esc(result)))
 end
