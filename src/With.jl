@@ -12,7 +12,7 @@ end
 
 
 function call_with_context(e::Expr, firstarg)
-    :(Kezdi.ScopedValues.@with Kezdi.context => $firstarg $e)
+    :(Kezdi.ScopedValues.@with Kezdi.runtime_context => $firstarg $e)
 end
 
 function insertionerror(expr)
@@ -46,7 +46,7 @@ function rewrite(expr, replacement)
     new_expr = call_with_context(expr, replacement)
     if !aside
         replacement = gensym()
-        new_expr = :(local $replacement = Kezdi.Context($new_expr, Symbol[], Set{Symbol}()))
+        new_expr = :(local $replacement = Kezdi.RuntimeContext($new_expr))
     else
         new_expr = :(display($new_expr))
     end
@@ -213,7 +213,7 @@ function rewrite_with_block(block)
         # we just do the local_context transformation for the first non LineNumberNode
         # we encounter
         if !(did_first || expr isa LineNumberNode)
-            expr = :(local $local_context = Kezdi.Context($expr, Symbol[], Set{Symbol}()))
+            expr = :(local $local_context = Kezdi.RuntimeContext($expr))
             did_first = true
             push!(rewritten_exprs, expr)
             continue

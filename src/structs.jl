@@ -19,12 +19,15 @@ struct GeneratedCommand
     options::Vector{Any}
 end
 
-struct Context 
-    df::Any
+struct CompileContext 
     scalars::Vector{Symbol}
     flags::Set{Symbol}
 end
-Context() = Context(nothing, Symbol[], DEFAULT_FLAGS)
+CompileContext() = CompileContext(Symbol[], DEFAULT_FLAGS)
+
+struct RuntimeContext
+    df::Any
+end
 
 using DataFrames
 using Statistics

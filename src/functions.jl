@@ -5,7 +5,7 @@ use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf
 
 Return the data frame set in the current scope.
 """
-getdf() = Kezdi.context[].df
+getdf() = Kezdi.runtime_context[].df
 
 display_and_return(x) = (display(x); x)
 

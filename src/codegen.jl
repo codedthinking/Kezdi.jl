@@ -1,5 +1,5 @@
 function generate_command(command::Command; options=[], allowed=[])
-    df = :(Kezdi.context[].df)
+    df = :(Kezdi.runtime_context[].df)
 
     df2 = gensym()
     sdf = gensym()
