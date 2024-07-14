@@ -5,8 +5,14 @@ use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf
 
 Return the data frame set in the current scope.
 """
-getdf() = Kezdi.runtime_context[].df
-setdf(df::Union{AbstractDataFrame, Nothing}) = Kezdi.runtime_context[].df = df
+getdf() = Kezdi.runtime_context[].df isa Nothing ? Kezdi.global_runtime_context.df : Kezdi.runtime_context[].df
+
+"""
+    setdf(df::AbstractDataFrame)
+
+Set the data frame in the global scope.
+"""
+setdf(df::Union{AbstractDataFrame, Nothing}) = Kezdi.global_runtime_context = RuntimeContext(df)
 
 display_and_return(x) = (display(x); x)
 

@@ -34,5 +34,6 @@ include("With.jl")
 @reexport using .With: @with, @with!
 runtime_context = ScopedValues.ScopedValue(RuntimeContext(nothing))
 compile_context = ScopedValues.ScopedValue(CompileContext())
+global_runtime_context = RuntimeContext(nothing)
 
 end # module
