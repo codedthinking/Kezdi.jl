@@ -72,27 +72,15 @@ const TYPES = (
     :Vector
 )
 
-const COMMANDS = (
-    :keep, 
-    :drop,
-    :generate,
-    :replace,
-    :egen,
-    :collapse,
-    :tabulate, 
-    :summarize, 
-    :regress
-)
-
 const SIDE_EFFECTS = (
-    Symbol("@tabulate"),
-    Symbol("@summarize"),
-    Symbol("@regress"),
-    Symbol("@list"),
-    Symbol("@head"),
-    Symbol("@tail"),
-    Symbol("@names"),
-    Symbol("@count")
+    :tabulate,
+    :summarize,
+    :regress,
+    :list,
+    :head,
+    :tail,
+    :names,
+    :count
 )
 
 const DO_NOT_VECTORIZE = (

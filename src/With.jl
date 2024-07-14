@@ -7,7 +7,7 @@ function is_aside(x::Expr)::Bool
     if x.head == :(=)
         return is_aside(x.args[2])
     end
-    return x.head == :macrocall && x.args[1] in Kezdi.SIDE_EFFECTS 
+    return x.head == :macrocall && Symbol(String(x.args[1])[2:end]) in Kezdi.SIDE_EFFECTS 
 end
 
 
