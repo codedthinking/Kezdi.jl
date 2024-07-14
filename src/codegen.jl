@@ -1,9 +1,8 @@
 function generate_command(command::Command; options=[], allowed=[])
-    df = :(getdf())
-
     df2 = gensym()
     sdf = gensym()
     gdf = gensym()
+    context = gensym()
     setup = Expr[]
     teardown = Expr[]
     process = (x -> x)
@@ -30,8 +29,11 @@ function generate_command(command::Command; options=[], allowed=[])
         (opt in allowed) || ArgumentError("Invalid option \"$opt\" for this command: @$(command.command)") |> throw
     end
 
-    push!(setup, :($df isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a DataFrame")))
-    push!(setup, :(local $df2 = copy($df)))
+    push!(setup, quote
+        local $context = Kezdi.get_runtime_context()
+        $context.df isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a DataFrame")
+        local $df2 = copy($context.df)
+    end)
     variables_condition = (:ifable in options) ? vcat(extract_variable_references(command.condition)...) : Symbol[]
     variables_RHS = (:variables in options) ? vcat(extract_variable_references.(command.arguments)...) : Symbol[]
     variables = vcat(variables_condition, variables_RHS)
@@ -73,6 +75,8 @@ function generate_command(command::Command; options=[], allowed=[])
     end
     push!(setup, quote
         function $tdfunction(x)
+            # add global dataframe save here
+            $context.inplace && setdf($target_df)
             $(Expr(:block, teardown...))
             x
         end

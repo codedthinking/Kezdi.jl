@@ -32,8 +32,8 @@ include("side_effects.jl")
 
 include("With.jl")
 @reexport using .With: @with, @with!
-runtime_context = ScopedValues.ScopedValue(RuntimeContext(nothing))
+runtime_context = ScopedValues.ScopedValue(RuntimeContext(nothing, true))
 compile_context = ScopedValues.ScopedValue(CompileContext())
-global_runtime_context = RuntimeContext(nothing)
+global_runtime_context = RuntimeContext(nothing, true)
 
 end # module

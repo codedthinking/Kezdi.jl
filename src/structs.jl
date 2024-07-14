@@ -27,7 +27,9 @@ CompileContext() = CompileContext(Symbol[], DEFAULT_FLAGS)
 
 struct RuntimeContext
     df::Any
+    inplace::Bool
 end
+RuntimeContext(df) = RuntimeContext(df, false)
 
 using DataFrames
 using Statistics

@@ -1,18 +1,19 @@
 use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf
 
 """
-    getdf() -> AbstractDataFrame
+    get_runtime_context() -> RuntimeContext
 
-Return the data frame set in the current scope.
+Return the current runtime context. This can be passed on as a ScopedValue or set as a global.
 """
-getdf() = Kezdi.runtime_context[].df isa Nothing ? Kezdi.global_runtime_context.df : Kezdi.runtime_context[].df
+get_runtime_context() = Kezdi.runtime_context[].df isa Nothing ? Kezdi.global_runtime_context : Kezdi.runtime_context[]
+getdf() = get_runtime_context().df
 
 """
     setdf(df::AbstractDataFrame)
 
 Set the data frame in the global scope.
 """
-setdf(df::Union{AbstractDataFrame, Nothing}) = Kezdi.global_runtime_context = RuntimeContext(df)
+setdf(df::Union{AbstractDataFrame, Nothing}) = Kezdi.global_runtime_context = RuntimeContext(df, true)
 
 display_and_return(x) = (display(x); x)
 

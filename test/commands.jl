@@ -704,5 +704,5 @@ end
     @test nrow(getdf()) == 3
 
     @drop @if x == 1
-    @test nrow(getdf()) == 2
+    @test nrow(getdf()) == 1
 end
