@@ -22,8 +22,10 @@ end
 struct CompileContext 
     scalars::Vector{Symbol}
     flags::Set{Symbol}
+    with_block::Bool
+    line_number::Int
 end
-CompileContext() = CompileContext(Symbol[], DEFAULT_FLAGS)
+CompileContext() = CompileContext(Symbol[], DEFAULT_FLAGS, false, 0)
 
 struct RuntimeContext
     df::Any

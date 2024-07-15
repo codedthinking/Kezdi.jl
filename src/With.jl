@@ -177,6 +177,8 @@ function flatten_to_single_block(args...)
 end
 
 function rewrite_with_block(block)
+    current_context = Kezdi.get_compile_context()
+    local line_number = current_context.line_number
     block_expressions = block.args
     isempty(block_expressions) || 
         (length(block_expressions) == 1 && block_expressions[] isa LineNumberNode) &&
@@ -200,8 +202,12 @@ function rewrite_with_block(block)
             push!(rewritten_exprs, expr)
             continue
         end
-        
-        rewritten, replaced_value, aside = rewrite(expr, current_df)
+
+        if expr isa LineNumberNode
+            line_number = expr.line
+        end
+
+        rewritten, replaced_value, aside = Kezdi.ScopedValues.@with Kezdi.compile_context => Kezdi.CompileContext(current_context.scalars, current_context.flags, true, line_number) rewrite(expr, current_df)
         push!(rewritten_exprs, rewritten)
         if !aside
             push!(rewritten_exprs, :(local $current_df = $replaced_value))

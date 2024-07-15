@@ -7,6 +7,7 @@ Return the current runtime context. This can be passed on as a ScopedValue or se
 """
 get_runtime_context() = Kezdi.runtime_context[].df isa Nothing ? Kezdi.global_runtime_context : Kezdi.runtime_context[]
 getdf() = get_runtime_context().df
+get_compile_context() = Kezdi.compile_context[]
 
 """
     setdf(df::AbstractDataFrame)
