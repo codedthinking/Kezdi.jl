@@ -1,3 +1,10 @@
+module MyModule
+myfunc(x) = 2x
+myaggreg(v::Vector) = sum(x.^2)
+mymiss(::Missing) = missing
+mymiss(x) = 3x
+end
+
 @testset "Replace variable references" begin
     @test_expr replace_variable_references(:(x + y + f(z) - g.(x))) == :(:x + :y + f(:z) - g.(:x))
     @test_expr replace_variable_references(:(f(x, <=))) == :(f(:x, <=))
@@ -38,5 +45,76 @@ end
 
     @testset "Unknown functions are passed through `passmissing`" begin
         @test_expr vectorize_function_calls(:(y = Dates.year(x))) == :(y = (passmissing(Dates.year)).(x))
+    end
+    @testset "Functions in other modules" begin
+        using .MyModule
+        @test vectorize_function_calls(:(MyModule.myfunc(x))) == :((passmissing(MyModule.myfunc)).(x))       
+        @test vectorize_function_calls(:(MyModule.myaggreg(x))) == :(MyModule.myaggreg(keep_only_values(x)))  
+        @test vectorize_function_calls(:(MyModule.mymiss(x))) == :(MyModule.mymiss.(x))     
+    end
+
+    @testset "Functions in other modules with DNV" begin
+        using .MyModule
+        @test vectorize_function_calls(:(DNV(MyModule.myfunc(x)))) == :(MyModule.myfunc(x))
+        @test vectorize_function_calls(:(DNV(MyModule.myaggreg(x)))) == :(MyModule.myaggreg(x))
+        @test vectorize_function_calls(:(DNV(MyModule.mymiss(x)))) == :(MyModule.mymiss(x))
+    end
+end
+
+@testset "Helper functions" begin
+    @testset "operates_on_type" begin
+        @test Kezdi.operates_on_type(:log, Number)
+        @test !Kezdi.operates_on_type(:log, String)
+        @test Kezdi.operates_on_type(:log, Missing)
+        @test !Kezdi.operates_on_type(:sum, Missing)
+        @test !Kezdi.operates_on_type(:sum, Missing)
+        @test !Kezdi.operates_on_type(:log, AbstractVector)
+
+        @test_throws Exception Kezdi.operates_on_type(4, Missing)
+
+        @test Kezdi.operates_on_missing(:log)
+        @test !Kezdi.operates_on_missing(:sum)
+        @test Kezdi.operates_on_vector(:mean)
+        @test !Kezdi.operates_on_vector(:log)
+    end
+
+    @testset "split_assignment" begin
+        @test Kezdi.isassignment(:(x = 2))
+        @test !Kezdi.isassignment(:(x == 2))
+        @test Kezdi.split_assignment(:(x = 2)) == (:x, 2)
+        @test Kezdi.split_assignment(:(x = 2 + 3)) == (:x, :(2 + 3))
+        @test Kezdi.split_assignment(:(x = f(y) + 1)) == (:x, :(f(y) + 1))
+    end
+
+    @testset "get_LHS" begin
+        @test Kezdi.get_LHS(:(x = 2)) == "x"
+        @test Kezdi.get_LHS(:(x = 2 + 3)) == "x"
+        @test Kezdi.get_LHS(:(x = f(y) + 1)) == "x"
+    end
+
+    @testset "Operators" begin
+        @test Kezdi.is_operator(:+)
+        @test !Kezdi.is_operator(:x)
+        @test !Kezdi.is_operator(:log)
+        @test Kezdi.is_operator(:&&)
+        @test Kezdi.is_operator(:<=)
+        @test Kezdi.is_dotted_operator(:.+)
+    end
+
+    @testset "Variable reference and function call" begin
+        @test Kezdi.is_variable_reference(:x)
+        @test !Kezdi.is_variable_reference(:(x.y))
+        @test !Kezdi.is_variable_reference(:(log(x)))
+        @test Kezdi.is_function_call(:(log(x)))
+        @test Kezdi.is_function_call(:(log.(x)))
+        @test Kezdi.is_function_call(:(log.(x, y)))
+        @test Kezdi.is_function_call(:(Main.log(x)))
+        @test !Kezdi.is_function_call(:x)
+    end
+
+    @testset "get_dot_parts" begin
+        @test Kezdi.get_dot_parts(:x) == [:x]
+        @test Kezdi.get_dot_parts(:(x.y)) == [:x, :y]
+        @test Kezdi.get_dot_parts(:(x.y.z)) == [:x, :y, :z]
     end
 end

@@ -6,6 +6,7 @@ function generate_command(command::Command; options=[], allowed=[])
     teardown = Expr[]
     process = (x -> x)
     tdfunction = gensym()
+    # this points to the DataFrame that the command will return to the user
     target_df = df2
 
     given_options = get_top_symbol.(command.options)
@@ -31,18 +32,26 @@ function generate_command(command::Command; options=[], allowed=[])
     push!(setup, :(local $df2 = copy(getdf())))
     variables_condition = (:ifable in options) ? vcat(extract_variable_references(command.condition)...) : Symbol[]
     variables_RHS = (:variables in options) ? vcat(extract_variable_references.(command.arguments)...) : Symbol[]
+    variables = vcat(variables_condition, variables_RHS)
     if :replace_variables in options
         process(x) = replace_variable_references(sdf, x)
     end
     if :vectorize in options
         process = vectorize_function_calls ∘ process
     end
-    if :_n in variables_condition
-        push!(setup, :(transform!($df2, eachindex => :_n)))
+    # where should special variables be created?
+    # when grouped by, then couting rows should be done on the grouped data
+    _n_goes_to = df2
+    if :by in given_options && (:_n in variables || :_N in variables)
+        by_cols = get_by(command)
+        _n_goes_to = :(groupby($df2, $by_cols))
+    end
+    if :_n in variables
+        push!(setup, :(transform!($_n_goes_to, eachindex => :_n)))
         push!(teardown, :(select!($df2, Not(:_n))))
     end
-    if :_N in variables_condition
-        push!(setup, :(transform!($df2, nrow => :_N)))
+    if :_N in variables
+        push!(setup, :(transform!($_n_goes_to, nrow => :_N)))
         push!(teardown, :(select!($df2, Not(:_N))))
     end
     if :ifable in options
@@ -59,14 +68,6 @@ function generate_command(command::Command; options=[], allowed=[])
         target_df = gdf
         by_cols = get_by(command)
         push!(setup, :(local $gdf = groupby($sdf, $by_cols)))
-    end
-    if :_n in variables_RHS
-        push!(setup, :(transform!($target_df, eachindex => :_n)))
-        push!(teardown, :(select!($target_df, Not(:_n))))
-    end
-    if :_N in variables_RHS
-        push!(setup, :(transform!($target_df, nrow => :_N)))
-        push!(teardown, :(select!($target_df, Not(:_N))))
     end
     push!(setup, quote
         function $tdfunction(x)
@@ -244,9 +245,10 @@ function vectorize_function_calls(expr::Any)
     end
 end
 
+get_dot_parts(ex::Symbol) = [ex]
 function get_dot_parts(ex::Expr)
     is_dot_reference(ex) || error("Expected a dot reference, got $ex")
-    parts = []
+    parts = Symbol[]
     while is_dot_reference(ex)
         push!(parts, ex.args[2].value)
         ex = ex.args[1]
@@ -274,30 +276,14 @@ isalphanumeric(c::AbstractChar) = isletter(c) || isdigit(c) || c == '_'
 isalphanumeric(str::AbstractString) = all(isalphanumeric, str)
 
 isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args) == 2
-function operates_on_vector(expr::Any) 
+operates_on_missing(expr::Any) = (expr isa Symbol && expr == :ismissing) || operates_on_type(expr, Missing)
+operates_on_vector(expr::Any) = operates_on_type(expr, Vector)
+
+function operates_on_type(expr::Any, T::Type)
     try
-        length(methodswith(Vector, eval(expr); supertypes=true)) > 0
-    catch e
-        if isa(e, UndefVarError)
-            return false
-        else
-            rethrow(e)
-        end
+        return length(methodswith(T, Main.eval(expr); supertypes=true)) > 0
+    catch ee
+        !isa(ee, UndefVarError) && rethrow(ee)
+        return false
     end
 end
-
-function operates_on_missing(expr::Any)
-    expr isa Symbol && expr == :ismissing && return true 
-    try
-        length(methodswith(Missing, eval(expr); supertypes=true)) > 0
-    catch e
-        if isa(e, UndefVarError)
-            return false
-        else
-            rethrow(e)
-        end
-    end
-end
-
-# only broadcast first argument. For example, [1, 2, 3] in [2, 3] should evaluate to [false, true, true]
-BFA(f::Function, xs, args...; kwargs...) = broadcast(x -> f(x, args...; kwargs...), xs)

@@ -46,14 +46,23 @@
         @test all(df2.y .=== [-1, -2, -3, missing])
     end
 
+    @testset "_n and _N with @if" begin
+        df = DataFrame(x=1:4)
+        df2 = @with df @generate z = 9 @if _n >= 2
+        @test all(df2.z .=== [missing, 9, 9, 9])
+        df2 = @with df @generate z = _n
+        @test df2.z == [1, 2, 3, 4]
+        df2 = @with df @generate z = _n @if _n >= 2
+        @test all(df2.z .=== [missing, 2, 3, 4])
+    end
+
     @testset "Lists-valued variables" begin
         df = DataFrame(x=[[1, 2], [3, 4], [5, 6], [7, 8]])
         @test (@with df @generate x1 = getindex(x, 1)).x1 == [1, 3, 5, 7]
         @test (@with df @generate x2 = getindex(x, 2)).x2 == [2, 4, 6, 8]
-    end
-
-    @testset "Error handling" begin
-        @test_throws Exception @with df @generate x = 1
+        df = DataFrame(text = ["a,b", "c,d,e", "f"])
+        df2 = @with df @generate n_terms = length.(split.(text, ","))
+        @test df2.n_terms == [2, 3, 1]
     end
 end
 
@@ -85,6 +94,19 @@ end
         df2 = @with df @replace x = 4.0
         df3 = @with df @replace x = 4
         @test eltype(df.x) == eltype(df3.x)
+    end
+
+    @testset "Mixed types" begin
+        df = DataFrame(x=[1, 2, 3])
+        @test eltype((@with df @replace x = 1.1 @if _n == 1).x) <: AbstractFloat
+        @test eltype((@with df @replace x = missing @if _n == 1).x) == Union{Missing, Int}
+        @test eltype((@with df @replace x = "a" @if _n == 1).x) == Any
+        df = DataFrame(x=[missing, 2, 3])
+        @test eltype((@with df @replace x = 1 @if _n == 1).x) == Union{Int, Missing}
+        df = DataFrame(x=[1.1, 2, 3])
+        @test eltype((@with df @replace x = 1 @if _n == 1).x) <: AbstractFloat
+        df = DataFrame(x=[1, 2, missing])
+        @test eltype((@with df @replace x = 1.1 @if _n == 1).x) <: Union{T, Missing} where T <: AbstractFloat
     end
 
     @testset "Error handling" begin
@@ -220,6 +242,18 @@ end
         df2 = @with df @egen y = maximum(x), by(group, s)
         @test df2.y == [3, 2, 3, 4, 6, 6]
     end
+
+    @testset "_n and _N with @if" begin
+        df = DataFrame(x=1:6, g=[:a, :a, :a, :a, :b, :b])
+        df2 = @with df @egen z = 9 @if _n >= 2, by(g)
+        @test all(df2.z .=== [missing, 9, 9, 9, missing, 9])
+        df2 = @with df @egen z = _n, by(g)
+        @test df2.z == [1, 2, 3, 4, 1, 2]
+        df2 = @with df @egen z = _N, by(g)
+        @test df2.z == [4, 4, 4, 4, 2, 2]
+        df2 = @with df @egen z = _n @if _n >= 2, by(g)
+        @test all(df2.z .=== [missing, 2, 3, 4, missing, 2])
+    end
 end
 
 @testset "Keep if" begin
@@ -312,6 +346,13 @@ end
     @testset "Window functions operate on subset" begin
         df2 = @with df @generate y = sum(x) @if x < 3
         @test all(df2.y .=== [3, 3, missing, missing])
+    end
+
+    @testset "Errors" begin
+        @test_throws Exception Main.eval(:(@with DataFrame(a=1:10) @generate y))
+        @test_throws Exception Main.eval(:(@with DataFrame(a=1:10) @generate y x))
+        @test_throws Exception Main.eval(:(@with DataFrame(a=1:10) @generate y = x z = w))
+        @test_throws Exception Main.eval(:(@with DataFrame(a=1:10) @generate y, by(z)))
     end
 end
 

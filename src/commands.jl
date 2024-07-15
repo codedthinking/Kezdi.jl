@@ -44,10 +44,11 @@ function rewrite(::Val{:replace}, command::Command)
         else
             $setup
             eltype_RHS = $RHS isa AbstractVector ? eltype($RHS) : typeof($RHS)
-            if eltype_RHS != eltype($target_df[!, $target_column])
-                local $third_vector = Vector{eltype_RHS}(undef, nrow($local_copy))
+            eltype_LHS = eltype($local_copy[.!$bitmask, $target_column])
+            if eltype_RHS != eltype_LHS
+                local $third_vector = Vector{promote_type(eltype_LHS, eltype_RHS)}(undef, nrow($local_copy))
                 $third_vector[$bitmask] .= $RHS
-                $third_vector[.!$bitmask] .= $local_copy[!, $target_column][.!$bitmask]
+                $third_vector[.!$bitmask] .= $local_copy[.!$bitmask, $target_column]
                 $local_copy[!, $target_column] = $third_vector
             else
                 $target_df[!, $target_column] .= $RHS
