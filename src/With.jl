@@ -23,7 +23,7 @@ function call_with_context(e::Expr, firstarg; assignment = false)
         righthandside = call_with_context(args[2], firstarg; assignment = true)
         return :($variable = $righthandside)
     end
-    :(Kezdi.ScopedValues.@with Kezdi.runtime_context => Kezdi.RuntimeContext($firstarg) $e)
+    :(Kezdi.ScopedValues.@with Kezdi.compile_context => $(Kezdi.get_compile_context()) Kezdi.runtime_context => Kezdi.RuntimeContext($firstarg) $e)
 end
 
 function rewrite(expr, replacement)

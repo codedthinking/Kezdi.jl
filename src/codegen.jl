@@ -11,6 +11,9 @@ function generate_command(command::Command; options=[], allowed=[])
     target_df = df2
 
     given_options = get_top_symbol.(command.options)
+    current_context = Kezdi.get_compile_context()
+    @warn current_context
+    current_context.with_block && @warn "I am in a with block, line number is $(current_context.line_number)"
 
     # check for syntax
     if !(:ifable in options) && !isnothing(command.condition)
