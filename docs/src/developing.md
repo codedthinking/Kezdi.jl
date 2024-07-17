@@ -45,39 +45,34 @@ This `GeneratedCommand` is then consumed by the `rewrite` function which impleme
 
 Removing `LineNumberNode`s for brevity, the final Julia code will look like this:
 ```julia
-if !("distance" in names(getdf()))
-    ArgumentError("Column \"distance\" does not exist in $(names(getdf()))") |> throw
-else
-    begin
-        getdf() isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a global DataFrame set by setdf()")
-        local var"##361" = copy(getdf())
-        local var"##362" = view(var"##361", falses(nrow(var"##361")) .| Missings.replace((var"##361").distance .< 5, false), :)
+!("distance" in names(getdf())) && ArgumentError("Column \"distance\" does not exist in $(names(getdf()))") |> throw
+begin
+    getdf() isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a global DataFrame set by setdf()")
+    local var"##386" = copy(getdf())
+    local var"##387" = view(var"##386", falses(nrow(var"##386")) .| Missings.replace((var"##386").distance .< 5, false), :)
+    function var"##389"(x)
         begin
-            function var"##364"(x)
-                begin
-                end
-                x
-            end
         end
+        x
     end
-    eltype_RHS = if 5 isa AbstractVector
-            eltype(5)
-        else
-            typeof(5)
-        end
-    eltype_LHS = eltype(var"##361"[.!(falses(nrow(var"##361")) .| Missings.replace((var"##361").distance .< 5, false)), "distance"])
-    if eltype_RHS != eltype_LHS
-        local var"##365" = Vector{promote_type(eltype_LHS, eltype_RHS)}(undef, nrow(var"##361"))
-        var"##365"[falses(nrow(var"##361")) .| Missings.replace((var"##361").distance .< 5, false)] .= 5
-        var"##365"[.!(falses(nrow(var"##361")) .| Missings.replace((var"##361").distance .< 5, false))] .= var"##361"[.!(falses(nrow(var"##361")) .| Missings.replace((var"##361").distance .< 5, false)), "distance"]
-        var"##361"[!, "distance"] = var"##365"
-    else
-        var"##362"[!, "distance"] .= 5
-    end
-    (var"##361" |> var"##364") |> setdf
 end
+eltype_RHS = if 5 isa AbstractVector
+        eltype(5)
+    else
+        typeof(5)
+    end
+eltype_LHS = eltype(var"##386"[.!(falses(nrow(var"##386")) .| Missings.replace((var"##386").distance .< 5, false)), "distance"])
+if eltype_RHS != eltype_LHS
+    local var"##390" = Vector{promote_type(eltype_LHS, eltype_RHS)}(undef, nrow(var"##386"))
+    var"##390"[falses(nrow(var"##386")) .| Missings.replace((var"##386").distance .< 5, false)] .= 5
+    var"##390"[.!(falses(nrow(var"##386")) .| Missings.replace((var"##386").distance .< 5, false))] .= var"##386"[.!(falses(nrow(var"##386")) .| Missings.replace((var"##386").distance .< 5, false)), "distance"]
+    var"##386"[!, "distance"] = var"##390"
+else
+    var"##387"[!, "distance"] .= 5
+end
+(var"##386" |> var"##389") |> setdf
 ```
 
-Note that macro hygene dictates the use of temporary variables like `var"##361"` and `var"##362"` to avoid name clashes with the user's code. This is a little hard to debug as a developer, but the generated code will typically not be seen by the end user.
+Note that macro hygene dictates the use of temporary variables like `var"##386"` and `var"##387"` to avoid name clashes with the user's code. This is a little hard to debug as a developer, but the generated code will typically not be seen by the end user.
 
 ## Style guide

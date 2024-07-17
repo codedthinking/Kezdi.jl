@@ -5,12 +5,9 @@ function rewrite(::Val{:rename}, command::Command)
     gc = generate_command(command; options=[:variables], allowed=[])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
-        if (length($arguments) != 2)
-            ArgumentError("Syntax is @rename oldname newname") |> throw
-        else
-            $setup
-            rename!($local_copy, $arguments[1] => $arguments[2]) |> $teardown |> setdf
-        end
+        (length($arguments) != 2) && ArgumentError("Syntax is @rename oldname newname") |> throw
+        $setup
+        rename!($local_copy, $arguments[1] => $arguments[2]) |> $teardown |> setdf
     end |> esc
 end
 
@@ -20,14 +17,11 @@ function rewrite(::Val{:generate}, command::Command)
     target_column = get_LHS(command.arguments[1])
     LHS, RHS = split_assignment(arguments[1])
     quote
-        if ($target_column in names(getdf()))
-            ArgumentError("Column \"$($target_column)\" already exists in $(names(getdf()))") |> throw
-        else
-            $setup
-            $local_copy[!, $target_column] .= missing
-            $target_df[!, $target_column] .= $RHS
-            $local_copy |> $teardown |> setdf
-        end
+        ($target_column in names(getdf())) && ArgumentError("Column \"$($target_column)\" already exists in $(names(getdf()))") |> throw
+        $setup
+        $local_copy[!, $target_column] .= missing
+        $target_df[!, $target_column] .= $RHS
+        $local_copy |> $teardown |> setdf
     end |> esc
 end
 
@@ -39,22 +33,19 @@ function rewrite(::Val{:replace}, command::Command)
     third_vector = gensym()
     bitmask = build_bitmask(local_copy, vectorize_function_calls(replace_column_references(local_copy, command.condition)))
     quote
-        if !($target_column in names(getdf()))
-            ArgumentError("Column \"$($target_column)\" does not exist in $(names(getdf()))") |> throw
+        !($target_column in names(getdf())) && ArgumentError("Column \"$($target_column)\" does not exist in $(names(getdf()))") |> throw
+        $setup
+        eltype_RHS = $RHS isa AbstractVector ? eltype($RHS) : typeof($RHS)
+        eltype_LHS = eltype($local_copy[.!$bitmask, $target_column])
+        if eltype_RHS != eltype_LHS
+            local $third_vector = Vector{promote_type(eltype_LHS, eltype_RHS)}(undef, nrow($local_copy))
+            $third_vector[$bitmask] .= $RHS
+            $third_vector[.!$bitmask] .= $local_copy[.!$bitmask, $target_column]
+            $local_copy[!, $target_column] = $third_vector
         else
-            $setup
-            eltype_RHS = $RHS isa AbstractVector ? eltype($RHS) : typeof($RHS)
-            eltype_LHS = eltype($local_copy[.!$bitmask, $target_column])
-            if eltype_RHS != eltype_LHS
-                local $third_vector = Vector{promote_type(eltype_LHS, eltype_RHS)}(undef, nrow($local_copy))
-                $third_vector[$bitmask] .= $RHS
-                $third_vector[.!$bitmask] .= $local_copy[.!$bitmask, $target_column]
-                $local_copy[!, $target_column] = $third_vector
-            else
-                $target_df[!, $target_column] .= $RHS
-            end
-            $local_copy |> $teardown |> setdf
+            $target_df[!, $target_column] .= $RHS
         end
+        $local_copy |> $teardown |> setdf
     end |> esc
 end
 
@@ -99,13 +90,10 @@ function rewrite(::Val{:egen}, command::Command)
     target_column = get_LHS(command.arguments[1])
     transform_expression = Expr(:call, :transform!, target_df, build_assignment_formula.(command.arguments)...)
     quote
-        if ($target_column in names(getdf()))
-            ArgumentError("Column \"$($target_column)\" already exists in $(names(getdf()))") |> throw
-        else
-            $setup
-            $transform_expression
-            $local_copy |> $teardown |> setdf
-        end
+        ($target_column in names(getdf())) && ArgumentError("Column \"$($target_column)\" already exists in $(names(getdf()))") |> throw
+        $setup
+        $transform_expression
+        $local_copy |> $teardown |> setdf
     end |> esc
 end
 
@@ -129,7 +117,7 @@ function rewrite(::Val{:order}, command::Command)
     before = :before in get_top_symbol.(options)
     alphabetical = :alphabetical in get_top_symbol.(options)
 
-    if before && after
+    if before && after &&
         ArgumentError("Cannot use both `before` and `after` options in @order") |> throw
     end
     if last && (before || after)

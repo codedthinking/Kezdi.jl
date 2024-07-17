@@ -69,12 +69,10 @@ function generate_command(command::Command; options=[], allowed=[])
         by_cols = get_by(command)
         push!(setup, :(local $gdf = groupby($sdf, $by_cols)))
     end
-    push!(setup, quote
-        function $tdfunction(x)
+    push!(setup, :(function $tdfunction(x)
             $(Expr(:block, teardown...))
             x
-        end
-    end)
+        end))
     GeneratedCommand(df2, target_df, Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
 end
 
