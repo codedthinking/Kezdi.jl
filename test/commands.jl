@@ -630,6 +630,18 @@ end
     end
 end
 
+@testset "List" begin
+    df = DataFrame(x=1:10, y=11:20)
+    @test (@with df @list).x == 1:10
+    @test (@with df @list).y == 11:20
+    @test (@with df @list x) == DataFrame(x=1:10)
+    @test (@with df @list x y) == DataFrame(x=1:10, y=11:20)
+    @test (@with df @list @if x < 5).x == 1:4
+    @test (@with df @list @if x < 5).y == 11:14
+    @test (@with df @list y @if x < 5).y == 11:14
+    @test_throws Exception (@with df @list x).y
+end
+
 @testset "Sort" begin
     df = DataFrame(x=[1, 2, 3, 2, 1, 3], y= [0, 2, 0, 1, 1, 1])
     @testset "Known values" begin

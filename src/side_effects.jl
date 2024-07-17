@@ -56,11 +56,11 @@ function rewrite(::Val{:count}, command::Command)
 end
 
 function rewrite(::Val{:list}, command::Command)
-    gc = generate_command(command; options=[:ifable, :nofunction], allowed=[])
+    gc = generate_command(command; options=[:variables, :ifable, :nofunction])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
         $setup
-        $target_df |> Kezdi.display_and_return |> $teardown
+        $target_df[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> Kezdi.display_and_return |> $teardown
     end |> esc
 end
 

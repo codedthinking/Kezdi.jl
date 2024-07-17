@@ -118,9 +118,9 @@ macro order(exprs...)
 end
 
 """
-    @list [@if condition]
+    @list [y1 y2...] [@if condition]
 
-Display the entire data frame or the rows for which the condition is true.
+Display the entire data frame or the rows for which the condition is true. If variable names are provided, only the variables in the list are displayed.
 """
 macro list(exprs...)
     :list |> parse(exprs) |> rewrite
