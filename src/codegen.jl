@@ -149,9 +149,8 @@ replace_column_references(expr::Symbol) = iscolreference(expr) ? QuoteNode(expr)
 function replace_column_references(expr::Expr)
     # Main.x is a variable reference, not a column reference
     isvarreference(expr) && return expr
-    isfunctioncall(expr) ? 
-        Expr(expr.head, expr.args[1], replace_column_references.(expr.args[2:end])...) : 
-        Expr(expr.head, replace_column_references.(expr.args)...)
+    isfunctioncall(expr) && !is_operator(expr.head) && return Expr(expr.head, expr.args[1], replace_column_references.(expr.args[2:end])...)  
+    Expr(expr.head, replace_column_references.(expr.args)...)
 end
 
 replace_column_references(df::Any, expr::Any) = expr
@@ -159,34 +158,39 @@ replace_column_references(df::Any, expr::Symbol) = iscolreference(expr) ? Expr(:
 function replace_column_references(df::Any, expr::Expr)
     # Main.x is a variable reference, not a column reference
     isvarreference(expr) && return expr
-    isfunctioncall(expr) ? 
-        Expr(expr.head, expr.args[1], [replace_column_references(df, x) for x in expr.args[2:end]]...) :
-        Expr(expr.head, [replace_column_references(df, x) for x in expr.args]...)
+    isfunctioncall(expr) && !is_operator(expr.head) && return Expr(expr.head, expr.args[1], [replace_column_references(df, x) for x in expr.args[2:end]]...)
+    Expr(expr.head, [replace_column_references(df, x) for x in expr.args]...)
 end
 
 tovectorize(::Any) = false
 tovectorize(expr::Symbol) = Base.isoperator(expr) && !is_dotted_operator(expr)
 function tovectorize(expr::Expr)
     isfunctioncall(expr) || return false
+    fname = expr.args[1]
     expr.head == Symbol(".") && return false
     is_dotted_operator(expr.head) && return false
-    is_operator(expr.head) && return true
-    fname = expr.args[1]
+    is_dotted_operator(fname) && return false
     fname in DO_NOT_VECTORIZE && return false
     fname == :~ && return false
+    is_operator(expr.head) && return true
+    is_operator(fname) && return true
     fname in ALWAYS_VECTORIZE && return true
-    operates_on_vector(fname) && return true
+    operates_on_vector(fname) && return false
     return true
 end
 
 vectorize_function_calls(expr::Any) = expr
 function vectorize_function_calls(expr::Expr)
     isfunctioncall(expr) || return Expr(expr.head, vectorize_function_calls.(expr.args)...)
-    to_vectorize = tovectorize(expr)
     fname = expr.args[1]
-    to_vectorize || return Expr(expr.head, fname, [Expr(:call, :keep_only_values, vectorize_function_calls(arg)) for arg in expr.args[2:end]]...)
-    is_operator(expr.head) && !is_dotted_operator(expr.head) && expr.head in SYNTACTIC_OPERATORS && return Expr(Symbol("." * String(expr.head)), vectorize_function_calls.(expr.args)...)
-    return operates_on_missing(fname) ? 
+    # x && y is not a function call, becomes x .&& y
+    is_operator(expr.head) && tovectorize(expr) && expr.head in SYNTACTIC_OPERATORS && 
+        return Expr(Symbol("." * String(expr.head)), vectorize_function_calls.(expr.args)...) 
+    # x + y is not a function call, becomes x .+ y
+    is_operator(fname) && tovectorize(expr) &&
+        return Expr(expr.head, Symbol("." * String(fname)), vectorize_function_calls.(expr.args[2:end])...)
+    # f(x) becomes f.(x) or passmissing(f).(x)
+    tovectorize(expr) && return operates_on_missing(fname) ? 
         Expr(Symbol("."), fname,
             Expr(:tuple,   
             vectorize_function_calls.(expr.args[2:end])...)
@@ -195,6 +199,12 @@ function vectorize_function_calls(expr::Expr)
             Expr(:tuple,   
             vectorize_function_calls.(expr.args[2:end])...)
         )
+    # ~f(x) becomes f(x), not vectorized
+    fname == :~ && return Expr(expr.args[2].head, expr.args[2].args[1], vectorize_function_calls.(expr.args[2].args[2:end])...)
+    # this is already vectorized, do not touch
+    expr.head == Symbol(".") &&     return Expr(expr.head, vectorize_function_calls.(expr.args)...)
+    # remaining function calls are not vectorized
+    return Expr(expr.head, fname, [Expr(:call, :keep_only_values, vectorize_function_calls(arg)) for arg in expr.args[2:end]]...)
 end
 
 get_dot_parts(ex::Symbol) = [ex]
@@ -210,9 +220,9 @@ function get_dot_parts(ex::Expr)
 end
 
 is_operator(::Any) = false
-is_operator(x::Symbol) = Base.isoperator(x)
+is_operator(x::Symbol) = Base.isoperator(x) && x != :.
 is_dotted_operator(::Any) = false
-is_dotted_operator(x::Symbol) = Base.isoperator(x) && String(x)[1] == '.'
+is_dotted_operator(x::Symbol) = is_operator(x) && String(x)[1] == '.'
 
 is_dot_reference(::Any) = false
 is_dot_reference(e::Expr) = Base.isexpr(e, :., 2) &&

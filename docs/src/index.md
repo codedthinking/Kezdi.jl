@@ -422,10 +422,6 @@ rowcount
 ```
 
 ```@docs
-DNV
-```
-
-```@docs
 keep_only_values
 ```
 

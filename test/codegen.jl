@@ -34,7 +34,6 @@ end
     end
 
     @testset "Explicit DNV request" begin
-        @test_expr vectorize_function_calls(:(~x)) == :(x)
         @test_expr vectorize_function_calls(:(~(x + y))) == :(x + y)
         @test_expr vectorize_function_calls(:(~log(x))) == :(log(x))
         @test_expr vectorize_function_calls(:(~log(x) + 1)) == :(log(x) .+ 1)
@@ -57,9 +56,9 @@ end
 
     @testset "Functions in other modules with DNV" begin
         using .MyModule
-        @test vectorize_function_calls(:(DNV(MyModule.myfunc(x)))) == :(MyModule.myfunc(x))
-        @test vectorize_function_calls(:(DNV(MyModule.myaggreg(x)))) == :(MyModule.myaggreg(x))
-        @test vectorize_function_calls(:(DNV(MyModule.mymiss(x)))) == :(MyModule.mymiss(x))
+        @test vectorize_function_calls(:(~(MyModule.myfunc(x)))) == :(MyModule.myfunc(x))
+        @test vectorize_function_calls(:(~(MyModule.myaggreg(x)))) == :(MyModule.myaggreg(x))
+        @test vectorize_function_calls(:(~(MyModule.mymiss(x)))) == :(MyModule.mymiss(x))
     end
 end
 
