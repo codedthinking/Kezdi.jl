@@ -87,19 +87,16 @@ end
 The function can operate on individual elements,
 ```julia
 get_make(text) = split(text, " ")[1]
-@generate Make = Main.get_make(Model)
+@generate Make = get_make(Model)
 ```
 or on the entire column:
 ```julia
-function geometric_mean(x::AbstractVector)
+function geometric_mean(x::Vector)
     n = length(x)
     return exp(sum(log.(x)) / n)
 end
-@collapse geom_NPG = Main.geometric_mean(MPG), by(Cylinders)
+@collapse geom_NPG = geometric_mean(MPG), by(Cylinders)
 ```
-
-!!! tip "Note: `Main.` prefix"
-    If you define a function in your own code, you need to prefix the function name with `Main.` to use it in other commands. To make use of [Automatic vectorization](@ref), make sure to give the function a vector argument type.
 
 ## Commands
 [See the full documentation](https://codedthinking.github.io/Kezdi.jl/dev/).
@@ -146,10 +143,9 @@ All functions are automatically vectorized, so there is no need to use the `.` o
 @generate logHP = log(Horsepower)
 ```
 
-If you want to turn off automatic vectorization, use the convenience function [`DNV`](@ref) ("do not vectorize").
-
+If you want to turn off automatic vectorization, use the `~` notation,
 ```julia
-@generate logHP = DNV(log(Horsepower))
+@generate logHP = ~log(Horsepower)
 ```
 
 The exception is when the function operates on Vectors, in which case Kezdi.jl understands you want to apply the function to the entire column.

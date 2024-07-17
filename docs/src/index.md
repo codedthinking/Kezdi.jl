@@ -9,7 +9,7 @@ It imports and reexports [CSV](https://csv.juliadata.org/stable/), [DataFrames](
 
 ## Getting started
 !!! warning "Kezdi.jl is in beta"
-    `Kezdi.jl` is currently in beta. We have more than 300 unit tests and a large code coverage. [![Coverage](https://codecov.io/gh/codedthinking/Kezdi.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/codedthinking/Kezdi.jl) The package, however, is not guaranteed to be bug-free. If you encounter any issues, please report them as a [GitHub issue](https://github.com/codedthinking/Kezdi.jl/issues/new).
+    `Kezdi.jl` is currently in beta. We have more than 380 unit tests and a large code coverage. [![Coverage](https://codecov.io/gh/codedthinking/Kezdi.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/codedthinking/Kezdi.jl) The package, however, is not guaranteed to be bug-free. If you encounter any issues, please report them as a [GitHub issue](https://github.com/codedthinking/Kezdi.jl/issues/new).
 
     If you would like to receive updates on the package, please star the repository on GitHub and sign up for [email notifications here](https://relentless-producer-1210.ck.page/62d7ebb237).
 
@@ -24,13 +24,11 @@ using Pkg; Pkg.add("Kezdi")
 Every Kezdi.jl command is a macro that begins with `@`. These commands operate on a global `DataFrame` that is set using the `setdf` function. Alternatively, commands can be executed within a `@with` block that sets the `DataFrame` for the duration of the block.
 
 ### Example
-```@setup mtcars
+```@repl mtcars
 using Kezdi
 using RDatasets
 
 df = dataset("datasets", "mtcars")
-```
-```@repl mtcars
 setdf(df)
 
 @rename HP Horsepower
@@ -251,10 +249,9 @@ All functions are automatically vectorized, so there is no need to use the `.` o
 @generate logHP = log(Horsepower)
 ```
 
-If you want to turn off automatic vectorization, use the convenience function [`DNV`](@ref) ("do not vectorize").
-
+If you want to turn off automatic vectorization, use the `~` symbol:
 ```julia
-@generate logHP = DNV(log(Horsepower))
+@generate logHP = ~log(Horsepower)
 ```
 
 The exception is when the function operates on Vectors, in which case Kezdi.jl understands you want to apply the function to the entire column.
