@@ -34,10 +34,10 @@ end
     end
 
     @testset "Explicit DNV request" begin
-        @test_expr vectorize_function_calls(:(DNV(x))) == :(x)
-        @test_expr vectorize_function_calls(:(DNV(x + y))) == :(x + y)
-        @test_expr vectorize_function_calls(:(DNV(log(x)))) == :(log(x))
-        @test_expr vectorize_function_calls(:(DNV(log(x) + 1))) == :(log(x) + 1)
+        @test_expr vectorize_function_calls(:(~x)) == :(x)
+        @test_expr vectorize_function_calls(:(~(x + y))) == :(x + y)
+        @test_expr vectorize_function_calls(:(~log(x))) == :(log(x))
+        @test_expr vectorize_function_calls(:(~log(x) + 1)) == :(log(x) .+ 1)
     end
 
     @testset "Unknown functions are vectorized" begin
