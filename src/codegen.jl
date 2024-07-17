@@ -21,7 +21,7 @@ function generate_command(command::Command; options=[], allowed=[])
     if (:assignment in options) && !all(isassignment.(command.arguments))
         ArgumentError("@$(command.command) requires an assignment like y = x + 1") |> throw
     end
-    if (:nofunction in options) && length(vcat(extract_function_references.(command.arguments)...)) > 0
+    if (:nofunction in options) && any(isfunctioncall.(command.arguments))
         ArgumentError("Function calls are not allowed for this command: @$(command.command)") |> throw
     end
     for opt in given_options
@@ -134,12 +134,6 @@ function split_assignment(expr::Any)
     (expr.args[1], expr.args[2])
 end
 
-extract_function_references(::Any) = Symbol[]
-extract_function_references(expr::Expr) = 
-    isfunctioncall(expr) ? 
-        vcat([expr.args[1]], extract_function_references.(expr.args[2:end])...) : 
-        vcat(extract_function_references.(expr.args)...)
-
 extract_column_references(::Any) = Symbol[]
 extract_column_references(expr::Symbol) = iscolreference(expr) ? [expr] : Symbol[]
 function extract_column_references(expr::Expr)
@@ -170,46 +164,37 @@ function replace_column_references(df::Any, expr::Expr)
         Expr(expr.head, [replace_column_references(df, x) for x in expr.args]...)
 end
 
+tovectorize(::Any) = false
+tovectorize(expr::Symbol) = Base.isoperator(expr) && !is_dotted_operator(expr)
+function tovectorize(expr::Expr)
+    isfunctioncall(expr) || return false
+    expr.head == Symbol(".") && return false
+    is_dotted_operator(expr.head) && return false
+    is_operator(expr.head) && return true
+    fname = expr.args[1]
+    fname in DO_NOT_VECTORIZE && return false
+    fname == :~ && return false
+    fname in ALWAYS_VECTORIZE && return true
+    operates_on_vector(fname) && return true
+    return true
+end
+
 vectorize_function_calls(expr::Any) = expr
 function vectorize_function_calls(expr::Expr)
-    if isfunctioncall(expr)
-        vectorized = expr.head == Symbol(".")
-        fname = expr.args[1]
-        if vectorized
-            return operates_on_missing(fname) ? 
-                Expr(expr.head, fname, vectorize_function_calls.(expr.args[2:end])...) : 
-                Expr(expr.head, :(passmissing($fname)), vectorize_function_calls.(expr.args[2:end])...) 
-        elseif fname == :DNV
-            return expr.args[2]
-        elseif fname in DO_NOT_VECTORIZE || (!(fname in ALWAYS_VECTORIZE) && operates_on_vector(fname))
-            skipmissing_each_arg = [Expr(:call, :keep_only_values, vectorize_function_calls(arg)) for arg in expr.args[2:end]]
-            return Expr(expr.head, fname, skipmissing_each_arg...)
-        else
-            return operates_on_missing(fname) ? 
-                Expr(Symbol("."), fname,
-                    Expr(:tuple,   
-                    vectorize_function_calls.(expr.args[2:end])...)
-                ) :
-                Expr(Symbol("."), :(passmissing($fname)),
-                    Expr(:tuple,   
-                    vectorize_function_calls.(expr.args[2:end])...)
-                )
-        end
-    elseif is_operator(expr.head) && !is_dotted_operator(expr.head) && expr.head in SYNTACTIC_OPERATORS
-        # special handling of syntactic operators like &&, ||, etc. 
-        # these are not called as a function
-        op = expr.head
-        dot_op = Symbol("." * String(op))
-        return Expr(dot_op,    
-                vectorize_function_calls.(expr.args)...)
-    elseif is_operator(expr.args[1]) && !is_dotted_operator(expr.args[1])
-        op = expr.args[1]
-        dot_op = Symbol("." * String(op))
-        return Expr(expr.head, 
-                dot_op,    
-                vectorize_function_calls.(expr.args[2:end])...)
-    end
-    return Expr(expr.head, vectorize_function_calls.(expr.args)...)
+    isfunctioncall(expr) || return Expr(expr.head, vectorize_function_calls.(expr.args)...)
+    to_vectorize = tovectorize(expr)
+    fname = expr.args[1]
+    to_vectorize || return Expr(expr.head, fname, [Expr(:call, :keep_only_values, vectorize_function_calls(arg)) for arg in expr.args[2:end]]...)
+    is_operator(expr.head) && !is_dotted_operator(expr.head) && expr.head in SYNTACTIC_OPERATORS && return Expr(Symbol("." * String(expr.head)), vectorize_function_calls.(expr.args)...)
+    return operates_on_missing(fname) ? 
+        Expr(Symbol("."), fname,
+            Expr(:tuple,   
+            vectorize_function_calls.(expr.args[2:end])...)
+        ) :
+        Expr(Symbol("."), :(passmissing($fname)),
+            Expr(:tuple,   
+            vectorize_function_calls.(expr.args[2:end])...)
+        )
 end
 
 get_dot_parts(ex::Symbol) = [ex]
@@ -269,4 +254,4 @@ isfunctioncall(ex::Expr) =
      isfunctioncall(ex.args[end])) ||
     Meta.isexpr(ex, :., 3)  # Vectorized function call (broadcasting)
 =#
-isfunctioncall(x::Expr) = ((x.head == :call && !is_operator(x.args[1]))  || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple)) 
+isfunctioncall(x::Expr) = x.head == :call || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple) || x.head in SYNTACTIC_OPERATORS
