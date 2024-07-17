@@ -102,14 +102,14 @@ end
     end
 
     @testset "Variable reference and function call" begin
-        @test Kezdi.is_variable_reference(:x)
-        @test !Kezdi.is_variable_reference(:(x.y))
-        @test !Kezdi.is_variable_reference(:(log(x)))
-        @test Kezdi.is_function_call(:(log(x)))
-        @test Kezdi.is_function_call(:(log.(x)))
-        @test Kezdi.is_function_call(:(log.(x, y)))
-        @test Kezdi.is_function_call(:(Main.log(x)))
-        @test !Kezdi.is_function_call(:x)
+        @test Kezdi.iscolreference(:x)
+        @test !Kezdi.iscolreference(:(x.y))
+        @test !Kezdi.iscolreference(:(log(x)))
+        @test Kezdi.isfunctioncall(:(log(x)))
+        @test Kezdi.isfunctioncall(:(log.(x)))
+        @test Kezdi.isfunctioncall(:(log.(x, y)))
+        @test Kezdi.isfunctioncall(:(Main.log(x)))
+        @test !Kezdi.isfunctioncall(:x)
     end
 
     @testset "get_dot_parts" begin
