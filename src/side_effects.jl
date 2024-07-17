@@ -56,7 +56,7 @@ function rewrite(::Val{:count}, command::Command)
 end
 
 function rewrite(::Val{:list}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
+    gc = generate_command(command; options=[:ifable, :nofunction], allowed=[])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
         $setup
