@@ -73,7 +73,7 @@ function transition(state::Int64, arg::Node)::Int64
         @debug "Stepping into options at $arg"
     end
     ## from condition to option
-    if state == 2 && arg.type == :tuple && !in(arg.content, OPERATORS) 
+    if state == 2 && arg.type == :tuple && !is_operator(arg.content) 
         state = 3
         @debug "Stepping out of condition at $arg"
         @debug "Stepping into options at $arg"

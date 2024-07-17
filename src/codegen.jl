@@ -260,8 +260,10 @@ end
 is_variable_reference(x::Any) = x isa Symbol && !in(x, RESERVED_WORDS) && !in(x, TYPES) && isalphanumeric(string(x))
 is_function_call(x::Any) = x isa Expr && ((x.head == :call && !is_operator(x.args[1]))  || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple)) 
 
-is_operator(x::Any) = x isa Symbol && (in(x, OPERATORS) || is_dotted_operator(x))
-is_dotted_operator(x::Any) = x isa Symbol && String(x)[1] == '.' && Symbol(String(x)[2:end]) in OPERATORS
+is_operator(::Any) = false
+is_operator(x::Symbol) = Base.isoperator(x)
+is_dotted_operator(::Any) = false
+is_dotted_operator(x::Symbol) = Base.isoperator(x) && String(x)[1] == '.'
 
 is_dot_reference(x) = false
 function is_dot_reference(e::Expr)
