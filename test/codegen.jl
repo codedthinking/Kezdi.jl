@@ -6,8 +6,8 @@ mymiss(x) = 3x
 end
 
 @testset "Replace variable references" begin
-    @test_expr replace_variable_references(:(x + y + f(z) - g.(x))) == :(:x + :y + f(:z) - g.(:x))
-    @test_expr replace_variable_references(:(f(x, <=))) == :(f(:x, <=))
+    @test_expr replace_column_references(:(x + y + f(z) - g.(x))) == :(:x + :y + f(:z) - g.(:x))
+    @test_expr replace_column_references(:(f(x, <=))) == :(f(:x, <=))
 end
 
 @testset "Bitmask" begin

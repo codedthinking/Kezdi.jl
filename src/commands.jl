@@ -37,7 +37,7 @@ function rewrite(::Val{:replace}, command::Command)
     target_column = get_LHS(command.arguments[1])
     LHS, RHS = split_assignment(arguments[1])
     third_vector = gensym()
-    bitmask = build_bitmask(local_copy, vectorize_function_calls(replace_variable_references(local_copy, command.condition)))
+    bitmask = build_bitmask(local_copy, vectorize_function_calls(replace_column_references(local_copy, command.condition)))
     quote
         if !($target_column in names(getdf()))
             ArgumentError("Column \"$($target_column)\" does not exist in $(names(getdf()))") |> throw

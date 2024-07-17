@@ -25,7 +25,7 @@ function rewrite(::Val{:regress}, command::Command)
         vcov = :(Vcov.robust())
     elseif :cluster in get_top_symbol.(options)
         vars = get_option(command, :cluster)
-        vars = replace_variable_references.(vars)
+        vars = replace_column_references.(vars)
         vcov = :(Vcov.cluster($(vars...)))
     else
         vcov = :(Vcov.simple())

@@ -34,7 +34,7 @@ function generate_command(command::Command; options=[], allowed=[])
     variables_RHS = (:variables in options) ? vcat(extract_variable_references.(command.arguments)...) : Symbol[]
     variables = vcat(variables_condition, variables_RHS)
     if :replace_variables in options
-        process(x) = replace_variable_references(sdf, x)
+        process(x) = replace_column_references(sdf, x)
     end
     if :vectorize in options
         process = vectorize_function_calls ∘ process
@@ -125,7 +125,7 @@ end
 
 function build_bitmask(df::Any, condition::Any)::Expr
     condition = condition isa Nothing ? true : condition
-    mask = replace_variable_references(df, condition) |> vectorize_function_calls
+    mask = replace_column_references(df, condition) |> vectorize_function_calls
     :(falses(nrow($(df))) .| Missings.replace($mask, false))
 end
 
@@ -149,20 +149,20 @@ extract_variable_references(expr::Expr) =
         vcat(extract_variable_references.(expr.args[2:end])...) : 
         vcat(extract_variable_references.(expr.args)...)
 
-replace_variable_references(expr::Any) = expr
-replace_variable_references(expr::Symbol) = iscolreference(expr) ? QuoteNode(expr) : expr
-replace_variable_references(expr::Expr) =
+replace_column_references(expr::Any) = expr
+replace_column_references(expr::Symbol) = iscolreference(expr) ? QuoteNode(expr) : expr
+replace_column_references(expr::Expr) =
     isfunctioncall(expr) ? 
-        Expr(expr.head, expr.args[1], replace_variable_references.(expr.args[2:end])...) : 
-        Expr(expr.head, replace_variable_references.(expr.args)...)
+        Expr(expr.head, expr.args[1], replace_column_references.(expr.args[2:end])...) : 
+        Expr(expr.head, replace_column_references.(expr.args)...)
 
-replace_variable_references(df::Any, expr::Any) = expr
-replace_variable_references(df::Any, expr::Symbol) = 
+replace_column_references(df::Any, expr::Any) = expr
+replace_column_references(df::Any, expr::Symbol) = 
     iscolreference(expr) ? Expr(:., df, QuoteNode(expr)) : expr
-replace_variable_references(df::Any, expr::Expr) = 
+replace_column_references(df::Any, expr::Expr) = 
     isfunctioncall(expr) ? 
-        Expr(expr.head, expr.args[1], [replace_variable_references(df, x) for x in expr.args[2:end]]...) :
-        Expr(expr.head, [replace_variable_references(df, x) for x in expr.args]...)
+        Expr(expr.head, expr.args[1], [replace_column_references(df, x) for x in expr.args[2:end]]...) :
+        Expr(expr.head, [replace_column_references(df, x) for x in expr.args]...)
 
 vectorize_function_calls(expr::Any) = expr
 function vectorize_function_calls(expr::Expr)

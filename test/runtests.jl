@@ -17,7 +17,7 @@ function preprocess(command::AbstractString)::Tuple
 end
 
 build_assignment_formula = Kezdi.build_assignment_formula
-replace_variable_references = Kezdi.replace_variable_references
+replace_column_references = Kezdi.replace_column_references
 vectorize_function_calls = Kezdi.vectorize_function_calls
 parse = Kezdi.parse
 rewrite = Kezdi.rewrite
