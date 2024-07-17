@@ -112,7 +112,7 @@ end
 function rewrite(::Val{:sort}, command::Command)
     gc = generate_command(command; options=[:variables, :nofunction], allowed=[:desc])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
-    columns = [x[1] for x in extract_variable_references.(command.arguments)]
+    columns = [x[1] for x in extract_column_references.(command.arguments)]
     desc = :desc in get_top_symbol.(options) ? true : false
     quote
         $setup

@@ -30,8 +30,8 @@ function generate_command(command::Command; options=[], allowed=[])
 
     push!(setup, :(getdf() isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a global DataFrame set by setdf()")))
     push!(setup, :(local $df2 = copy(getdf())))
-    variables_condition = (:ifable in options) ? vcat(extract_variable_references(command.condition)...) : Symbol[]
-    variables_RHS = (:variables in options) ? vcat(extract_variable_references.(command.arguments)...) : Symbol[]
+    variables_condition = (:ifable in options) ? vcat(extract_column_references(command.condition)...) : Symbol[]
+    variables_RHS = (:variables in options) ? vcat(extract_column_references.(command.arguments)...) : Symbol[]
     variables = vcat(variables_condition, variables_RHS)
     if :replace_variables in options
         process(x) = replace_column_references(sdf, x)
@@ -94,14 +94,14 @@ get_top_symbol(expr::Expr) = get_top_symbol(expr.args[1])
 
 function get_LHS(expr)
     LHS, RHS = split_assignment(expr)
-    LHS |> extract_variable_references |> first |> String
+    LHS |> extract_column_references |> first |> String
 end
 
 function build_assignment_formula(expr::Expr)
     expr.head == :(=) || error("Expected assignment expression")
     _, RHS = split_assignment(expr)
     LHS = get_LHS(expr)
-    RHS = extract_variable_references(RHS) 
+    RHS = extract_column_references(RHS) 
     if length(RHS) == 0
         # if no variable is used in RHS of assignment, create an anonymous variable
         columns_to_transform = :(AsTable([]))
@@ -142,27 +142,35 @@ extract_function_references(expr::Expr) =
         vcat([expr.args[1]], extract_function_references.(expr.args[2:end])...) : 
         vcat(extract_function_references.(expr.args)...)
 
-extract_variable_references(::Any) = Symbol[]
-extract_variable_references(expr::Symbol) = iscolreference(expr) ? [expr] : Symbol[]
-extract_variable_references(expr::Expr) =
+extract_column_references(::Any) = Symbol[]
+extract_column_references(expr::Symbol) = iscolreference(expr) ? [expr] : Symbol[]
+function extract_column_references(expr::Expr)
+    # Main.x is a variable reference, not a column reference
+    isvarreference(expr) && return Symbol[]
     isfunctioncall(expr) ? 
-        vcat(extract_variable_references.(expr.args[2:end])...) : 
-        vcat(extract_variable_references.(expr.args)...)
+        vcat(extract_column_references.(expr.args[2:end])...) : 
+        vcat(extract_column_references.(expr.args)...)
+end
 
 replace_column_references(expr::Any) = expr
 replace_column_references(expr::Symbol) = iscolreference(expr) ? QuoteNode(expr) : expr
-replace_column_references(expr::Expr) =
+function replace_column_references(expr::Expr)
+    # Main.x is a variable reference, not a column reference
+    isvarreference(expr) && return expr
     isfunctioncall(expr) ? 
         Expr(expr.head, expr.args[1], replace_column_references.(expr.args[2:end])...) : 
         Expr(expr.head, replace_column_references.(expr.args)...)
+end
 
 replace_column_references(df::Any, expr::Any) = expr
-replace_column_references(df::Any, expr::Symbol) = 
-    iscolreference(expr) ? Expr(:., df, QuoteNode(expr)) : expr
-replace_column_references(df::Any, expr::Expr) = 
+replace_column_references(df::Any, expr::Symbol) = iscolreference(expr) ? Expr(:., df, QuoteNode(expr)) : expr
+function replace_column_references(df::Any, expr::Expr)
+    # Main.x is a variable reference, not a column reference
+    isvarreference(expr) && return expr
     isfunctioncall(expr) ? 
         Expr(expr.head, expr.args[1], [replace_column_references(df, x) for x in expr.args[2:end]]...) :
         Expr(expr.head, [replace_column_references(df, x) for x in expr.args]...)
+end
 
 vectorize_function_calls(expr::Any) = expr
 function vectorize_function_calls(expr::Expr)

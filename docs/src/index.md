@@ -221,6 +221,29 @@ Column names of the data frame can be used directly in the commands without the 
 !!! danger "Reserved words cannot be used as variable names"
     Julia reserved words, like `begin`, `export`, `function` and standard types like `String`, `Int`, `Float64`, etc., cannot be used as variable names in Kezdi.jl. If you have a column with a reserved word, rename it *before* passing it to Kezdi.jl.
 
+If you want to avoid variable name substitution, you currently have two workarounds. One is to refer to the fully qualified name of the variable, including the module. The other is to define a constant function.
+
+```julia
+df = DataFrame(x = 1:2, y = 3:4)
+x = 5
+y() = 6
+@with df begin
+    @generate x1 = x
+    @generate x2 = Main.x
+    @generate y1 = y
+    @generate y2 = y()
+end
+```
+results in
+```julia
+2×6 DataFrame
+ Row │ x      y      x1     x2     y1     y2
+     │ Int64  Int64  Int64  Int64  Int64  Int64
+─────┼──────────────────────────────────────────
+   1 │     1      3      1      5      3      6
+   2 │     2      4      2      5      4      6
+```
+
 ### Automatic vectorization
 All functions are automatically vectorized, so there is no need to use the `.` operator to broadcast functions over elements of a column. 
 

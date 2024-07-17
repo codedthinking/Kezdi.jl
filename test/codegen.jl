@@ -5,9 +5,11 @@ mymiss(::Missing) = missing
 mymiss(x) = 3x
 end
 
-@testset "Replace variable references" begin
+@testset "Replace column references" begin
     @test_expr replace_column_references(:(x + y + f(z) - g.(x))) == :(:x + :y + f(:z) - g.(:x))
     @test_expr replace_column_references(:(f(x, <=))) == :(f(:x, <=))
+    @test_expr replace_column_references(:(log(x) - log(Main.x))) == :(log(:x) - log(Main.x))
+    @test_expr replace_column_references(:(Main.sub.x)) == :(Main.sub.x)
 end
 
 @testset "Bitmask" begin
