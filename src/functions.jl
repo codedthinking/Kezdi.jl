@@ -94,3 +94,13 @@ keep_only_values(x) = filter(isvalue, collect(skipmissing(x)))
 Return `true` if any of the arguments is `missing`.
 """
 Base.ismissing(args...) = any(ismissing.(args))
+
+"""
+    cond(x, y, z)
+
+Return `y` if `x` is `true`, otherwise return `z`. If `x` is a vector, the operation is vectorized. This function mimics `x ? y : z`, which cannot be vectorized.
+"""
+cond(x::Any, y, z) = x ? y : z
+cond(x::AbstractVector, y, z) = cond.(x, y, z)
+
+prompt(s::AbstractString="Kezdi.jl") = string(Crayon(bold=true, foreground=:green), "$s> ", Crayon(reset=true))

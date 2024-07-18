@@ -10,6 +10,7 @@ using Reexport
 using Logging
 using InteractiveUtils
 using ReadStatTables
+using Crayons
 
 @reexport using FreqTables: freqtable
 @reexport using FixedEffectModels

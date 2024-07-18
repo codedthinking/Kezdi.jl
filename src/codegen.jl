@@ -28,6 +28,7 @@ function generate_command(command::Command; options=[], allowed=[])
         (opt in allowed) || ArgumentError("Invalid option \"$opt\" for this command: @$(command.command)") |> throw
     end
 
+    push!(setup, :(println("$(Kezdi.prompt())$($(string(command)))\n")))
     push!(setup, :(getdf() isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a global DataFrame set by setdf()")))
     push!(setup, :(local $df2 = copy(getdf())))
     variables_condition = (:ifable in options) ? vcat(extract_column_references(command.condition)...) : Symbol[]

@@ -5,6 +5,13 @@ mymiss(::Missing) = missing
 mymiss(x) = 3x
 end
 
+@testset "Command priting" begin
+    @test string(Kezdi.Command(:generate, (:(x = 2),), nothing, ())) == "@generate x = 2"
+    @test string(Kezdi.Command(:generate, (:(x = 2),), :(y < 2), ())) == "@generate x = 2 @if y < 2"
+    @test string(Kezdi.Command(:regress, (:y, :x), :(y < 2), (:robust, ))) == "@regress y x @if y < 2, robust"    
+    @test Kezdi.Command(:collapse, (:(mean_x = mean(x)), :(sum_x = sum(x))), :(x > 2), (:(by(y)),)) |> string == "@collapse mean_x = mean(x) sum_x = sum(x) @if x > 2, by(y)"
+end
+
 @testset "Replace column references" begin
     @test_expr replace_column_references(:(x + y + f(z) - g.(x))) == :(:x + :y + f(:z) - g.(:x))
     @test_expr replace_column_references(:(f(x, <=))) == :(f(:x, <=))

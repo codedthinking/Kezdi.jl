@@ -10,6 +10,17 @@ struct Command
     options::Tuple
 end
 
+function Base.string(obj::Command)
+    args = join(string.(obj.arguments), " ")
+    condition = isnothing(obj.condition) ? "" : " @if $(string(obj.condition))"
+    options = isempty(obj.options) ? "" : ", " * join(string.(obj.options), " ")
+    "@$(obj.command) $args$condition$options"
+end
+
+function Base.show(io::IO, obj::Command)
+    print(io, string(obj))
+end
+
 struct GeneratedCommand
     local_copy::Symbol
     target_df::Union{Symbol, Nothing}
