@@ -117,7 +117,7 @@ function rewrite(::Val{:order}, command::Command)
     before = :before in get_top_symbol.(options)
     alphabetical = :alphabetical in get_top_symbol.(options)
 
-    if before && after &&
+    if before && after
         ArgumentError("Cannot use both `before` and `after` options in @order") |> throw
     end
     if last && (before || after)

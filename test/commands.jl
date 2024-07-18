@@ -729,4 +729,7 @@ end
 
     @drop @if x == 1
     @test nrow(getdf()) == 2
+
+    @clear
+    @test isnothing(getdf())
 end

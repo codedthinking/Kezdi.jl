@@ -133,7 +133,7 @@ end
 Read the data from the file `filename.dta` and set it as the global data frame.
 """
 macro use(fname)
-    :(use($fname)) |> esc
+    :(println("$(Kezdi.prompt())@clear\n");use($fname)) |> esc
 end
 
 """
@@ -142,7 +142,7 @@ end
 Display the first `n` rows of the data frame. By default, `n` is 5.
 """
 macro head(n=5)
-    :(first(getdf(), $n) |> display_and_return) |> esc
+    :(println("$(Kezdi.prompt())@head $($n)\n");first(getdf(), $n) |> display_and_return) |> esc
 end
 
 """
@@ -151,7 +151,7 @@ end
 Display the last `n` rows of the data frame. By default, `n` is 5.
 """
 macro tail(n=5)
-    :(last(getdf(), $n) |> display_and_return) |> esc
+    :(println("$(Kezdi.prompt())@tail $($n)\n");last(getdf(), $n) |> display_and_return) |> esc
 end
 
 """
@@ -160,7 +160,7 @@ end
 Display the names of the variables in the data frame.
 """
 macro names()
-    :(names(getdf()) |> display_and_return) |> esc
+    :(println("$(Kezdi.prompt())@names\n");names(getdf()) |> display_and_return) |> esc
 end
 
 """
@@ -170,4 +170,13 @@ Rename the variable `oldname` to `newname` in the data frame.
 """
 macro rename(exprs...)
     :rename |> parse(exprs) |> rewrite
+end
+
+"""
+    @clear
+
+Clears the global dataframe.
+"""
+macro clear()
+    :(println("$(Kezdi.prompt())@clear\n");setdf(nothing))
 end

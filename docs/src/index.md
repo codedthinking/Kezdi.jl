@@ -122,6 +122,10 @@ getdf
 @tail
 ```
 
+```@docs
+@clear
+```
+
 ### Filtering columns and rows
 ```@docs
 @keep
