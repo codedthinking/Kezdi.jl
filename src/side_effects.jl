@@ -64,3 +64,18 @@ function rewrite(::Val{:list}, command::Command)
     end |> esc
 end
 
+function rewrite(::Val{:describe}, command::Command)
+    gc = generate_command(command; options=[:variables, :nofunction])
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    arguments = Symbol.(arguments)
+    isempty(command.arguments) ?
+        quote
+            $setup
+            Kezdi._describe($local_copy) |> Kezdi.display_and_return |> $teardown
+        end |> esc :
+        quote
+            $setup
+            Kezdi._describe($local_copy, $arguments) |> Kezdi.display_and_return |> $teardown
+        end |> esc 
+end
+

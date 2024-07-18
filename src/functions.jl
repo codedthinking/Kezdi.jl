@@ -104,3 +104,10 @@ cond(x::Any, y, z) = x ? y : z
 cond(x::AbstractVector, y, z) = cond.(x, y, z)
 
 prompt(s::AbstractString="Kezdi.jl") = string(Crayon(bold=true, foreground=:green), "$s> ", Crayon(reset=true))
+
+# do not clash with DataFrames.describe
+function _describe(df::AbstractDataFrame, cols::Vector{Symbol}=Symbol[])
+    table = isempty(cols) ? describe(df) : describe(df[!, cols])
+    table.eltype = nonmissingtype.(table.eltype)
+    table[!, [:variable, :eltype]]
+end

@@ -188,3 +188,13 @@ Clears the global dataframe.
 macro clear()
     :(println("$(Kezdi.prompt())@clear\n");setdf(nothing))
 end
+
+"""
+    @describe [y1] [y2]...
+
+Show the names and data types of columns of the data frame. If no variable names given, all are shown. 
+"""
+macro describe(exprs...)
+    :describe |> parse(exprs)  |> rewrite
+end
+

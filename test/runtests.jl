@@ -38,4 +38,8 @@ end
 @testset "With.jl" begin
     include("With.jl")
 end
+
+@testset "Functions" begin
+    include("functions.jl")
+end
 end # all tests
