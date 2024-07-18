@@ -128,12 +128,20 @@ end
 
 
 """
-    @use "filename.dta"
+    @use "filename.dta"[, clear]
 
-Read the data from the file `filename.dta` and set it as the global data frame.
+Read the data from the file `filename.dta` and set it as the global data frame. If there is already a global data frame, `@use` will throw an error unless the `clear` option is provided
 """
-macro use(fname)
-    :(println("$(Kezdi.prompt())@clear\n");use($fname)) |> esc
+macro use(exprs...)
+    command = parse(exprs, :use)
+    length(command.arguments) == 1 || ArgumentError("@use takes a single file name as an argument:\n@use \"filename.dta\"[, clear]") |> throw 
+    # clear is the only permissible option
+    isempty(filter(x -> x != :clear, command.options)) || ArgumentError("Invalid options $(string.(command.options)). Correct syntax:\n@use \"filename.dta\"[, clear]") |> throw
+    fname = command.arguments[1]
+    clear = :clear in command.options
+    isnothing(getdf()) || clear || ArgumentError("There is already a global data frame set. If you want to replace it, use the \", clear\" option.") |> throw
+
+    :(println("$(Kezdi.prompt())$($command)\n");Kezdi.use($fname)) |> esc
 end
 
 """

@@ -103,6 +103,10 @@ setdf
 ```
 
 ```@docs
+@use
+```
+
+```@docs
 getdf
 ```
 
