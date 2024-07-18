@@ -348,6 +348,26 @@ julia> @with DataFrame(x = [1, 2, missing, 4]) begin
     ```
     returns `[1, 2]`.
 
+### Use `cond` instead of ternary operators
+Ternary operators like `x ? y : z` are not vectorized in Julia. Instead, use the `cond` function, which provides the exact same functionality.
+
+```julia
+@with DataFrame(x = [1, 2, 3, 4]) begin
+    @generate y = cond(x <= 2, 1, 0)
+end
+```
+
+Note that you can achieve the same result with the more readable code
+```julia
+@with DataFrame(x = [1, 2, 3, 4]) begin
+    @generate y = 1  @if x <= 2 
+    @replace y = 0 @if x > 2
+end
+```
+
+!!! warning "`cond` may not work as you expect with missing values"
+    Because `cond` is vectorized and vectorized functions ignore missing values, this may lead to unexpected behavior. Use `@replace @if` instead.
+
 ### Row-count variables
 The variable `_n` refers to the row number in the data frame, `_N` denotes the total number of rows. These can be used in `@if` conditions, as well.
 
@@ -379,7 +399,7 @@ Unlike Stata, where `egen` and `collapse` have different syntax, Kezdi.jl uses t
 ```
 
 ### Different function names
-To maintain compatibility with Julia, we had to rename some functions. For example, `count` is called `rowcount`, `missing` is called `ismissing` in Kezdi.jl.
+To maintain compatibility with Julia, we had to rename some functions. For example, `count` is called `rowcount`, `missing` is called `ismissing`, `max` is `maximum`, and `min` is `minimum` in Kezdi.jl.
 
 ### Missing values
 In Julia, the result of any operation involving a missing value is `missing`. The only exception is the `ismissing` function, which returns `true` if the value is missing and `false` otherwise. You *cannot* check for missing values with `== missing`.
@@ -427,6 +447,10 @@ keep_only_values
 
 ```@docs
 ismissing
+```
+
+```@docs
+cond
 ```
 
 ## Acknowledgements

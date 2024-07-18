@@ -4,7 +4,7 @@ Kezdi.jl is a Julia package for data manipulation and analysis. It is inspired b
 module Kezdi
 export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress, use, @use, @tabulate, @count, @sort, @order, getdf, setdf, @list, @head, @tail, @names, @rename
 
-export display_and_return, keep_only_values, rowcount, distinct
+export display_and_return, keep_only_values, rowcount, distinct, cond
 
 using Reexport
 using Logging

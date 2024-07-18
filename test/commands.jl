@@ -254,6 +254,14 @@ end
         df2 = @with df @egen z = _n @if _n >= 2, by(g)
         @test all(df2.z .=== [missing, 2, 3, 4, missing, 2])
     end
+
+    @testset "cond() function" begin
+        df = DataFrame(x=1:6, g=[:a, :a, :a, :a, :b, :b])
+        df2 = @with df @egen z = maximum(cond(_n == 1, x, 0)), by(g)   
+        @test df2.z == [1, 1, 1, 1, 5, 5]
+        df2 = @with df @egen z = minimum(cond(_n == 1, x, 0)), by(g)   
+        @test all(df2.z .== 0)
+    end
 end
 
 @testset "Keep if" begin
@@ -346,6 +354,10 @@ end
     @testset "Window functions operate on subset" begin
         df2 = @with df @generate y = sum(x) @if x < 3
         @test all(df2.y .=== [3, 3, missing, missing])
+    end
+
+    @testset "cond() function" begin
+        @test (@with DataFrame(x = [1, 2, 3, 4]) @generate y = cond(x <= 2, 1, 0)).y == [1, 1, 0, 0]
     end
 
     @testset "Errors" begin
