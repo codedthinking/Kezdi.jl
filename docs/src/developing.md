@@ -1,5 +1,5 @@
 !!! warning "Kezdi.jl is in beta"
-    `Kezdi.jl` is currently in beta. We have more than 300 unit tests and a large code coverage. [![Coverage](https://codecov.io/gh/codedthinking/Kezdi.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/codedthinking/Kezdi.jl) The package, however, is not guaranteed to be bug-free. If you encounter any issues, please report them as a [GitHub issue](https://github.com/codedthinking/Kezdi.jl/issues/new).
+    `Kezdi.jl` is currently in beta. We have more than 400 unit tests and a large code coverage. [![Coverage](https://codecov.io/gh/codedthinking/Kezdi.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/codedthinking/Kezdi.jl) The package, however, is not guaranteed to be bug-free. If you encounter any issues, please report them as a [GitHub issue](https://github.com/codedthinking/Kezdi.jl/issues/new).
 
     If you would like to receive updates on the package, please star the repository on GitHub and sign up for [email notifications here](https://relentless-producer-1210.ck.page/62d7ebb237).
 
