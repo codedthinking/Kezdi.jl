@@ -592,6 +592,14 @@ end
             r = @with df @regress y x z z*x @if x < 5 || x >8
             @test r.coef ≈ [2.000000000000003, 2.9999999999999996, 0.9999999999999998, 5.124106267500724e-17]
         end
+        @testset "Options" begin
+            r = @with df @regress y x z fe(s), robust
+            @test r.coef ≈ [ 2.9999999999999996, 1.0000000000000002]
+            r = @with df @regress y x z fe(s), cluster(s)
+            @test r.coef ≈ [ 2.9999999999999996, 1.0000000000000002]
+            r = @with df @regress y x z fe(s), cluster(s) robust
+            @test r.coef ≈ [ 2.9999999999999996, 1.0000000000000002]
+        end
     end
 
     @testset "Missing values" begin
@@ -654,6 +662,14 @@ end
     @test_throws Exception (@with df @list x).y
 end
 
+@testset "Describe" begin
+    df = DataFrame(x=1:10, y=11:20)
+    @test (@with df @describe) == DataFrame(variable=[:x, :y], eltype=[Int64, Int64])
+    @test (@with df @describe x) == DataFrame(variable=[:x], eltype=[Int64])
+    @test (@with df @describe y) == DataFrame(variable=[:y], eltype=[Int64])
+    @test (@with df @describe x y) == DataFrame(variable=[:x, :y], eltype=[Int64, Int64])
+end
+
 @testset "Sort" begin
     df = DataFrame(x=[1, 2, 3, 2, 1, 3], y= [0, 2, 0, 1, 1, 1])
     @testset "Known values" begin
@@ -671,12 +687,24 @@ end
         @test all(df2.y .== [1, 0, 2, 1, 1, 0])
     end
     @testset "Missing values" begin
-        df = DataFrame(x=[1, 2, missing, 3, 3, 3], y= [0, 0, 0, 1, 1, 1])
+        df = DataFrame(x=[1, 2, missing, 3, 3, 3], y=[0, 0, 1, 1, 0, 1])
         df2 = @with df @sort x
-        #@test all(df2.x .== [1, 2, 3, 3, 3, missing])
+        @test all(df2.x[1:5] .== [1, 2, 3, 3, 3])
+        @test ismissing(df2.x[6])
+        @test all(df2.y .== [0, 0, 1, 0, 1, 1])
         df2 = @with df @sort x y
-        #@test all(df2.x .== [1, 2, 3, 3, 3, missing])
-        @test all(df2.y .== [0, 0, 1, 1, 1, 0])
+        @test all(df2.x[1:5] .== [1, 2, 3, 3, 3])
+        @test ismissing(df2.x[6])
+        @test all(df2.y .== [0, 0, 0, 1, 1, 1])
+        df2 = @with df @sort y
+        @test all(df2.x[1:3] .== [1, 2, 3])
+        @test all(df2.x[5:6] .== [3, 3])
+        @test ismissing(df2.x[4])
+        @test all(df2.y .== [0, 0, 0, 1, 1, 1])
+        df2 = @with df @sort y x
+        @test all(df2.x[1:5] .== [1, 2, 3, 3, 3])
+        @test ismissing(df2.x[6])
+        @test all(df2.y .== [0, 0, 0, 1, 1, 1])
     end
 end
 
@@ -719,4 +747,11 @@ end
     @testset "Error handling" begin
         @test_throws Exception @with df @rename a b c
     end
+end
+
+@testset "Use" begin
+    df = DataFrame(x=1:10, y=11:20)
+    @use "test.dta", clear
+    @test df == getdf()
+    try @use "test.dta" @if x<5, clear; catch e; @test e isa LoadError; end
 end
