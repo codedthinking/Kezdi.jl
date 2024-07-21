@@ -1,6 +1,18 @@
 # use multiple dispatch to generate code 
 rewrite(command::Command) = rewrite(Val(command.command), command)
 
+function rewrite(::Val{:reshape_wide}, command::Command)
+    gc = generate_command(command; options=[:variables], allowed=[:i, :j])
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    i = get_option(command, :i)[1] |> replace_column_references
+    j = get_option(command, :j)[1] |> replace_column_references
+    var = collect(arguments)[1] |> replace_column_references
+    quote
+        $setup
+        unstack($local_copy, $i, $j, $var, renamecols = x -> Symbol($var, x)) |> $teardown |> setdf
+    end |> esc
+end
+
 function rewrite(::Val{:rename}, command::Command)
     gc = generate_command(command; options=[:variables], allowed=[])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc

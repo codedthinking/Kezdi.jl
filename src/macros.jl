@@ -198,3 +198,18 @@ macro describe(exprs...)
     :describe |> parse(exprs)  |> rewrite
 end
 
+"""
+    @reshape long y1 y2 ... i(var) j(var) 
+    @reshape wide y1 y2 ... i(var) j(var)
+
+Reshape the data frame from wide to long or from long to wide format. The variables `y1`, `y2`, etc. are the variables to be reshaped. The `i(var)` and `j(var)` are the variables that define the row and column indices in the reshaped data frame.
+"""
+macro reshape(exprs...)
+    if exprs[1] == :long
+        :reshape_long |> parse(exprs[2:end]) |> rewrite
+    elseif exprs[1] == :wide
+        :reshape_wide |> parse(exprs[2:end]) |> rewrite
+    else
+        ArgumentError("Invalid option $(exprs[1]). Correct syntax:\n@reshape long y1 y2 ... i(var) j(var)\n@reshape wide y1 y2 ... i(var) j(var)") |> throw
+    end
+end
