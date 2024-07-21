@@ -21,20 +21,21 @@ function generate_command(command::Command; options=[], allowed=[])
     if (:assignment in options) && !all(isassignment.(command.arguments))
         ArgumentError("@$(command.command) requires an assignment like y = x + 1") |> throw
     end
-    if (:nofunction in options) && length(vcat(extract_function_references.(command.arguments)...)) > 0
+    if (:nofunction in options) && any(isfunctioncall.(command.arguments))
         ArgumentError("Function calls are not allowed for this command: @$(command.command)") |> throw
     end
     for opt in given_options
         (opt in allowed) || ArgumentError("Invalid option \"$opt\" for this command: @$(command.command)") |> throw
     end
 
+    push!(setup, :(println("$(Kezdi.prompt())$($(string(command)))\n")))
     push!(setup, :(getdf() isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a global DataFrame set by setdf()")))
     push!(setup, :(local $df2 = copy(getdf())))
-    variables_condition = (:ifable in options) ? vcat(extract_variable_references(command.condition)...) : Symbol[]
-    variables_RHS = (:variables in options) ? vcat(extract_variable_references.(command.arguments)...) : Symbol[]
+    variables_condition = (:ifable in options) ? vcat(extract_column_references(command.condition)...) : Symbol[]
+    variables_RHS = (:variables in options) ? vcat(extract_column_references.(command.arguments)...) : Symbol[]
     variables = vcat(variables_condition, variables_RHS)
     if :replace_variables in options
-        process(x) = replace_variable_references(sdf, x)
+        process(x) = replace_column_references(sdf, x)
     end
     if :vectorize in options
         process = vectorize_function_calls ∘ process
@@ -69,12 +70,10 @@ function generate_command(command::Command; options=[], allowed=[])
         by_cols = get_by(command)
         push!(setup, :(local $gdf = groupby($sdf, $by_cols)))
     end
-    push!(setup, quote
-        function $tdfunction(x)
+    push!(setup, :(function $tdfunction(x)
             $(Expr(:block, teardown...))
             x
-        end
-    end)
+        end))
     GeneratedCommand(df2, target_df, Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
 end
 
@@ -89,25 +88,19 @@ function get_option(command::Command, key::Symbol)
     end
 end
 
-
-function get_top_symbol(expr::Any)
-    if expr isa Expr
-        return get_top_symbol(expr.args[1])
-    else
-        return expr
-    end
-end
+get_top_symbol(expr::Any) = expr
+get_top_symbol(expr::Expr) = get_top_symbol(expr.args[1])
 
 function get_LHS(expr)
     LHS, RHS = split_assignment(expr)
-    LHS |> extract_variable_references |> first |> String
+    LHS |> extract_column_references |> first |> String
 end
 
 function build_assignment_formula(expr::Expr)
     expr.head == :(=) || error("Expected assignment expression")
     _, RHS = split_assignment(expr)
     LHS = get_LHS(expr)
-    RHS = extract_variable_references(RHS) 
+    RHS = extract_column_references(RHS) 
     if length(RHS) == 0
         # if no variable is used in RHS of assignment, create an anonymous variable
         columns_to_transform = :(AsTable([]))
@@ -131,118 +124,88 @@ end
 
 function build_bitmask(df::Any, condition::Any)::Expr
     condition = condition isa Nothing ? true : condition
-    mask = replace_variable_references(df, condition) |> vectorize_function_calls
+    mask = replace_column_references(df, condition) |> vectorize_function_calls
     :(falses(nrow($(df))) .| Missings.replace($mask, false))
 end
 
 build_bitmask(command::Command) = isnothing(command.condition) ? :(trues(nrow($(command.df)))) : build_bitmask(command.df, command.condition)
 
 function split_assignment(expr::Any)
-    if isassignment(expr)
-        return (expr.args[1], expr.args[2])
-    else
-        ArgumentError("Expected assignment expression, got $expr") |> throw
-    end
+    isassignment(expr) || (ArgumentError("Expected assignment expression, got $expr") |> throw)
+    (expr.args[1], expr.args[2])
 end
 
-function extract_function_references(expr::Any)
-    if is_function_call(expr) || (expr isa Expr && expr.head == :call && is_operator(expr.args[1]))
-        return vcat([expr.args[1]], extract_function_references.(expr.args[2:end])...)
-    elseif expr isa Expr
-        return vcat(extract_function_references.(expr.args)...)
-    else
-        return Symbol[]
-    end
+extract_column_references(::Any) = Symbol[]
+extract_column_references(expr::Symbol) = iscolreference(expr) ? [expr] : Symbol[]
+function extract_column_references(expr::Expr)
+    # Main.x is a variable reference, not a column reference
+    isvarreference(expr) && return Symbol[]
+    isfunctioncall(expr) ? 
+        vcat(extract_column_references.(expr.args[2:end])...) : 
+        vcat(extract_column_references.(expr.args)...)
 end
 
-function extract_variable_references(expr::Any)
-    if is_variable_reference(expr)
-        return [expr]
-    elseif expr isa Expr
-        if is_function_call(expr)
-            return vcat(extract_variable_references.(expr.args[2:end])...)
-        else
-            return vcat(extract_variable_references.(expr.args)...)
-        end
-    else
-        return Symbol[]
-    end
+replace_column_references(expr::Any) = expr
+replace_column_references(expr::Symbol) = iscolreference(expr) ? QuoteNode(expr) : expr
+function replace_column_references(expr::Expr)
+    # Main.x is a variable reference, not a column reference
+    isvarreference(expr) && return expr
+    isfunctioncall(expr) && !is_operator(expr.head) && return Expr(expr.head, expr.args[1], replace_column_references.(expr.args[2:end])...)  
+    Expr(expr.head, replace_column_references.(expr.args)...)
 end
 
-function replace_variable_references(expr::Any)
-    if is_variable_reference(expr)
-        return QuoteNode(expr)
-    elseif expr isa Expr
-        if is_function_call(expr)
-            return Expr(expr.head, expr.args[1], replace_variable_references.(expr.args[2:end])...)
-        else
-            return Expr(expr.head, replace_variable_references.(expr.args)...)
-        end
-    else
-        return expr
-    end
+replace_column_references(df::Any, expr::Any) = expr
+replace_column_references(df::Any, expr::Symbol) = iscolreference(expr) ? Expr(:., df, QuoteNode(expr)) : expr
+function replace_column_references(df::Any, expr::Expr)
+    # Main.x is a variable reference, not a column reference
+    isvarreference(expr) && return expr
+    isfunctioncall(expr) && !is_operator(expr.head) && return Expr(expr.head, expr.args[1], [replace_column_references(df, x) for x in expr.args[2:end]]...)
+    Expr(expr.head, [replace_column_references(df, x) for x in expr.args]...)
 end
 
-function replace_variable_references(df::Any, expr::Any)
-    if is_variable_reference(expr)
-        return Expr(Symbol("."), 
-            df,
-            QuoteNode(expr))
-    elseif expr isa Expr
-        if is_function_call(expr)
-            return Expr(expr.head, expr.args[1], [replace_variable_references(df, x) for x in expr.args[2:end]]...)
-        else
-            return Expr(expr.head, [replace_variable_references(df, x) for x in expr.args]...)
-        end
-    else
-        return expr
-    end
+tovectorize(::Any) = false
+tovectorize(expr::Symbol) = Base.isoperator(expr) && !is_dotted_operator(expr)
+function tovectorize(expr::Expr)
+    isfunctioncall(expr) || return false
+    fname = expr.args[1]
+    expr.head == Symbol(".") && return false
+    is_dotted_operator(expr.head) && return false
+    is_dotted_operator(fname) && return false
+    fname in DO_NOT_VECTORIZE && return false
+    fname == :~ && return false
+    is_operator(expr.head) && return true
+    is_operator(fname) && return true
+    fname in ALWAYS_VECTORIZE && return true
+    operates_on_vector(fname) && return false
+    return true
 end
 
-function vectorize_function_calls(expr::Any)
-    if expr isa Expr
-        if is_function_call(expr)
-            vectorized = expr.head == Symbol(".")
-            fname = expr.args[1]
-            if vectorized
-                return operates_on_missing(fname) ? 
-                    Expr(expr.head, fname, vectorize_function_calls.(expr.args[2:end])...) : 
-                    Expr(expr.head, :(passmissing($fname)), vectorize_function_calls.(expr.args[2:end])...) 
-            elseif fname == :DNV
-                return expr.args[2]
-            elseif fname in DO_NOT_VECTORIZE || (!(fname in ALWAYS_VECTORIZE) && operates_on_vector(fname))
-                skipmissing_each_arg = [Expr(:call, :keep_only_values, vectorize_function_calls(arg)) for arg in expr.args[2:end]]
-                return Expr(expr.head, fname, skipmissing_each_arg...)
-            else
-                return operates_on_missing(fname) ? 
-                    Expr(Symbol("."), fname,
-                        Expr(:tuple,   
-                        vectorize_function_calls.(expr.args[2:end])...)
-                    ) :
-                    Expr(Symbol("."), :(passmissing($fname)),
-                        Expr(:tuple,   
-                        vectorize_function_calls.(expr.args[2:end])...)
-                    )
-            end
-        elseif is_operator(expr.head) && !is_dotted_operator(expr.head) && expr.head in SYNTACTIC_OPERATORS
-            # special handling of syntactic operators like &&, ||, etc. 
-            # these are not called as a function
-            op = expr.head
-            dot_op = Symbol("." * String(op))
-            return Expr(dot_op,    
-                    vectorize_function_calls.(expr.args)...)
-        elseif is_operator(expr.args[1]) && !is_dotted_operator(expr.args[1])
-            op = expr.args[1]
-            dot_op = Symbol("." * String(op))
-            return Expr(expr.head, 
-                    dot_op,    
-                    vectorize_function_calls.(expr.args[2:end])...)
-        else
-            return Expr(expr.head, vectorize_function_calls.(expr.args)...)
-        end
-    else
-        return expr
-    end
+vectorize_function_calls(expr::Any) = expr
+function vectorize_function_calls(expr::Expr)
+    isfunctioncall(expr) || return Expr(expr.head, vectorize_function_calls.(expr.args)...)
+    fname = expr.args[1]
+    # x && y is not a function call, becomes x .&& y
+    is_operator(expr.head) && tovectorize(expr) && expr.head in SYNTACTIC_OPERATORS && 
+        return Expr(Symbol("." * String(expr.head)), vectorize_function_calls.(expr.args)...) 
+    # x + y is not a function call, becomes x .+ y
+    is_operator(fname) && tovectorize(expr) &&
+        return Expr(expr.head, Symbol("." * String(fname)), vectorize_function_calls.(expr.args[2:end])...)
+    # f(x) becomes f.(x) or passmissing(f).(x)
+    tovectorize(expr) && return operates_on_missing(fname) ? 
+        Expr(Symbol("."), fname,
+            Expr(:tuple,   
+            vectorize_function_calls.(expr.args[2:end])...)
+        ) :
+        Expr(Symbol("."), :(passmissing($fname)),
+            Expr(:tuple,   
+            vectorize_function_calls.(expr.args[2:end])...)
+        )
+    # ~f(x) becomes f(x), not vectorized
+    fname == :~ && return Expr(expr.args[2].head, expr.args[2].args[1], vectorize_function_calls.(expr.args[2].args[2:end])...)
+    # this is already vectorized, do not touch
+    expr.head == Symbol(".") &&     return Expr(expr.head, vectorize_function_calls.(expr.args)...)
+    # remaining function calls are not vectorized
+    return Expr(expr.head, fname, [Expr(:call, :keep_only_values, vectorize_function_calls(arg)) for arg in expr.args[2:end]]...)
 end
 
 get_dot_parts(ex::Symbol) = [ex]
@@ -257,23 +220,16 @@ function get_dot_parts(ex::Expr)
     reverse(parts)
 end
 
-is_variable_reference(x::Any) = x isa Symbol && !in(x, RESERVED_WORDS) && !in(x, TYPES) && isalphanumeric(string(x))
-is_function_call(x::Any) = x isa Expr && ((x.head == :call && !is_operator(x.args[1]))  || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple)) 
+is_operator(::Any) = false
+is_operator(x::Symbol) = Base.isoperator(x) && x != :.
+is_dotted_operator(::Any) = false
+is_dotted_operator(x::Symbol) = is_operator(x) && String(x)[1] == '.'
 
-is_operator(x::Any) = x isa Symbol && (in(x, OPERATORS) || is_dotted_operator(x))
-is_dotted_operator(x::Any) = x isa Symbol && String(x)[1] == '.' && Symbol(String(x)[2:end]) in OPERATORS
-
-is_dot_reference(x) = false
-function is_dot_reference(e::Expr)
-    e.head == :. &&
-        length(e.args) == 2 &&
+is_dot_reference(::Any) = false
+is_dot_reference(e::Expr) = Base.isexpr(e, :., 2) &&
         (e.args[1] isa Symbol || is_dot_reference(e.args[1])) &&
         e.args[2] isa QuoteNode &&
         e.args[2].value isa Symbol
-end
-
-isalphanumeric(c::AbstractChar) = isletter(c) || isdigit(c) || c == '_'
-isalphanumeric(str::AbstractString) = all(isalphanumeric, str)
 
 isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args) == 2
 operates_on_missing(expr::Any) = (expr isa Symbol && expr == :ismissing) || operates_on_type(expr, Missing)
@@ -287,3 +243,26 @@ function operates_on_type(expr::Any, T::Type)
         return false
     end
 end
+
+isvarreference(x::Symbol) = Meta.isidentifier(x) && !in(x, RESERVED_WORDS) && !in(x, TYPES)
+isvarreference(::Any) = false
+isvarreference(ex::Expr) = 
+    Meta.isexpr(ex, :ref) || 
+    (Meta.isexpr(ex, :., 2) && 
+        ((ex.args[1] isa Symbol && isvarreference(ex.args[2])) ||
+         (ex.args[2] isa QuoteNode && isvarreference(ex.args[2].value))))
+
+iscolreference(::Any) = false
+iscolreference(x::Symbol) = isvarreference(x) && !in(x, RESERVED_WORDS) && !in(x, TYPES)
+
+isfunctioncall(::Any) = false
+isfunctioncall(x::Symbol) = is_operator(x)
+#=
+isfunctioncall(ex::Expr) = 
+    Meta.isexpr(ex, :call) ||  # This covers both f(x) and x+y
+    (Meta.isexpr(ex, :., 2) && ex.args[1] isa Symbol && 
+     (Meta.isexpr(ex.args[2], :tuple) || Meta.isexpr(ex.args[2], :call)) && 
+     isfunctioncall(ex.args[end])) ||
+    Meta.isexpr(ex, :., 3)  # Vectorized function call (broadcasting)
+=#
+isfunctioncall(x::Expr) = x.head == :call || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple) || x.head in SYNTACTIC_OPERATORS

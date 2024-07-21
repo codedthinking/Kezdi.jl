@@ -1,7 +1,7 @@
 function rewrite(::Val{:tabulate}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :nofunction])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
-    columns = [x[1] for x in extract_variable_references.(command.arguments)]
+    columns = [x[1] for x in extract_column_references.(command.arguments)]
     quote
         $setup
         Kezdi.tabulate($target_df, $columns) |> Kezdi.display_and_return |> $teardown
@@ -11,7 +11,7 @@ end
 function rewrite(::Val{:summarize}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :single_argument, :nofunction])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
-    column = extract_variable_references(command.arguments[1])
+    column = extract_column_references(command.arguments[1])
     quote
         $setup
         Kezdi.summarize($target_df, $column[1]) |> Kezdi.display_and_return |> $teardown
@@ -25,7 +25,7 @@ function rewrite(::Val{:regress}, command::Command)
         vcov = :(Vcov.robust())
     elseif :cluster in get_top_symbol.(options)
         vars = get_option(command, :cluster)
-        vars = replace_variable_references.(vars)
+        vars = replace_column_references.(vars)
         vcov = :(Vcov.cluster($(vars...)))
     else
         vcov = :(Vcov.simple())
@@ -56,11 +56,26 @@ function rewrite(::Val{:count}, command::Command)
 end
 
 function rewrite(::Val{:list}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
+    gc = generate_command(command; options=[:variables, :ifable, :nofunction])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
         $setup
-        $target_df |> Kezdi.display_and_return |> $teardown
+        $target_df[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> Kezdi.display_and_return |> $teardown
     end |> esc
+end
+
+function rewrite(::Val{:describe}, command::Command)
+    gc = generate_command(command; options=[:variables, :nofunction])
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    arguments = Symbol.(arguments)
+    isempty(command.arguments) ?
+        quote
+            $setup
+            Kezdi._describe($local_copy) |> Kezdi.display_and_return |> $teardown
+        end |> esc :
+        quote
+            $setup
+            Kezdi._describe($local_copy, $arguments) |> Kezdi.display_and_return |> $teardown
+        end |> esc 
 end
 

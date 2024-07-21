@@ -254,6 +254,14 @@ end
         df2 = @with df @egen z = _n @if _n >= 2, by(g)
         @test all(df2.z .=== [missing, 2, 3, 4, missing, 2])
     end
+
+    @testset "cond() function" begin
+        df = DataFrame(x=1:6, g=[:a, :a, :a, :a, :b, :b])
+        df2 = @with df @egen z = maximum(cond(_n == 1, x, 0)), by(g)   
+        @test df2.z == [1, 1, 1, 1, 5, 5]
+        df2 = @with df @egen z = minimum(cond(_n == 1, x, 0)), by(g)   
+        @test all(df2.z .== 0)
+    end
 end
 
 @testset "Keep if" begin
@@ -346,6 +354,10 @@ end
     @testset "Window functions operate on subset" begin
         df2 = @with df @generate y = sum(x) @if x < 3
         @test all(df2.y .=== [3, 3, missing, missing])
+    end
+
+    @testset "cond() function" begin
+        @test (@with DataFrame(x = [1, 2, 3, 4]) @generate y = cond(x <= 2, 1, 0)).y == [1, 1, 0, 0]
     end
 
     @testset "Errors" begin
@@ -580,6 +592,14 @@ end
             r = @with df @regress y x z z*x @if x < 5 || x >8
             @test r.coef ≈ [2.000000000000003, 2.9999999999999996, 0.9999999999999998, 5.124106267500724e-17]
         end
+        @testset "Options" begin
+            r = @with df @regress y x z fe(s), robust
+            @test r.coef ≈ [ 2.9999999999999996, 1.0000000000000002]
+            r = @with df @regress y x z fe(s), cluster(s)
+            @test r.coef ≈ [ 2.9999999999999996, 1.0000000000000002]
+            r = @with df @regress y x z fe(s), cluster(s) robust
+            @test r.coef ≈ [ 2.9999999999999996, 1.0000000000000002]
+        end
     end
 
     @testset "Missing values" begin
@@ -630,6 +650,26 @@ end
     end
 end
 
+@testset "List" begin
+    df = DataFrame(x=1:10, y=11:20)
+    @test (@with df @list).x == 1:10
+    @test (@with df @list).y == 11:20
+    @test (@with df @list x) == DataFrame(x=1:10)
+    @test (@with df @list x y) == DataFrame(x=1:10, y=11:20)
+    @test (@with df @list @if x < 5).x == 1:4
+    @test (@with df @list @if x < 5).y == 11:14
+    @test (@with df @list y @if x < 5).y == 11:14
+    @test_throws Exception (@with df @list x).y
+end
+
+@testset "Describe" begin
+    df = DataFrame(x=1:10, y=11:20)
+    @test (@with df @describe) == DataFrame(variable=[:x, :y], eltype=[Int64, Int64])
+    @test (@with df @describe x) == DataFrame(variable=[:x], eltype=[Int64])
+    @test (@with df @describe y) == DataFrame(variable=[:y], eltype=[Int64])
+    @test (@with df @describe x y) == DataFrame(variable=[:x, :y], eltype=[Int64, Int64])
+end
+
 @testset "Sort" begin
     df = DataFrame(x=[1, 2, 3, 2, 1, 3], y= [0, 2, 0, 1, 1, 1])
     @testset "Known values" begin
@@ -647,12 +687,24 @@ end
         @test all(df2.y .== [1, 0, 2, 1, 1, 0])
     end
     @testset "Missing values" begin
-        df = DataFrame(x=[1, 2, missing, 3, 3, 3], y= [0, 0, 0, 1, 1, 1])
+        df = DataFrame(x=[1, 2, missing, 3, 3, 3], y=[0, 0, 1, 1, 0, 1])
         df2 = @with df @sort x
-        #@test all(df2.x .== [1, 2, 3, 3, 3, missing])
+        @test all(df2.x[1:5] .== [1, 2, 3, 3, 3])
+        @test ismissing(df2.x[6])
+        @test all(df2.y .== [0, 0, 1, 0, 1, 1])
         df2 = @with df @sort x y
-        #@test all(df2.x .== [1, 2, 3, 3, 3, missing])
-        @test all(df2.y .== [0, 0, 1, 1, 1, 0])
+        @test all(df2.x[1:5] .== [1, 2, 3, 3, 3])
+        @test ismissing(df2.x[6])
+        @test all(df2.y .== [0, 0, 0, 1, 1, 1])
+        df2 = @with df @sort y
+        @test all(df2.x[1:3] .== [1, 2, 3])
+        @test all(df2.x[5:6] .== [3, 3])
+        @test ismissing(df2.x[4])
+        @test all(df2.y .== [0, 0, 0, 1, 1, 1])
+        df2 = @with df @sort y x
+        @test all(df2.x[1:5] .== [1, 2, 3, 3, 3])
+        @test ismissing(df2.x[6])
+        @test all(df2.y .== [0, 0, 0, 1, 1, 1])
     end
 end
 
@@ -697,12 +749,9 @@ end
     end
 end
 
-@testset "Global df is modified" begin
-    df = DataFrame(x=1:4)
-    setdf(df)
-    @keep @if x <= 3
-    @test nrow(getdf()) == 3
-
-    @drop @if x == 1
-    @test nrow(getdf()) == 2
+@testset "Use" begin
+    df = DataFrame(x=1:10, y=11:20)
+    @use "test.dta", clear
+    @test df == getdf()
+    try @use "test.dta" @if x<5, clear; catch e; @test e isa LoadError; end
 end

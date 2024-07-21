@@ -118,9 +118,9 @@ macro order(exprs...)
 end
 
 """
-    @list [@if condition]
+    @list [y1 y2...] [@if condition]
 
-Display the entire data frame or the rows for which the condition is true.
+Display the entire data frame or the rows for which the condition is true. If variable names are provided, only the variables in the list are displayed.
 """
 macro list(exprs...)
     :list |> parse(exprs) |> rewrite
@@ -128,12 +128,20 @@ end
 
 
 """
-    @use "filename.dta"
+    @use "filename.dta"[, clear]
 
-Read the data from the file `filename.dta` and set it as the global data frame.
+Read the data from the file `filename.dta` and set it as the global data frame. If there is already a global data frame, `@use` will throw an error unless the `clear` option is provided
 """
-macro use(fname)
-    :(use($fname)) |> esc
+macro use(exprs...)
+    command = parse(exprs, :use)
+    length(command.arguments) == 1 || ArgumentError("@use takes a single file name as an argument:\n@use \"filename.dta\"[, clear]") |> throw 
+    # clear is the only permissible option
+    isempty(filter(x -> x != :clear, command.options)) || ArgumentError("Invalid options $(string.(command.options)). Correct syntax:\n@use \"filename.dta\"[, clear]") |> throw
+    fname = command.arguments[1]
+    clear = :clear in command.options
+    isnothing(getdf()) || clear || ArgumentError("There is already a global data frame set. If you want to replace it, use the \", clear\" option.") |> throw
+
+    :(println("$(Kezdi.prompt())$($command)\n");Kezdi.use($fname)) |> esc
 end
 
 """
@@ -142,7 +150,7 @@ end
 Display the first `n` rows of the data frame. By default, `n` is 5.
 """
 macro head(n=5)
-    :(first(getdf(), $n) |> display_and_return) |> esc
+    :(println("$(Kezdi.prompt())@head $($n)\n");first(getdf(), $n) |> display_and_return) |> esc
 end
 
 """
@@ -151,7 +159,7 @@ end
 Display the last `n` rows of the data frame. By default, `n` is 5.
 """
 macro tail(n=5)
-    :(last(getdf(), $n) |> display_and_return) |> esc
+    :(println("$(Kezdi.prompt())@tail $($n)\n");last(getdf(), $n) |> display_and_return) |> esc
 end
 
 """
@@ -160,7 +168,7 @@ end
 Display the names of the variables in the data frame.
 """
 macro names()
-    :(names(getdf()) |> display_and_return) |> esc
+    :(println("$(Kezdi.prompt())@names\n");names(getdf()) |> display_and_return) |> esc
 end
 
 """
@@ -171,3 +179,22 @@ Rename the variable `oldname` to `newname` in the data frame.
 macro rename(exprs...)
     :rename |> parse(exprs) |> rewrite
 end
+
+"""
+    @clear
+
+Clears the global dataframe.
+"""
+macro clear()
+    :(println("$(Kezdi.prompt())@clear\n");setdf(nothing))
+end
+
+"""
+    @describe [y1] [y2]...
+
+Show the names and data types of columns of the data frame. If no variable names given, all are shown. 
+"""
+macro describe(exprs...)
+    :describe |> parse(exprs)  |> rewrite
+end
+

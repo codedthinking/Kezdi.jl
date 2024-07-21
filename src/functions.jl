@@ -75,14 +75,6 @@ regress(df::AbstractDataFrame, formula::Expr) = :(reg($df, $formula))
 counter(df::AbstractDataFrame) = nrow(df)
 counter(gdf::GroupedDataFrame) = [nrow(df) for df in gdf]
 
-# dummy function for do-not-vectorize
-"""
-    DNV(f(x))
-
-Indicate that the function `f` should not be vectorized. The name DNV is only used for parsing, do not call it directly.
-"""
-DNV(args...; kwargs...) = error("This function should not be directly called. It is used to indicate that a function should not be vectorized. For example, @generate y = DNV(log(x))")
-
 isvalue(x) = true
 isvalue(::Missing) = false
 isvalue(::Nothing) = false
@@ -102,3 +94,20 @@ keep_only_values(x) = filter(isvalue, collect(skipmissing(x)))
 Return `true` if any of the arguments is `missing`.
 """
 Base.ismissing(args...) = any(ismissing.(args))
+
+"""
+    cond(x, y, z)
+
+Return `y` if `x` is `true`, otherwise return `z`. If `x` is a vector, the operation is vectorized. This function mimics `x ? y : z`, which cannot be vectorized.
+"""
+cond(x::Any, y, z) = x ? y : z
+cond(x::AbstractVector, y, z) = cond.(x, y, z)
+
+prompt(s::AbstractString="Kezdi.jl") = string(Crayon(bold=true, foreground=:green), "$s> ", Crayon(reset=true))
+
+# do not clash with DataFrames.describe
+function _describe(df::AbstractDataFrame, cols::Vector{Symbol}=Symbol[])
+    table = isempty(cols) ? describe(df) : describe(df[!, cols])
+    table.eltype = nonmissingtype.(table.eltype)
+    table[!, [:variable, :eltype]]
+end

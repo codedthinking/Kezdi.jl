@@ -5,9 +5,18 @@ mymiss(::Missing) = missing
 mymiss(x) = 3x
 end
 
-@testset "Replace variable references" begin
-    @test_expr replace_variable_references(:(x + y + f(z) - g.(x))) == :(:x + :y + f(:z) - g.(:x))
-    @test_expr replace_variable_references(:(f(x, <=))) == :(f(:x, <=))
+@testset "Command priting" begin
+    @test string(Kezdi.Command(:generate, (:(x = 2),), nothing, ())) == "@generate x = 2"
+    @test string(Kezdi.Command(:generate, (:(x = 2),), :(y < 2), ())) == "@generate x = 2 @if y < 2"
+    @test string(Kezdi.Command(:regress, (:y, :x), :(y < 2), (:robust, ))) == "@regress y x @if y < 2, robust"    
+    @test Kezdi.Command(:collapse, (:(mean_x = mean(x)), :(sum_x = sum(x))), :(x > 2), (:(by(y)),)) |> string == "@collapse mean_x = mean(x) sum_x = sum(x) @if x > 2, by(y)"
+end
+
+@testset "Replace column references" begin
+    @test_expr replace_column_references(:(x + y + f(z) - g.(x))) == :(:x + :y + f(:z) - g.(:x))
+    @test_expr replace_column_references(:(f(x, <=))) == :(f(:x, <=))
+    @test_expr replace_column_references(:(log(x) - log(Main.x))) == :(log(:x) - log(Main.x))
+    @test_expr replace_column_references(:(Main.sub.x)) == :(Main.sub.x)
 end
 
 @testset "Bitmask" begin
@@ -32,10 +41,9 @@ end
     end
 
     @testset "Explicit DNV request" begin
-        @test_expr vectorize_function_calls(:(DNV(x))) == :(x)
-        @test_expr vectorize_function_calls(:(DNV(x + y))) == :(x + y)
-        @test_expr vectorize_function_calls(:(DNV(log(x)))) == :(log(x))
-        @test_expr vectorize_function_calls(:(DNV(log(x) + 1))) == :(log(x) + 1)
+        @test_expr vectorize_function_calls(:(~(x + y))) == :(x + y)
+        @test_expr vectorize_function_calls(:(~log(x))) == :(log(x))
+        @test_expr vectorize_function_calls(:(~log(x) + 1)) == :(log(x) .+ 1)
     end
 
     @testset "Unknown functions are vectorized" begin
@@ -55,9 +63,9 @@ end
 
     @testset "Functions in other modules with DNV" begin
         using .MyModule
-        @test vectorize_function_calls(:(DNV(MyModule.myfunc(x)))) == :(MyModule.myfunc(x))
-        @test vectorize_function_calls(:(DNV(MyModule.myaggreg(x)))) == :(MyModule.myaggreg(x))
-        @test vectorize_function_calls(:(DNV(MyModule.mymiss(x)))) == :(MyModule.mymiss(x))
+        @test vectorize_function_calls(:(~(MyModule.myfunc(x)))) == :(MyModule.myfunc(x))
+        @test vectorize_function_calls(:(~(MyModule.myaggreg(x)))) == :(MyModule.myaggreg(x))
+        @test vectorize_function_calls(:(~(MyModule.mymiss(x)))) == :(MyModule.mymiss(x))
     end
 end
 
@@ -102,14 +110,14 @@ end
     end
 
     @testset "Variable reference and function call" begin
-        @test Kezdi.is_variable_reference(:x)
-        @test !Kezdi.is_variable_reference(:(x.y))
-        @test !Kezdi.is_variable_reference(:(log(x)))
-        @test Kezdi.is_function_call(:(log(x)))
-        @test Kezdi.is_function_call(:(log.(x)))
-        @test Kezdi.is_function_call(:(log.(x, y)))
-        @test Kezdi.is_function_call(:(Main.log(x)))
-        @test !Kezdi.is_function_call(:x)
+        @test Kezdi.iscolreference(:x)
+        @test !Kezdi.iscolreference(:(x.y))
+        @test !Kezdi.iscolreference(:(log(x)))
+        @test Kezdi.isfunctioncall(:(log(x)))
+        @test Kezdi.isfunctioncall(:(log.(x)))
+        @test Kezdi.isfunctioncall(:(log.(x, y)))
+        @test Kezdi.isfunctioncall(:(Main.log(x)))
+        @test !Kezdi.isfunctioncall(:x)
     end
 
     @testset "get_dot_parts" begin
