@@ -112,6 +112,11 @@ end
     @testset "Error handling" begin
         @test_throws Exception @with df @replace y = 1
     end
+
+    @testset "Double vectorization bug (#182)" begin
+        positive(x) = x > 0
+        @test (@with DataFrame(x=1:4, y=5:8) @replace y = 0 @if positive(x - 2)).y == [5, 6, 0, 0]
+    end
 end
 
 @testset "Missing values" begin
