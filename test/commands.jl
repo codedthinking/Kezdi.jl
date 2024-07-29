@@ -117,6 +117,13 @@ end
         positive(x) = x > 0
         @test (@with DataFrame(x=1:4, y=5:8) @replace y = 0 @if positive(x - 2)).y == [5, 6, 0, 0]
     end
+
+    @testset "Local variable escaping bug" begin
+        df = DataFrame(x=[1, 2, 3])
+        const eltype_LHS = :eltype_LHS
+        const eltype_RHS = :eltype_RHS
+        @test eltype((@with df @replace x = 1.1 @if _n == 1).x) <: AbstractFloat
+    end
 end
 
 @testset "Missing values" begin
