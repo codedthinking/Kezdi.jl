@@ -52,9 +52,10 @@ end
 function rewrite(::Val{:keep}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :nofunction])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    cols = isempty(command.arguments) ? :(:) : :(collect($command.arguments))
     quote
         $setup
-        $target_df[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> $teardown |> setdf
+        $target_df[!, $cols]  |> $teardown |> setdf
     end |> esc
 end
 
