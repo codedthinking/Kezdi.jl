@@ -120,9 +120,11 @@ end
 
     @testset "Local variable escaping bug" begin
         df = DataFrame(x=[1, 2, 3])
-        const eltype_LHS = :eltype_LHS
-        const eltype_RHS = :eltype_RHS
-        @test eltype((@with df @replace x = 1.1 @if _n == 1).x) <: AbstractFloat
+        global eltype_LHS = :eltype_LHS
+        global eltype_RHS = :eltype_RHS
+        @with df @replace x = 1.1 @if _n == 1
+        @test eltype_LHS == :eltype_LHS
+        @test eltype_RHS == :eltype_RHS
     end
 end
 
