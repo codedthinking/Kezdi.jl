@@ -22,10 +22,12 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 CSV = "0.10"
+Crayons = "4"
 DataFrames = "1"
 Expronicon = "0.10"
 FixedEffectModels = "1"
 FreqTables = "0.4"
+Missings = "1"
 RDatasets = "0.7"
 ReadStatTables = "0.3"
 Reexport = "1"
