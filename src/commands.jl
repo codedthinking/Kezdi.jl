@@ -6,10 +6,28 @@ function rewrite(::Val{:reshape_wide}, command::Command)
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     i = get_option(command, :i)[1] |> replace_column_references
     j = get_option(command, :j)[1] |> replace_column_references
-    var = collect(arguments)[1] |> replace_column_references
+    vars = collect(arguments) |> replace_column_references
+    df_list = gensym()
+    combined_df = gensym()
+    #=
+    TODO: 
+    - multiple vqribales
+        - unstack can only do 1 variable at a time
+    - varlist in i
+    =#
+    length(vars) > 1 ?
     quote
         $setup
-        unstack($local_copy, $i, $j, $var, renamecols = x -> Symbol($var, x)) |> $teardown |> setdf
+        $df_list = [unstack($target_df, $i, $j, var, renamecols = x -> Symbol(var, x)) for var in $vars]
+        $combined_df = $df_list[1]
+        for df in $df_list[2:end]
+            $combined_df = innerjoin($combined_df, df, on = $i)
+        end
+        $combined_df |> $teardown |> setdf
+    end |> esc  :
+    quote
+        $setup
+        unstack($target_df, $i, $j, $vars[1], renamecols = x -> Symbol($vars[1], x)) |> $teardown |> setdf
     end |> esc
 end
 
