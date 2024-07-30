@@ -769,3 +769,42 @@ end
     @test df == getdf()
     try @use "test.dta" @if x<5, clear; catch e; @test e isa LoadError; end
 end
+
+@testset "Reshape wide" begin
+    df = DataFrame(i=[1, 1, 2, 2], j=[1, 2, 1, 2], x=1:4, y=5:8)
+    @testset "Known values" begin
+        df2 = @with df @reshape wide x y, i(i) j(j)
+        @test names(df2) == ["i", "x1", "x2", "y1", "y2"]
+        @test all(df2.x1 .== [1, 3])
+        @test all(df2.x2 .== [2, 4])
+        @test all(df2.y1 .== [5, 7])
+        @test all(df2.y2 .== [6, 8])
+        df2 = @with df @reshape wide x, i(i) j(j)
+        @test names(df2) == ["i", "x1", "x2"]
+        @test all(df2.x1 .== [1, 3])
+        @test all(df2.x2 .== [2, 4])
+        df2 = @with df @reshape wide x, i(j) j(i)
+        @test names(df2) == ["j", "x1", "x2"]
+        @test all(df2.x1 .== [1, 2])
+        @test all(df2.x2 .== [3, 4])
+    end
+
+    @testset "Unbalanced panel" begin
+        df = DataFrame(i=[1, 1, 2, 2, 2], j=[1, 2, 1, 2, 3], x=1:5, y=5:9)
+        df2 = @with df @reshape wide x y, i(i) j(j)
+        @test names(df2) == ["i", "x1", "x2", "x3", "y1", "y2", "y3"]
+        @test all(df2.x1 .== [1, 3])
+        @test all(df2.x2 .== [2, 4])
+        @test all(df2.x3 .=== [missing, 5])
+        @test all(df2.y1 .== [5, 7])
+        @test all(df2.y2 .== [6, 8])
+        @test all(df2.y3 .=== [missing, 9])
+        df2 = @with df @reshape wide x y, i(j) j(i)
+        @test names(df2) == ["j", "x1", "x2", "y1", "y2"]
+        @test all(df2.j .== [1, 2, 3])
+        @test all(df2.x1 .=== [1, 2, missing])
+        @test all(df2.x2 .== [3, 4, 5])
+        @test all(df2.y1 .=== [5, 6, missing])
+        @test all(df2.y2 .== [7, 8, 9])
+    end
+end

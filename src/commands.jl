@@ -1,9 +1,15 @@
 # use multiple dispatch to generate code 
 rewrite(command::Command) = rewrite(Val(command.command), command)
 
+function rewrite(::Val{:reshape_long}, command::Command)
+    error("@reshape long not implemented yet")
+end
+
 function rewrite(::Val{:reshape_wide}, command::Command)
     gc = generate_command(command; options=[:variables], allowed=[:i, :j])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    get_option(command, :i) isa Nothing && ArgumentError("i() is mandatory. Syntax is @reshape wide y1 y2 ... i(var) j(var)") |> throw
+    get_option(command, :j) isa Nothing && ArgumentError("j() is mandatory. Syntax is @reshape wide y1 y2 ... i(var) j(var)") |> throw
     i = get_option(command, :i)[1] |> replace_column_references
     j = get_option(command, :j)[1] |> replace_column_references
     vars = collect(arguments) |> replace_column_references
@@ -11,8 +17,6 @@ function rewrite(::Val{:reshape_wide}, command::Command)
     combined_df = gensym()
     #=
     TODO: 
-    - multiple vqribales
-        - unstack can only do 1 variable at a time
     - varlist in i
     =#
     length(vars) > 1 ?
