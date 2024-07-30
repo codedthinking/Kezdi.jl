@@ -10,15 +10,12 @@ function rewrite(::Val{:reshape_wide}, command::Command)
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     get_option(command, :i) isa Nothing && ArgumentError("i() is mandatory. Syntax is @reshape wide y1 y2 ... i(var) j(var)") |> throw
     get_option(command, :j) isa Nothing && ArgumentError("j() is mandatory. Syntax is @reshape wide y1 y2 ... i(var) j(var)") |> throw
-    i = get_option(command, :i)[1] |> replace_column_references
+    length(get_option(command, :j)) > 1 && ArgumentError("Only one variable can be specified for j() in @reshape wide") |> throw
+    i = get_option(command, :i) |> replace_column_references
     j = get_option(command, :j)[1] |> replace_column_references
     vars = collect(arguments) |> replace_column_references
     df_list = gensym()
     combined_df = gensym()
-    #=
-    TODO: 
-    - varlist in i
-    =#
     length(vars) > 1 ?
     quote
         $setup

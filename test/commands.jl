@@ -807,4 +807,16 @@ end
         @test all(df2.y1 .=== [5, 6, missing])
         @test all(df2.y2 .== [7, 8, 9])
     end
+
+    @testset "Multiple i variables" begin
+        df = DataFrame(i1=[1, 1, 2, 2], i2=[0, 0, 0, 1], j=[1, 2, 1, 2], x=1:4, y=5:8)
+        df2 = @with df @reshape wide x y, i(i1, i2) j(j)
+        @test names(df2) == ["i1", "i2", "x1", "x2", "y1", "y2"]
+        @test all(df2.i1 .== [1, 2, 2])
+        @test all(df2.i2 .== [0, 0, 1])
+        @test all(df2.x1 .=== [1, 3, missing])
+        @test all(df2.x2 .=== [2, missing, 4])
+        @test all(df2.y1 .=== [5, 7, missing])
+        @test all(df2.y2 .=== [6, missing, 8])
+    end
 end
