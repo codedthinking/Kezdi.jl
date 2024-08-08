@@ -640,7 +640,7 @@ end
         @test t[2] == 2
         @test t[3] == 3
     end
-    df = DataFrame(x=[1, 2, 2, 3, 3, 3], y= [0, 0, 0, 1, 1, 1])
+    df = DataFrame(x=[1, 2, 2, 3, 3, 3], y=[0, 0, 0, 1, 1, 1])
     @testset "Twoway" begin
         t = @with df @tabulate x y
         @test :x in t.dimnames
@@ -768,4 +768,41 @@ end
     @use "test.dta", clear
     @test df == getdf()
     try @use "test.dta" @if x<5, clear; catch e; @test e isa LoadError; end
+end
+
+@testset "Missing encode" begin
+    df = DataFrame(x=[1, 2, missing, 3, missing, 4], y=[missing, 0, 1, 2, missing, 1])
+    @testset "Known values" begin
+        df2 = @with df @mvencode x
+        @test all(df2.x .== [1, 2, "missing", 3, "missing", 4])
+        df2 = @with df @mvencode x, mv(-99.0)
+        @test all(df2.x .== [1, 2, -99.0, 3, -99.0, 4])
+        df2 = @with df @mvencode x, mv(-99)
+        @test all(df2.x .== [1, 2, -99, 3, -99, 4])
+        df2 = @with df @mvencode y, mv(-99)
+        @test all(df2.y .== [-99, 0, 1, 2, -99, 1])
+        df2 = @with df @mvencode x y, mv(-99)
+        @test all(df2.x .== [1, 2, -99, 3, -99, 4])
+        @test all(df2.y .== [-99, 0, 1, 2, -99, 1])
+    end
+
+    @testset "If" begin
+        df2 = @with df @mvencode x @if ismissing(y), mv(-99)
+        @test all(df2.x .=== [1, 2, missing, 3, -99, 4])
+        df2 = @with df @mvencode x @if ismissing(x), mv(-99)
+        @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
+        df2 = @with df @mvencode y @if ismissing(y), mv(-99)
+        @test all(df2.y .=== [-99, 0, 1, 2, -99, 1])
+        df2 = @with df @mvencode y @if ismissing(x), mv(-99)
+        @test all(df2.y .=== [missing, 0, 1, 2, -99, 1])
+        df2 = @with df @mvencode x y @if ismissing(y), mv(-99)
+        @test all(df2.x .=== [1, 2, missing, 3, -99, 4])
+        @test all(df2.y .=== [-99, 0, 1, 2, -99, 1])
+        df2 = @with df @mvencode x y @if ismissing(x), mv(-99)
+        @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
+        @test all(df2.y .=== [missing, 0, 1, 2, -99, 1])
+        df2 = @with df @mvencode x y @if ismissing(x) || !ismissing(y), mv(-99)
+        @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
+        @test all(df2.y .=== [missing, 0, 1, 2, -99, 1])
+    end
 end

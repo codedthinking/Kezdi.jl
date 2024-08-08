@@ -17,7 +17,7 @@ end
 """
     @drop y1 y2 ... 
 or
-    @drop if condition]    
+    @drop [@if condition]    
 
 Drop the variables `y1`, `y2`, etc. from `df`. If `condition` is provided, the rows for which the condition is true are dropped.
 """
@@ -91,7 +91,7 @@ macro tabulate(exprs...)
 end
 
 """
-    @count if condition]
+    @count [@if condition]
 
 Count the number of rows for which the condition is true. If `condition` is not provided, the total number of rows is counted.
 """
@@ -100,7 +100,7 @@ macro count(exprs...)
 end
 
 """
-    @sort y1 y2 ...[, desc]
+    @sort y1 y2 ... , [desc]
 
 Sort the data frame by the variables `y1`, `y2`, etc. By default, the variables are sorted in ascending order. If `desc` is provided, the variables are sorted in descending order
 """
@@ -109,7 +109,7 @@ macro sort(exprs...)
 end
 
 """
-    @order y1 y2 ... [desc] [last] [after=var] [before=var] [alphabetical]
+    @order y1 y2 ... , [desc] [last] [after=var] [before=var] [alphabetical]
 
 Reorder the variables `y1`, `y2`, etc. in the data frame. By default, the variables are ordered in the order they are listed. If `desc` is provided, the variables are ordered in descending order. If `last` is provided, the variables are moved to the end of the data frame. If `after` is provided, the variables are moved after the variable `var`. If `before` is provided, the variables are moved before the variable `var`. If `alphabetical` is provided, the variables are ordered alphabetically.
 """
@@ -128,7 +128,7 @@ end
 
 
 """
-    @use "filename.dta"[, clear]
+    @use "filename.dta", [clear]
 
 Read the data from the file `filename.dta` and set it as the global data frame. If there is already a global data frame, `@use` will throw an error unless the `clear` option is provided
 """
@@ -198,3 +198,12 @@ macro describe(exprs...)
     :describe |> parse(exprs)  |> rewrite
 end
 
+
+"""
+    @mvencode y1 y2 ... [if condition], [mv(value)]
+
+Encode missing values in the variables `y1`, `y2`, etc. in the data frame. If `condition` is provided, the operation is executed only on rows for which the condition is true. If `mv` is provided, the missing values are encoded with the value `value`. Default value is "missing".
+"""
+macro mvencode(exprs...)
+    :mvencode |> parse(exprs) |> rewrite
+end

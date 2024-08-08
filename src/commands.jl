@@ -42,7 +42,7 @@ function rewrite(::Val{:replace}, command::Command)
         if $eltype_RHS != $eltype_LHS
             local $third_vector = Vector{promote_type($eltype_LHS, $eltype_RHS)}(undef, nrow($local_copy))
             $third_vector[$bitmask] .= $RHS
-            $third_vector[.!$bitmask] .= $local_copy[.!$bitmask, $target_column]
+            $third_vector[.!($bitmask)] .= $local_copy[.!($bitmask), $target_column]
             $local_copy[!, $target_column] = $third_vector
         else
             $target_df[!, $target_column] .= $RHS
@@ -177,3 +177,26 @@ function rewrite(::Val{:order}, command::Command)
     end |> esc
 end
 
+function rewrite(::Val{:mvencode}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable, :nofunction], allowed=[:mv])
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    cols = :(collect($command.arguments))
+    value = isnothing(get_option(command, :mv)) ? "missing" : get_option(command, :mv)
+    bitmask = build_bitmask(local_copy, command.condition)
+    third_vector = gensym()
+    valtype = gensym()
+    coltype = gensym()
+    quote
+        $setup
+        $valtype = $value isa AbstractVector ? eltype($value) : typeof($value)        
+        for col in $cols
+            $coltype = eltype($local_copy[.!($bitmask), col]) 
+            if $valtype != $coltype
+                local $third_vector = Vector{promote_type($coltype, $valtype)}($local_copy[!, col])
+                $local_copy[!, col] = $third_vector
+            end
+        end
+        $local_copy[$bitmask, $cols] = mvreplace.($local_copy[$bitmask, $cols], $value)
+        $local_copy |> $teardown |> setdf
+    end |> esc
+end

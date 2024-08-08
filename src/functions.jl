@@ -111,3 +111,5 @@ function _describe(df::AbstractDataFrame, cols::Vector{Symbol}=Symbol[])
     table.eltype = nonmissingtype.(table.eltype)
     table[!, [:variable, :eltype]]
 end
+
+mvreplace(x, y) = ismissing(x) ? y : x
