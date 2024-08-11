@@ -1,4 +1,5 @@
 use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf
+save(fname::AbstractString) = writestat(fname, getdf())
 
 """
     getdf() -> AbstractDataFrame

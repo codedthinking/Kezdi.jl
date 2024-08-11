@@ -144,6 +144,15 @@ macro use(exprs...)
     :(println("$(Kezdi.prompt())$($command)\n");Kezdi.use($fname)) |> esc
 end
 
+macro save(exprs...)
+    command = parse(exprs, :save)
+    length(command.arguments) == 1 || ArgumentError("@save takes a single file name as an argument:\n@save \"filename.dta\"") |> throw
+    isnothing(getdf()) && ArgumentError("There is no data frame to save.") |> throw
+    fname = command.arguments[1]
+    replace = :replace in command.options
+    ispath(fname) && !replace && ArgumentError("File $fname already exists.") |> throw
+    :(println("$(Kezdi.prompt())$($command)\n");Kezdi.save($fname)) |> esc
+end
 """
     @head [n]
 

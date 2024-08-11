@@ -767,7 +767,18 @@ end
     df = DataFrame(x=1:10, y=11:20)
     @use "test.dta", clear
     @test df == getdf()
-    try @use "test.dta" @if x<5, clear; catch e; @test e isa LoadError; end
+end
+
+@testset "Save" begin
+    @clear
+    df = DataFrame(x=1:11, y=11:21)
+    setdf(df)
+    @save "test.dta", replace
+    df2 = @use "test.dta", clear
+    @test df == df2
+    df = DataFrame(x=1:10, y=11:20)
+    setdf(df)
+    @save "test.dta", replace
 end
 
 @testset "Missing encode" begin
