@@ -211,7 +211,7 @@ end
 """
     @mvencode y1 y2 ... [if condition], [mv(value)]
 
-Encode missing values in the variables `y1`, `y2`, etc. in the data frame. If `condition` is provided, the operation is executed only on rows for which the condition is true. If `mv` is provided, the missing values are encoded with the value `value`. Default value is "missing".
+Encode missing values in the variables `y1`, `y2`, etc. in the data frame. If `condition` is provided, the operation is executed only on rows for which the condition is true. If `mv` is provided, the missing values are encoded with the value `value`. Default value is `missing` making no changes on the dataframe.
 """
 macro mvencode(exprs...)
     :mvencode |> parse(exprs) |> rewrite

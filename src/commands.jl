@@ -181,16 +181,17 @@ function rewrite(::Val{:mvencode}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :nofunction], allowed=[:mv])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     cols = :(collect($command.arguments))
-    value = isnothing(get_option(command, :mv)) ? "missing" : get_option(command, :mv)
+    value = isnothing(get_option(command, :mv)) ? missing : get_option(command, :mv)[1]
+    value isa AbstractVector && ArgumentError("The value for @mvencode cannot be a vector") |> throw
     bitmask = build_bitmask(local_copy, command.condition)
     third_vector = gensym()
     valtype = gensym()
     coltype = gensym()
     quote
         $setup
-        $valtype = $value isa AbstractVector ? eltype($value) : typeof($value)        
+        $valtype = typeof($value)        
         for col in $cols
-            $coltype = eltype($local_copy[.!($bitmask), col]) 
+            $coltype = eltype($local_copy[.!($bitmask), col])
             if $valtype != $coltype
                 local $third_vector = Vector{promote_type($coltype, $valtype)}($local_copy[!, col])
                 $local_copy[!, col] = $third_vector

@@ -771,6 +771,9 @@ end
 
 @testset "Save" begin
     @clear
+    df = DataFrame(x=Vector{Any}(1:11), y=11:21)
+    setdf(df)
+    try @save "test.dta", replace catch e @test e == ErrorException("element type Any is not supported") end
     df = DataFrame(x=1:11, y=11:21)
     setdf(df)
     @save "test.dta", replace
@@ -785,11 +788,16 @@ end
     df = DataFrame(x=[1, 2, missing, 3, missing, 4], y=[missing, 0, 1, 2, missing, 1])
     @testset "Known values" begin
         df2 = @with df @mvencode x
-        @test all(df2.x .== [1, 2, "missing", 3, "missing", 4])
+        @test all(df2.x .=== [1, 2, missing, 3, missing, 4])
         df2 = @with df @mvencode x, mv(-99.0)
         @test all(df2.x .== [1, 2, -99.0, 3, -99.0, 4])
+        @test typeof(df2.x) == Vector{Union{Missing, Float64}}
         df2 = @with df @mvencode x, mv(-99)
         @test all(df2.x .== [1, 2, -99, 3, -99, 4])
+        @test typeof(df2.x) == Vector{Union{Missing, Int64}}
+        df2 = @with df @mvencode x, mv(mean(skipmissing(getdf().x)))
+        @test all(df2.x .== [1, 2, 2.5, 3, 2.5, 4])
+        @test typeof(df2.x) == Vector{Union{Missing, Float64}}
         df2 = @with df @mvencode y, mv(-99)
         @test all(df2.y .== [-99, 0, 1, 2, -99, 1])
         df2 = @with df @mvencode x y, mv(-99)
