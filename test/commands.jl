@@ -785,7 +785,7 @@ end
 end
 
 @testset "Missing encode" begin
-    df = DataFrame(x=[1, 2, missing, 3, missing, 4], y=[missing, 0, 1, 2, missing, 1])
+    df = DataFrame(x=[1, 2, missing, 3, missing, 4], y=[missing, 0, 1, 2, missing, 2])
     @testset "Known values" begin
         df2 = @with df @mvencode x
         @test all(df2.x .=== [1, 2, missing, 3, missing, 4])
@@ -795,14 +795,17 @@ end
         df2 = @with df @mvencode x, mv(-99)
         @test all(df2.x .== [1, 2, -99, 3, -99, 4])
         @test typeof(df2.x) == Vector{Union{Missing, Int64}}
-        df2 = @with df @mvencode x, mv(mean(skipmissing(getdf().x)))
+        df2 = @with df @mvencode x, mv(mean(x))
         @test all(df2.x .== [1, 2, 2.5, 3, 2.5, 4])
         @test typeof(df2.x) == Vector{Union{Missing, Float64}}
+        df2 = @with df @mvencode x, mv(mean(x)/mean(y))
+        @test all(df2.x .== [1, 2, 2, 3, 2, 4])
+        @test typeof(df2.x) == Vector{Union{Missing, Float64}}
         df2 = @with df @mvencode y, mv(-99)
-        @test all(df2.y .== [-99, 0, 1, 2, -99, 1])
+        @test all(df2.y .== [-99, 0, 1, 2, -99, 2])
         df2 = @with df @mvencode x y, mv(-99)
         @test all(df2.x .== [1, 2, -99, 3, -99, 4])
-        @test all(df2.y .== [-99, 0, 1, 2, -99, 1])
+        @test all(df2.y .== [-99, 0, 1, 2, -99, 2])
     end
 
     @testset "If" begin
@@ -811,17 +814,17 @@ end
         df2 = @with df @mvencode x @if ismissing(x), mv(-99)
         @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
         df2 = @with df @mvencode y @if ismissing(y), mv(-99)
-        @test all(df2.y .=== [-99, 0, 1, 2, -99, 1])
+        @test all(df2.y .=== [-99, 0, 1, 2, -99, 2])
         df2 = @with df @mvencode y @if ismissing(x), mv(-99)
-        @test all(df2.y .=== [missing, 0, 1, 2, -99, 1])
+        @test all(df2.y .=== [missing, 0, 1, 2, -99, 2])
         df2 = @with df @mvencode x y @if ismissing(y), mv(-99)
         @test all(df2.x .=== [1, 2, missing, 3, -99, 4])
-        @test all(df2.y .=== [-99, 0, 1, 2, -99, 1])
+        @test all(df2.y .=== [-99, 0, 1, 2, -99, 2])
         df2 = @with df @mvencode x y @if ismissing(x), mv(-99)
         @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
-        @test all(df2.y .=== [missing, 0, 1, 2, -99, 1])
+        @test all(df2.y .=== [missing, 0, 1, 2, -99, 2])
         df2 = @with df @mvencode x y @if ismissing(x) || !ismissing(y), mv(-99)
         @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
-        @test all(df2.y .=== [missing, 0, 1, 2, -99, 1])
+        @test all(df2.y .=== [missing, 0, 1, 2, -99, 2])
     end
 end

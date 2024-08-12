@@ -178,11 +178,12 @@ function rewrite(::Val{:order}, command::Command)
 end
 
 function rewrite(::Val{:mvencode}, command::Command)
-    gc = generate_command(command; options=[:variables, :ifable, :nofunction], allowed=[:mv])
+    gc = generate_command(command; options=[:variables, :ifable, :nofunction, :replace_options], allowed=[:mv])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     cols = :(collect($command.arguments))
-    value = isnothing(get_option(command, :mv)) ? missing : get_option(command, :mv)[1]
+    value = isnothing(get_option(command, :mv)) ? missing : replace_column_references(local_copy, get_option(command, :mv)[1])
     value isa AbstractVector && ArgumentError("The value for @mvencode cannot be a vector") |> throw
+    value = add_skipmissing(value)
     bitmask = build_bitmask(local_copy, command.condition)
     third_vector = gensym()
     valtype = gensym()

@@ -266,3 +266,12 @@ isfunctioncall(ex::Expr) =
     Meta.isexpr(ex, :., 3)  # Vectorized function call (broadcasting)
 =#
 isfunctioncall(x::Expr) = x.head == :call || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple) || x.head in SYNTACTIC_OPERATORS
+
+add_skipmissing(expr::Any) = expr
+function add_skipmissing(expr::Expr)
+    if expr.head == Symbol(".") && expr.args[2] isa QuoteNode
+        println(expr)
+        return Expr(:call, :skipmissing, expr)
+    end
+    Expr(expr.head, expr.args[1], [add_skipmissing(x) for x in expr.args[2:end]]...)
+end
