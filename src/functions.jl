@@ -1,4 +1,5 @@
 use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf
+save(fname::AbstractString) = writestat(fname, getdf())
 
 """
     getdf() -> AbstractDataFrame
@@ -111,3 +112,5 @@ function _describe(df::AbstractDataFrame, cols::Vector{Symbol}=Symbol[])
     table.eltype = nonmissingtype.(table.eltype)
     table[!, [:variable, :eltype]]
 end
+
+mvreplace(x, y) = ismissing(x) ? y : x

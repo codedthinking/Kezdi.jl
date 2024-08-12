@@ -31,16 +31,18 @@ function rewrite(::Val{:replace}, command::Command)
     target_column = get_LHS(command.arguments[1])
     LHS, RHS = split_assignment(arguments[1])
     third_vector = gensym()
+    eltype_LHS = gensym()
+    eltype_RHS = gensym()
     bitmask = build_bitmask(local_copy, command.condition)
     quote
         !($target_column in names(getdf())) && ArgumentError("Column \"$($target_column)\" does not exist in $(names(getdf()))") |> throw
         $setup
-        eltype_RHS = $RHS isa AbstractVector ? eltype($RHS) : typeof($RHS)
-        eltype_LHS = eltype($local_copy[.!$bitmask, $target_column])
-        if eltype_RHS != eltype_LHS
-            local $third_vector = Vector{promote_type(eltype_LHS, eltype_RHS)}(undef, nrow($local_copy))
+        $eltype_RHS = $RHS isa AbstractVector ? eltype($RHS) : typeof($RHS)
+        $eltype_LHS = eltype($local_copy[.!$bitmask, $target_column])
+        if $eltype_RHS != $eltype_LHS
+            local $third_vector = Vector{promote_type($eltype_LHS, $eltype_RHS)}(undef, nrow($local_copy))
             $third_vector[$bitmask] .= $RHS
-            $third_vector[.!$bitmask] .= $local_copy[.!$bitmask, $target_column]
+            $third_vector[.!($bitmask)] .= $local_copy[.!($bitmask), $target_column]
             $local_copy[!, $target_column] = $third_vector
         else
             $target_df[!, $target_column] .= $RHS
@@ -52,9 +54,10 @@ end
 function rewrite(::Val{:keep}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :nofunction])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    cols = isempty(command.arguments) ? :(:) : :(collect($command.arguments))
     quote
         $setup
-        $target_df[!, isempty($(command.arguments)) ? eval(:(:)) : collect($command.arguments)]  |> $teardown |> setdf
+        $target_df[!, $cols]  |> $teardown |> setdf
     end |> esc
 end
 
@@ -139,36 +142,62 @@ function rewrite(::Val{:order}, command::Command)
         ArgumentError("Only one variable can be specified for `before` or `after` options in @order") |> throw
     end
 
+    target_cols = :(collect($(command.arguments)))
+    cols = gensym()
+    idx = gensym()
 
     quote
         $setup
-        target_cols = collect($(command.arguments))
-        cols = [Symbol(col) for col in names($target_df) if Symbol(col) ∉ target_cols]
+        $cols = [Symbol(col) for col in names($target_df) if Symbol(col) ∉ $target_cols]
         if $alphabetical
-            cols = sort(cols, rev = $desc)
+            $cols = sort($cols, rev = $desc)
         end
 
         if $after
-            idx = findfirst(x -> x == $var[1], cols)
-            for (i,col) in enumerate(target_cols)
-                insert!(cols, idx + i, col)
+            $idx = findfirst(x -> x == $var[1], $cols)
+            for (i, col) in enumerate($target_cols)
+                insert!($cols, $idx + i, col)
             end
         end
 
         if $before
-            idx = findfirst(x -> x == $var[1], cols)
-            for (i,col) in enumerate(target_cols)
-                insert!(cols, idx + i - 1, col)
+            $idx = findfirst(x -> x == $var[1], $cols)
+            for (i, col) in enumerate($target_cols)
+                insert!($cols, $idx + i - 1, col)
             end
         end
 
         if $last && !($after || $before)
-            cols = push!(cols, target_cols...)
+            $cols = push!($cols, $target_cols...)
         elseif !($after || $before)
-            cols = pushfirst!(cols, target_cols...)
+            $cols = pushfirst!($cols, $target_cols...)
         end
 
-        $target_df[!,cols]|> $teardown |> setdf
+        $target_df[!, $cols]|> $teardown |> setdf
     end |> esc
 end
 
+function rewrite(::Val{:mvencode}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable, :nofunction], allowed=[:mv])
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    cols = :(collect($command.arguments))
+    value = isnothing(get_option(command, :mv)) ? missing : get_option(command, :mv)[1]
+    value isa AbstractVector && ArgumentError("The value for @mvencode cannot be a vector") |> throw
+    bitmask = build_bitmask(local_copy, command.condition)
+    third_vector = gensym()
+    valtype = gensym()
+    coltype = gensym()
+    quote
+        $setup
+        $valtype = typeof($value)        
+        for col in $cols
+            $coltype = eltype($local_copy[.!($bitmask), col])
+            if $valtype != $coltype
+                local $third_vector = Vector{promote_type($coltype, $valtype)}($local_copy[!, col])
+                $local_copy[!, col] = $third_vector
+            end
+        end
+        $local_copy[$bitmask, $cols] = mvreplace.($local_copy[$bitmask, $cols], $value)
+        $local_copy |> $teardown |> setdf
+    end |> esc
+end
