@@ -806,6 +806,15 @@ end
         df2 = @with df @mvencode x y, mv(-99)
         @test all(df2.x .== [1, 2, -99, 3, -99, 4])
         @test all(df2.y .== [-99, 0, 1, 2, -99, 2])
+        df2 = @with df @mvencode _all, mv(-99)
+        @test all(df2.x .== [1, 2, -99, 3, -99, 4])
+        @test all(df2.y .== [-99, 0, 1, 2, -99, 2])
+        df2 = @with df @mvencode x _all, mv(-99)
+        @test all(df2.x .== [1, 2, -99, 3, -99, 4])
+        @test all(df2.y .== [-99, 0, 1, 2, -99, 2])
+        df2 = @with df @mvencode _all x, mv(-99)
+        @test all(df2.x .== [1, 2, -99, 3, -99, 4])
+        @test all(df2.y .== [-99, 0, 1, 2, -99, 2])
     end
 
     @testset "If" begin
