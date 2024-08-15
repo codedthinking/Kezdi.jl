@@ -270,7 +270,6 @@ isfunctioncall(x::Expr) = x.head == :call || (x.head == Symbol(".") && x.args[1]
 add_skipmissing(expr::Any) = expr
 function add_skipmissing(expr::Expr)
     if expr.head == Symbol(".") && expr.args[2] isa QuoteNode
-        println(expr)
         return Expr(:call, :skipmissing, expr)
     end
     Expr(expr.head, expr.args[1], [add_skipmissing(x) for x in expr.args[2:end]]...)

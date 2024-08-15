@@ -763,27 +763,6 @@ end
     end
 end
 
-@testset "Use" begin
-    df = DataFrame(x=1:10, y=11:20)
-    @use "test.dta", clear
-    @test df == getdf()
-end
-
-@testset "Save" begin
-    @clear
-    df = DataFrame(x=Vector{Any}(1:11), y=11:21)
-    setdf(df)
-    try @save "test.dta", replace catch e @test e == ErrorException("element type Any is not supported") end
-    df = DataFrame(x=1:11, y=11:21)
-    setdf(df)
-    @save "test.dta", replace
-    df2 = @use "test.dta", clear
-    @test df == df2
-    df = DataFrame(x=1:10, y=11:20)
-    setdf(df)
-    @save "test.dta", replace
-end
-
 @testset "Missing encode" begin
     df = DataFrame(x=[1, 2, missing, 3, missing, 4], y=[missing, 0, 1, 2, missing, 2])
     @testset "Known values" begin
@@ -835,5 +814,68 @@ end
         df2 = @with df @mvencode x y @if ismissing(x) || !ismissing(y), mv(-99)
         @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
         @test all(df2.y .=== [missing, 0, 1, 2, -99, 2])
+    end
+end
+
+@testset "Use" begin
+    df = DataFrame(x=1:10, y=11:20)
+    @use "test.dta", clear
+    @test df == getdf()
+end
+
+@testset "Save" begin
+    @clear
+    df = DataFrame(x=Vector{Any}(1:11), y=11:21)
+    setdf(df)
+    try @save "test.dta", replace catch e @test e == ErrorException("element type Any is not supported") end
+    df = DataFrame(x=1:11, y=11:21)
+    setdf(df)
+    @save "test.dta", replace
+    df2 = @use "test.dta", clear
+    @test df == df2
+    df = DataFrame(x=1:10, y=11:20)
+    setdf(df)
+    @save "test.dta", replace
+end
+
+@testset "Append" begin  
+    df = @use "test.dta", clear
+    @testset "Same columns" begin
+        @append "test.sas7bdat"
+        @test nrow(df) == nrow(getdf()) / 2
+        @test df == getdf()[11:nrow(getdf()),:]
+        @append "test.csv"
+        @test nrow(df) == nrow(getdf()) / 3
+        @test df == getdf()[21:nrow(getdf()),:]
+    end
+
+    df2 = @use "test2.sas7bdat", clear
+    df = @use "test.dta", clear
+    df = convert.(Float64, df)
+    @testset "Different columns" begin   
+        @append "test2.sas7bdat"
+        @test nrow(df) == nrow(getdf()) / 2
+        @test df == getdf()[1:10,[:x,:y]]
+        @test all(getdf()[1:10, :z] .=== missing)
+        @test getdf()[11:end,:] == df2
+    end
+
+    @testset "With in-memory dataframe" begin
+        df = @use "test.dta", clear
+        @testset "Same columns" begin
+            df2 = copy(df)
+            @append df2
+            @test nrow(df) == nrow(getdf()) / 2
+            @test df == getdf()[11:nrow(getdf()),:]
+        end
+        df = @use "test.dta", clear
+        @testset "Different Columns" begin
+            df2 = @with df @generate z=x+y
+            @append df2
+            @test nrow(df) == nrow(getdf()) / 2
+            @test df[:,[:x,:y]] == getdf()[1:10,[:x,:y]]
+            @test all(getdf()[1:10, :z] .=== missing)
+            @test getdf()[11:end,:] == df2
+        end
     end
 end

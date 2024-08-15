@@ -1,5 +1,3 @@
-global_logger(Logging.ConsoleLogger(stderr, Logging.Info))
-
 macro mockmacro(exprs...)
     command = :mockmacro
     parse(exprs, command)
@@ -144,6 +142,11 @@ macro use(exprs...)
     :(println("$(Kezdi.prompt())$($command)\n");Kezdi.use($fname)) |> esc
 end
 
+"""
+    @save "filename.dta", [replace]
+
+Save the global data frame to the file `filename.dta`. If the file already exists, the `replace` option must be provided.
+"""
 macro save(exprs...)
     command = parse(exprs, :save)
     length(command.arguments) == 1 || ArgumentError("@save takes a single file name as an argument:\n@save \"filename.dta\"") |> throw
@@ -152,6 +155,19 @@ macro save(exprs...)
     replace = :replace in command.options
     ispath(fname) && !replace && ArgumentError("File $fname already exists.") |> throw
     :(println("$(Kezdi.prompt())$($command)\n");Kezdi.save($fname)) |> esc
+end
+
+"""
+    @append "filename.dta"
+
+Append the data from the file `filename.dta` to the global data frame. Columns that are not common filled with missing values.
+"""
+macro append(exprs...)
+    command = parse(exprs, :append)
+    length(command.arguments) == 1 || ArgumentError("@append takes a single file name as an argument:\n@append \"filename.dta\"") |> throw
+    isnothing(getdf()) && ArgumentError("There is no data frame to append to.") |> throw
+    fname = command.arguments[1]
+    :(println("$(Kezdi.prompt())$($command)\n");Kezdi.append($fname)) |> esc
 end
 """
     @head [n]
@@ -211,7 +227,7 @@ end
 """
     @mvencode y1 y2 [_all] ... [if condition], [mv(value)]
 
-Encode missing values in the variables `y1`, `y2`, etc. in the data frame. If `condition` is provided, the operation is executed only on rows for which the condition is true. If `mv` is provided, the missing values are encoded with the value `value`. Default value is `missing` making no changes on the dataframe. Using `_all` encodes all varibles missing values.
+Encode missing values in the variables `y1`, `y2`, etc. in the data frame. If `condition` is provided, the operation is executed only on rows for which the condition is true. If `mv` is provided, the missing values are encoded with the value `value`. By default value is `missing` making no changes on the dataframe. Using `_all` encodes all varibles of the DataFrame.
 """
 macro mvencode(exprs...)
     :mvencode |> parse(exprs) |> rewrite
