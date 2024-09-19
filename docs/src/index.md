@@ -68,7 +68,7 @@ end
 | Command      | Stata  | Julia 2nd run | Speedup |
 | ------------ | -----  | ------------- | ------- |
 | `@generate`  | 230ms  | 46ms | 5x |
-| `@replace`   | 232ms  | 43ms | 5x |
+| `@replace`   | 232ms  | 32ms | 7x |
 | `@egen`      | 5.00s  | 0.37s         | 13x     |
 | `@collapse`  | 0.94s  | 0.28s         | 3x      |
 | `@tabulate`  | 2.19s  | 0.09s         | 24x     |
