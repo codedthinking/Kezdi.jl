@@ -67,11 +67,13 @@ end
 
 | Command      | Stata  | Julia 2nd run | Speedup |
 | ------------ | -----  | ------------- | ------- |
-| `@egen`      | 4.90s  | 0.37s         | 13x     |
-| `@collapse`  | 0.92s  | 0.28s         | 3x      |
-| `@tabulate`  | 2.14s  | 0.09s         | 24x     |
-| `@summarize` | 10.40s | 0.35s         | 30x     |
-| `@regress`   | 0.89s  | 0.14s         | 6x      |
+| `@generate`  | 230ms  | 46ms | 5x |
+| `@replace`   | 232ms  | 43ms | 5x |
+| `@egen`      | 5.00s  | 0.37s         | 13x     |
+| `@collapse`  | 0.94s  | 0.28s         | 3x      |
+| `@tabulate`  | 2.19s  | 0.09s         | 24x     |
+| `@summarize` | 10.56s | 0.35s         | 30x     |
+| `@regress`   | 0.85s  | 0.14s         | 6x      |
 
 See the benchmarking code for [Stata](https://github.com/codedthinking/Kezdi.jl/blob/main/docs/examples/benchmark.do) and [Kezdi.jl](https://github.com/codedthinking/Kezdi.jl/blob/main/docs/examples/benchmark.jl).
 
