@@ -6,6 +6,12 @@ using Pkg; Pkg.precompile()
 df = DataFrame(i = 1:10_000_000)
 df.g = rand(0:99, nrow(df))
 
+println("Generate")
+@btime @with df @generate ln_i = log(i)
+
+println("Replace")
+@btime @with df @replace g = 2*i
+
 println("Egen")
 @btime @with df  @egen mean_i = mean(i), by(g)
 

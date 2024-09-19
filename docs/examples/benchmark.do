@@ -10,11 +10,27 @@ gen i = _n
 set seed 12345
 gen g = floor(runiform() * 100)
 
+timer clear 1
+preserve
+timer on 1
+    generate ln_i = log(i)
+timer off 1
+restore
+timer list 1
+
+timer clear 1
+preserve
+timer on 1
+    replace g = 2*i
+timer off 1
+restore
+timer list 1
+
 * Measure time for mean calculation by group
 timer clear 1
 preserve
 timer on 1
-egen mean_i = mean(i), by(g)
+    egen mean_i = mean(i), by(g)
 timer off 1
 restore
 timer list 1
@@ -23,7 +39,7 @@ timer list 1
 preserve
 timer clear 3
 timer on 3
-collapse (mean) mean_i=i, by(g)
+    collapse (mean) mean_i=i, by(g)
 timer off 3
 restore
 timer list 3
@@ -38,7 +54,7 @@ timer list 5
 * Measure time for summarize
 timer clear 7
 timer on 7
-summarize g, detail
+    summarize g, detail
 timer off 7
 timer list 7
 
@@ -46,7 +62,7 @@ timer list 7
 preserve
 timer clear 9
 timer on 9
-regress i g if g > 50
+    regress i g if g > 50
 timer off 9
 restore
 timer list 9
