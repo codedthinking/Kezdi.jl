@@ -15,5 +15,5 @@ begin
         @generate ln_x8 = log(x8)
         @generate ln_x9 = log(x9)
     end
-    # 43.221702 seconds (154.87 k allocations: 37.859 GiB, 27.68% gc time, 0.47% compilation time)
+    # 4.397261 seconds (153.62 k allocations: 4.332 GiB, 32.32% gc time, 1.78% compilation time)
 end

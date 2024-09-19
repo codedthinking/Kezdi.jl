@@ -21,7 +21,7 @@ function rewrite(::Val{:generate}, command::Command)
         $setup
         $local_copy[!, $target_column] .= missing
         $target_df[!, $target_column] .= $RHS
-        $local_copy |> $teardown |> setdf
+        $local_copy |> $teardown
     end |> esc
 end
 
