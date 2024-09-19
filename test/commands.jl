@@ -763,6 +763,60 @@ end
     end
 end
 
+@testset "Missing encode" begin
+    df = DataFrame(x=[1, 2, missing, 3, missing, 4], y=[missing, 0, 1, 2, missing, 2])
+    @testset "Known values" begin
+        df2 = @with df @mvencode x
+        @test all(df2.x .=== [1, 2, missing, 3, missing, 4])
+        df2 = @with df @mvencode x, mv(-99.0)
+        @test all(df2.x .== [1, 2, -99.0, 3, -99.0, 4])
+        @test typeof(df2.x) == Vector{Union{Missing, Float64}}
+        df2 = @with df @mvencode x, mv(-99)
+        @test all(df2.x .== [1, 2, -99, 3, -99, 4])
+        @test typeof(df2.x) == Vector{Union{Missing, Int64}}
+        df2 = @with df @mvencode x, mv(mean(x))
+        @test all(df2.x .== [1, 2, 2.5, 3, 2.5, 4])
+        @test typeof(df2.x) == Vector{Union{Missing, Float64}}
+        df2 = @with df @mvencode x, mv(mean(x)/mean(y))
+        @test all(df2.x .== [1, 2, 2, 3, 2, 4])
+        @test typeof(df2.x) == Vector{Union{Missing, Float64}}
+        df2 = @with df @mvencode y, mv(-99)
+        @test all(df2.y .== [-99, 0, 1, 2, -99, 2])
+        df2 = @with df @mvencode x y, mv(-99)
+        @test all(df2.x .== [1, 2, -99, 3, -99, 4])
+        @test all(df2.y .== [-99, 0, 1, 2, -99, 2])
+        df2 = @with df @mvencode _all, mv(-99)
+        @test all(df2.x .== [1, 2, -99, 3, -99, 4])
+        @test all(df2.y .== [-99, 0, 1, 2, -99, 2])
+        df2 = @with df @mvencode x _all, mv(-99)
+        @test all(df2.x .== [1, 2, -99, 3, -99, 4])
+        @test all(df2.y .== [-99, 0, 1, 2, -99, 2])
+        df2 = @with df @mvencode _all x, mv(-99)
+        @test all(df2.x .== [1, 2, -99, 3, -99, 4])
+        @test all(df2.y .== [-99, 0, 1, 2, -99, 2])
+    end
+
+    @testset "If" begin
+        df2 = @with df @mvencode x @if ismissing(y), mv(-99)
+        @test all(df2.x .=== [1, 2, missing, 3, -99, 4])
+        df2 = @with df @mvencode x @if ismissing(x), mv(-99)
+        @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
+        df2 = @with df @mvencode y @if ismissing(y), mv(-99)
+        @test all(df2.y .=== [-99, 0, 1, 2, -99, 2])
+        df2 = @with df @mvencode y @if ismissing(x), mv(-99)
+        @test all(df2.y .=== [missing, 0, 1, 2, -99, 2])
+        df2 = @with df @mvencode x y @if ismissing(y), mv(-99)
+        @test all(df2.x .=== [1, 2, missing, 3, -99, 4])
+        @test all(df2.y .=== [-99, 0, 1, 2, -99, 2])
+        df2 = @with df @mvencode x y @if ismissing(x), mv(-99)
+        @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
+        @test all(df2.y .=== [missing, 0, 1, 2, -99, 2])
+        df2 = @with df @mvencode x y @if ismissing(x) || !ismissing(y), mv(-99)
+        @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
+        @test all(df2.y .=== [missing, 0, 1, 2, -99, 2])
+    end
+end
+
 @testset "Use" begin
     df = DataFrame(x=1:10, y=11:20)
     @use "test.dta", clear
@@ -784,44 +838,44 @@ end
     @save "test.dta", replace
 end
 
-@testset "Missing encode" begin
-    df = DataFrame(x=[1, 2, missing, 3, missing, 4], y=[missing, 0, 1, 2, missing, 1])
-    @testset "Known values" begin
-        df2 = @with df @mvencode x
-        @test all(df2.x .=== [1, 2, missing, 3, missing, 4])
-        df2 = @with df @mvencode x, mv(-99.0)
-        @test all(df2.x .== [1, 2, -99.0, 3, -99.0, 4])
-        @test typeof(df2.x) == Vector{Union{Missing, Float64}}
-        df2 = @with df @mvencode x, mv(-99)
-        @test all(df2.x .== [1, 2, -99, 3, -99, 4])
-        @test typeof(df2.x) == Vector{Union{Missing, Int64}}
-        df2 = @with df @mvencode x, mv(mean(skipmissing(getdf().x)))
-        @test all(df2.x .== [1, 2, 2.5, 3, 2.5, 4])
-        @test typeof(df2.x) == Vector{Union{Missing, Float64}}
-        df2 = @with df @mvencode y, mv(-99)
-        @test all(df2.y .== [-99, 0, 1, 2, -99, 1])
-        df2 = @with df @mvencode x y, mv(-99)
-        @test all(df2.x .== [1, 2, -99, 3, -99, 4])
-        @test all(df2.y .== [-99, 0, 1, 2, -99, 1])
+@testset "Append" begin  
+    df = @use "test.dta", clear
+    @testset "Same columns" begin
+        @append "test.sas7bdat"
+        @test nrow(df) == nrow(getdf()) / 2
+        @test df == getdf()[11:nrow(getdf()),:]
+        @append "test.csv"
+        @test nrow(df) == nrow(getdf()) / 3
+        @test df == getdf()[21:nrow(getdf()),:]
     end
 
-    @testset "If" begin
-        df2 = @with df @mvencode x @if ismissing(y), mv(-99)
-        @test all(df2.x .=== [1, 2, missing, 3, -99, 4])
-        df2 = @with df @mvencode x @if ismissing(x), mv(-99)
-        @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
-        df2 = @with df @mvencode y @if ismissing(y), mv(-99)
-        @test all(df2.y .=== [-99, 0, 1, 2, -99, 1])
-        df2 = @with df @mvencode y @if ismissing(x), mv(-99)
-        @test all(df2.y .=== [missing, 0, 1, 2, -99, 1])
-        df2 = @with df @mvencode x y @if ismissing(y), mv(-99)
-        @test all(df2.x .=== [1, 2, missing, 3, -99, 4])
-        @test all(df2.y .=== [-99, 0, 1, 2, -99, 1])
-        df2 = @with df @mvencode x y @if ismissing(x), mv(-99)
-        @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
-        @test all(df2.y .=== [missing, 0, 1, 2, -99, 1])
-        df2 = @with df @mvencode x y @if ismissing(x) || !ismissing(y), mv(-99)
-        @test all(df2.x .=== [1, 2, -99, 3, -99, 4])
-        @test all(df2.y .=== [missing, 0, 1, 2, -99, 1])
+    df2 = @use "test2.sas7bdat", clear
+    df = @use "test.dta", clear
+    df = convert.(Float64, df)
+    @testset "Different columns" begin   
+        @append "test2.sas7bdat"
+        @test nrow(df) == nrow(getdf()) / 2
+        @test df == getdf()[1:10,[:x,:y]]
+        @test all(getdf()[1:10, :z] .=== missing)
+        @test getdf()[11:end,:] == df2
+    end
+
+    @testset "With in-memory dataframe" begin
+        df = @use "test.dta", clear
+        @testset "Same columns" begin
+            df2 = copy(df)
+            @append df2
+            @test nrow(df) == nrow(getdf()) / 2
+            @test df == getdf()[11:nrow(getdf()),:]
+        end
+        df = @use "test.dta", clear
+        @testset "Different Columns" begin
+            df2 = @with df @generate z=x+y
+            @append df2
+            @test nrow(df) == nrow(getdf()) / 2
+            @test df[:,[:x,:y]] == getdf()[1:10,[:x,:y]]
+            @test all(getdf()[1:10, :z] .=== missing)
+            @test getdf()[11:end,:] == df2
+        end
     end
 end
