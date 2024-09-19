@@ -1,3 +1,5 @@
+using Kezdi
+
 begin
     N = 20_000_000
     K = 20
@@ -13,5 +15,5 @@ begin
         @generate ln_x8 = log(x8)
         @generate ln_x9 = log(x9)
     end
-    # 30.076813 seconds (9.99 k allocations: 33.528 GiB, 31.13% gc time, 1.26% compilation time)
+    # 43.221702 seconds (154.87 k allocations: 37.859 GiB, 27.68% gc time, 0.47% compilation time)
 end

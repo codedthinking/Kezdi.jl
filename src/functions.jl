@@ -1,5 +1,6 @@
 use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf
 save(fname::AbstractString) = writestat(fname, getdf())
+
 function append(fname::AbstractString)
     ispath(fname) || ArgumentError("File $fname does not exist.") |> throw
     _, ext = splitext(fname)
@@ -48,7 +49,7 @@ getdf() = _global_dataframe
 
 Set the global data frame.
 """
-setdf(df::Union{AbstractDataFrame, Nothing}) = global _global_dataframe = df
+setdf(df::Union{AbstractDataFrame, Nothing}) = global _global_dataframe = isnothing(df) ? nothing : copy(df)
 display_and_return(x) = (display(x); x)
 
 """
