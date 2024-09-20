@@ -7,6 +7,7 @@ function rewrite(::Val{:rename}, command::Command)
     quote
         (length($arguments) != 2) && ArgumentError("Syntax is @rename oldname newname") |> throw
         $setup
+        # Actual DataFrames.jl command
         rename!($local_copy, $arguments[1] => $arguments[2]) |> $teardown
     end |> esc
 end
@@ -17,9 +18,12 @@ function rewrite(::Val{:generate}, command::Command)
     target_column = get_LHS(command.arguments[1])
     LHS, RHS = split_assignment(arguments[1])
     quote
+        # Actual DataFrames.jl command
         ($target_column in names(getdf())) && ArgumentError("Column \"$($target_column)\" already exists in $(names(getdf()))") |> throw
         $setup
+        # Actual DataFrames.jl command
         $local_copy[!, $target_column] .= missing
+        # Actual DataFrames.jl command
         $target_df[!, $target_column] .= $RHS
         $local_copy |> $teardown
     end |> esc
@@ -35,16 +39,22 @@ function rewrite(::Val{:replace}, command::Command)
     eltype_RHS = gensym()
     bitmask = build_bitmask(local_copy, command.condition)
     quote
+        # Actual DataFrames.jl command
         !($target_column in names(getdf())) && ArgumentError("Column \"$($target_column)\" does not exist in $(names(getdf()))") |> throw
         $setup
         $eltype_RHS = $RHS isa AbstractVector ? eltype($RHS) : typeof($RHS)
+        # Actual DataFrames.jl command
         $eltype_LHS = eltype($local_copy[.!$bitmask, $target_column])
         if $eltype_RHS != $eltype_LHS
             local $third_vector = Vector{promote_type($eltype_LHS, $eltype_RHS)}(undef, nrow($local_copy))
+            # Actual DataFrames.jl command
             $third_vector[$bitmask] .= $RHS
+            # Actual DataFrames.jl command
             $third_vector[.!($bitmask)] .= $local_copy[.!($bitmask), $target_column]
+            # Actual DataFrames.jl command
             $local_copy[!, $target_column] = $third_vector
         else
+            # Actual DataFrames.jl command
             $target_df[!, $target_column] .= $RHS
         end
         $local_copy |> $teardown
@@ -57,6 +67,7 @@ function rewrite(::Val{:keep}, command::Command)
     cols = isempty(command.arguments) ? :(:) : :(collect($command.arguments))
     quote
         $setup
+        # Actual DataFrames.jl command
         $target_df[!, $cols]  |> $teardown |> setdf
     end |> esc
 end
@@ -67,12 +78,14 @@ function rewrite(::Val{:drop}, command::Command)
     if isnothing(command.condition)
         return quote
             $setup
+            # Actual DataFrames.jl command
             select!($local_copy, Not(collect($(command.arguments)))) |> $teardown |> setdf
         end |> esc
     end 
     bitmask = build_bitmask(local_copy, command.condition)
     return quote
         $setup
+        # Actual DataFrames.jl command
         $local_copy[.!($bitmask), :] |> $teardown |> setdf
     end |> esc
 end
@@ -80,6 +93,7 @@ end
 function rewrite(::Val{:collapse}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    # Actual DataFrames.jl command
     combine_epxression = Expr(:call, :combine, target_df, build_assignment_formula.(command.arguments)...)
     quote
         $setup
@@ -91,8 +105,10 @@ function rewrite(::Val{:egen}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     target_column = get_LHS(command.arguments[1])
+    # Actual DataFrames.jl command
     transform_expression = Expr(:call, :transform!, target_df, build_assignment_formula.(command.arguments)...)
     quote
+        # Actual DataFrames.jl command
         ($target_column in names(getdf())) && ArgumentError("Column \"$($target_column)\" already exists in $(names(getdf()))") |> throw
         $setup
         $transform_expression
@@ -107,6 +123,7 @@ function rewrite(::Val{:sort}, command::Command)
     desc = :desc in get_top_symbol.(options) ? true : false
     quote
         $setup
+        # Actual DataFrames.jl command
         sort!($target_df, $columns, rev=$desc) |> $teardown
     end |> esc
 end
@@ -148,6 +165,7 @@ function rewrite(::Val{:order}, command::Command)
 
     quote
         $setup
+        # Actual DataFrames.jl command
         $cols = [Symbol(col) for col in names($target_df) if Symbol(col) ∉ $target_cols]
         if $alphabetical
             $cols = sort($cols, rev = $desc)
@@ -173,6 +191,7 @@ function rewrite(::Val{:order}, command::Command)
             $cols = pushfirst!($cols, $target_cols...)
         end
 
+        # Actual DataFrames.jl command
         $target_df[!, $cols]|> $teardown
     end |> esc
 end
@@ -182,6 +201,7 @@ function rewrite(::Val{:mvencode}, command::Command)
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     cols = :(collect($command.arguments))
     if :_all in collect(command.arguments)
+        # Actual DataFrames.jl command
         cols = :(names($local_copy))
     end
     value = isnothing(get_option(command, :mv)) ? missing : replace_column_references(local_copy, get_option(command, :mv)[1])
@@ -195,12 +215,15 @@ function rewrite(::Val{:mvencode}, command::Command)
         $setup
         $valtype = typeof($value)   
         for col in $cols
+            # Actual DataFrames.jl command
             $coltype = eltype($local_copy[.!($bitmask), col])
             if $valtype != $coltype
                 local $third_vector = Vector{promote_type($coltype, $valtype)}($local_copy[!, col])
+                # Actual DataFrames.jl command
                 $local_copy[!, col] = $third_vector
             end
         end
+        # Actual DataFrames.jl command
         $local_copy[$bitmask, $cols] = mvreplace.($local_copy[$bitmask, $cols], $value)
         $local_copy |> $teardown
     end |> esc

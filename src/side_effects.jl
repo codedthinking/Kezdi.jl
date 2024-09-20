@@ -39,8 +39,10 @@ function rewrite(::Val{:regress}, command::Command)
             display("Dropping $(sum(.!$additional_condition)) row(s) due to missing values.")
         end
         if length($(arguments[2:end])) == 1
+            # Actual DataFrames.jl command
             reg(view($target_df, $additional_condition, :), @formula($(arguments[1]) ~ $(arguments[2])), $vcov) |> $teardown
         else
+            # Actual DataFrames.jl command
             reg(view($target_df, $additional_condition, :), @formula($(arguments[1]) ~ $(Expr(:call, :+, arguments[2:end]...))), $vcov) |> Kezdi.display_and_return |> $teardown
         end
     end |> esc
@@ -61,6 +63,7 @@ function rewrite(::Val{:list}, command::Command)
     cols = isempty(command.arguments) ? :(:) : :(collect($command.arguments))
     quote
         $setup
+        # Actual DataFrames.jl command
         $target_df[!, $cols]  |> Kezdi.display_and_return |> $teardown
     end |> esc
 end
