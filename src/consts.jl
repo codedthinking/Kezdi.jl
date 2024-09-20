@@ -117,6 +117,3 @@ const OPTIONS = (
 )
 
 const SYNTACTIC_OPERATORS = tuple([Symbol(x) for x in split(raw"&& || += -= *= /= //= \= ^= ÷= %= <<= >>= >>>= |= &= ⊻=")]...)
-
-# not really a const, but anyway
-global _global_dataframe::Union{AbstractDataFrame, Nothing} = nothing

@@ -3,12 +3,12 @@ rewrite(command::Command) = rewrite(Val(command.command), command)
 
 function rewrite(::Val{:rename}, command::Command)
     gc = generate_command(command; options=[:variables], allowed=[])
-    (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    (; command, groupby, arguments, options, _n, _N) = gc
     quote
         (length($arguments) != 2) && ArgumentError("Syntax is @rename oldname newname") |> throw
-        $setup
-        # Actual DataFrames.jl command
-        rename!($local_copy, $arguments[1] => $arguments[2]) |> $teardown
+        println("$(Kezdi.prompt())$(string($command))\n")
+        Kezdi.setup(df, nothing, $groupby, $_n, $_N)
+        rename!(df, $arguments[1] => $arguments[2])
     end |> esc
 end
 

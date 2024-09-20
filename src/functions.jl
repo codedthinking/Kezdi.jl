@@ -38,18 +38,20 @@ end
 
 
 """
-    getdf() -> AbstractDataFrame
+    getdf() -> DataFrames.AbstractDataFrame
 
 Return the global data frame.
 """
 getdf() = _global_dataframe
 
 """
-    setdf(df::Union{AbstractDataFrame, Nothing})
+    setdf(df::Union{DataFrames.AbstractDataFrame, Nothing})
 
 Set the global data frame.
 """
-setdf(df::Union{AbstractDataFrame, Nothing}) = global _global_dataframe = isnothing(df) ? nothing : copy(df)
+setdf(::Nothing) = global _global_dataframe = nothing
+setdf(df::DataFrames.AbstractDataFrame) = global _global_dataframe = copy(df)
+setdf(df::Backend.TableReference) = global _global_dataframe = df
 display_and_return(x) = (display(x); x)
 
 """
@@ -68,9 +70,9 @@ Count the number of valid values in a vector.
 rowcount(x::AbstractVector) = length(keep_only_values(x))
 rowcount(x::Base.SkipMissing) = length(collect(x))
 
-tabulate(df::AbstractDataFrame, columns::Vector{Symbol}) = freqtable(df, columns...)
+tabulate(df::DataFrames.AbstractDataFrame, columns::Vector{Symbol}) = freqtable(df, columns...)
 
-function summarize(df::AbstractDataFrame, column::Symbol)::Summarize
+function summarize(df::DataFrames.AbstractDataFrame, column::Symbol)::Summarize
     data = df[!, column] |> keep_only_values
     n = length(data)
     sum_val = sum(data)
@@ -108,8 +110,8 @@ function summarize(df::AbstractDataFrame, column::Symbol)::Summarize
     )
 end
 
-regress(df::AbstractDataFrame, formula::Expr) = :(reg($df, $formula))
-counter(df::AbstractDataFrame) = nrow(df)
+regress(df::DataFrames.AbstractDataFrame, formula::Expr) = :(reg($df, $formula))
+counter(df::DataFrames.AbstractDataFrame) = nrow(df)
 counter(gdf::GroupedDataFrame) = [nrow(df) for df in gdf]
 
 isvalue(x) = true
@@ -143,7 +145,7 @@ cond(x::AbstractVector, y, z) = cond.(x, y, z)
 prompt(s::AbstractString="Kezdi.jl") = string(Crayon(bold=true, foreground=:green), "$s> ", Crayon(reset=true))
 
 # do not clash with DataFrames.describe
-function _describe(df::AbstractDataFrame, cols::Vector{Symbol}=Symbol[])
+function _describe(df::DataFrames.AbstractDataFrame, cols::Vector{Symbol}=Symbol[])
     table = isempty(cols) ? describe(df) : describe(df[!, cols])
     table.eltype = nonmissingtype.(table.eltype)
     table[!, [:variable, :eltype]]

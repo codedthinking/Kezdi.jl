@@ -10,6 +10,9 @@ struct Command
     options::Tuple
 end
 
+# not really a const, but anyway
+global _global_dataframe::Union{DataFrames.AbstractDataFrame, Backend.TableReference, Nothing} = nothing
+
 function Base.string(obj::Command)
     args = join(string.(obj.arguments), " ")
     condition = isnothing(obj.condition) ? "" : " @if $(string(obj.condition))"
@@ -22,12 +25,12 @@ function Base.show(io::IO, obj::Command)
 end
 
 struct GeneratedCommand
-    local_copy::Symbol
-    target_df::Union{Symbol, Nothing}
-    setup::Expr
-    teardown::Symbol
+    command::Command
+    groupby::Union{Nothing, Vector{Symbol}}
     arguments::Vector{Any}
     options::Vector{Any}
+    _n::Bool
+    _N::Bool
 end
 
 using DataFrames

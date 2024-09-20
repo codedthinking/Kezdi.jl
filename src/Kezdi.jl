@@ -16,12 +16,15 @@ using Crayons
 @reexport using FixedEffectModels
 @reexport using Statistics
 @reexport using CSV
-@reexport using DataFrames
+import DataFrames
+@reexport import DataFrames: DataFrame
 @reexport using StatsBase
 @reexport using Dates
 import Base: count
 
 include("consts.jl")
+@reexport using .Backend: rename!, names
+include("Backend.jl")
 include("structs.jl")
 include("functions.jl")
 include("macros.jl")

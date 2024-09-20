@@ -2,10 +2,7 @@ function generate_command(command::Command; options=[], allowed=[])
     df2 = gensym()
     sdf = gensym()
     gdf = gensym()
-    setup = Expr[]
-    teardown = Expr[]
     process = (x -> x)
-    tdfunction = gensym()
     # this points to the DataFrame that the command will return to the user
     target_df = df2
 
@@ -28,10 +25,6 @@ function generate_command(command::Command; options=[], allowed=[])
         (opt in allowed) || ArgumentError("Invalid option \"$opt\" for this command: @$(command.command)") |> throw
     end
 
-    push!(setup, :(println("$(Kezdi.prompt())$($(string(command)))\n")))
-    # Actual DataFrames.jl command
-    push!(setup, :(getdf() isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a global DataFrame set by setdf()")))
-    push!(setup, :(local $df2 = Kezdi._global_dataframe))
     variables_condition = (:ifable in options) ? vcat(extract_column_references(command.condition)...) : Symbol[]
     variables_RHS = (:variables in options) ? vcat(extract_column_references.(command.arguments)...) : Symbol[]
     variables = vcat(variables_condition, variables_RHS)
@@ -41,52 +34,14 @@ function generate_command(command::Command; options=[], allowed=[])
     if :vectorize in options
         process = vectorize_function_calls ∘ process
     end
-    # where should special variables be created?
-    # when grouped by, then couting rows should be done on the grouped data
-    _n_goes_to = df2
-    if :by in given_options && (:_n in variables || :_N in variables)
-        by_cols = get_by(command)
-        # Actual DataFrames.jl command
-        _n_goes_to = :(groupby($df2, $by_cols))
-    end
-    if :_n in variables
-        # Actual DataFrames.jl command
-        push!(setup, :(transform!($_n_goes_to, eachindex => :_n)))
-        # Actual DataFrames.jl command
-        push!(teardown, :(select!($df2, Not(:_n))))
-    end
-    if :_N in variables
-        # Actual DataFrames.jl command
-        push!(setup, :(transform!($_n_goes_to, nrow => :_N)))
-        # Actual DataFrames.jl command
-        push!(teardown, :(select!($df2, Not(:_N))))
-    end
-    if :ifable in options
-        condition = command.condition
-        target_df = sdf
-        if isnothing(condition)
-            push!(setup, :(local $sdf = $df2))
-        else
-            bitmask = build_bitmask(df2, condition)
-            # Actual DataFrames.jl command
-            push!(setup, :(local $sdf = view($df2, $bitmask, :)))
-        end
-    end
+    groupby = nothing
     if :by in given_options
-        target_df = gdf
-        by_cols = get_by(command)
-        # Actual DataFrames.jl command
-        push!(setup, :(local $gdf = groupby($sdf, $by_cols)))
+        groupby = get_by(command)
     end
-    push!(setup, :(function $tdfunction(x)
-            $(Expr(:block, teardown...))
-            x
-        end))
-    GeneratedCommand(df2, target_df, Expr(:block, setup...), tdfunction, collect(process.(command.arguments)), collect(command.options))
+    GeneratedCommand(command, groupby, collect(process.(command.arguments)), collect(command.options), :_n in variables, :_N in variables)
 end
 
-function setup(df::AbstractDataFrame, command::Command, groupby::Union{Nothing,Vector{Symbol}}=nothing, _n::Bool=False, _N::Bool=False)
-    println("$(Kezdi.prompt())$(string(command))\n")
+function setup(df::DataFrames.AbstractDataFrame, condition::Any, groupby::Union{Nothing, Vector{Symbol}}, _n::Bool=false, _N::Bool=false)
     _n_goes_to = df
     target_df = df
     if !isnothing(groupby)  && (_n  || _N)
@@ -98,8 +53,8 @@ function setup(df::AbstractDataFrame, command::Command, groupby::Union{Nothing,V
     if _N
         transform!(_n_goes_to, nrow => :_N)
     end
-    if !isnothing(command.condition)
-        bitmask = Kezdi.build_bitmask(df, command.condition)
+    if !isnothing(condition)
+        bitmask = Kezdi.build_bitmask(df, condition)
         target_df = view(df, bitmask, :)
     end
     if !isnothing(groupby)
@@ -107,6 +62,29 @@ function setup(df::AbstractDataFrame, command::Command, groupby::Union{Nothing,V
     end
     target_df
 end
+
+function setup(df::Backend.TableReference, condition::Any, groupby::Union{Nothing, Vector{Symbol}}, _n::Bool=false, _N::Bool=false)
+    _n_goes_to = df
+    target_df = df
+    if !isnothing(groupby)  && (_n  || _N)
+        _n_goes_to = groupby(df, groupby)
+    end
+    if _n
+        push!(_n_goes_to.names, "_n")
+    end
+    if _N
+        push!(_n_goes_to.names, "_N")
+    end
+    if !isnothing(condition)
+        bitmask = Kezdi.build_bitmask(df, condition)
+        target_df = view(df, bitmask, :)
+    end
+    if !isnothing(groupby)
+        target_df = groupby(target_df, groupby)
+    end
+    target_df
+end
+
 
 get_by(command::Command) = get_option(command, :by)
 
