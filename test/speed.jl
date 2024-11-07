@@ -1,6 +1,6 @@
 @testset "Generate completes within 10 seconds" begin
-    df = DataFrame(rand(20_000_000, 20), :auto)
-    
+    df = DataFrame(rand(10_000_000, 20), :auto)
+
     t = @benchmark let df = $df
         @with df begin
             @generate ln_x1 = log(x1)
@@ -14,7 +14,7 @@
             @generate ln_x9 = log(x9)
         end
     end
-    
+
     time = median(t).time / 1e9
-    @test_skip time < 10.0
+    @test time < 10.0
 end
