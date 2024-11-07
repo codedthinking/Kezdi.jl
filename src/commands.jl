@@ -1,6 +1,37 @@
 # use multiple dispatch to generate code 
 rewrite(command::Command) = rewrite(Val(command.command), command)
 
+function rewrite(::Val{:reshape_long}, command::Command)
+    error("@reshape long not implemented yet")
+end
+
+function rewrite(::Val{:reshape_wide}, command::Command)
+    gc = generate_command(command; options=[:variables], allowed=[:i, :j])
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    get_option(command, :i) isa Nothing && ArgumentError("i() is mandatory. Syntax is @reshape wide y1 y2 ... i(var) j(var)") |> throw
+    get_option(command, :j) isa Nothing && ArgumentError("j() is mandatory. Syntax is @reshape wide y1 y2 ... i(var) j(var)") |> throw
+    length(get_option(command, :j)) > 1 && ArgumentError("Only one variable can be specified for j() in @reshape wide") |> throw
+    i = get_option(command, :i) |> replace_column_references
+    j = get_option(command, :j)[1] |> replace_column_references
+    vars = collect(arguments) |> replace_column_references
+    df_list = gensym()
+    combined_df = gensym()
+    length(vars) > 1 ?
+    quote
+        $setup
+        $df_list = [unstack($target_df, $i, $j, var, renamecols = x -> Symbol(var, x)) for var in $vars]
+        $combined_df = $df_list[1]
+        for df in $df_list[2:end]
+            $combined_df = innerjoin($combined_df, df, on = $i)
+        end
+        $combined_df |> $teardown |> setdf
+    end |> esc  :
+    quote
+        $setup
+        unstack($target_df, $i, $j, $vars[1], renamecols = x -> Symbol($vars[1], x)) |> $teardown |> setdf
+    end |> esc
+end
+
 function rewrite(::Val{:rename}, command::Command)
     gc = generate_command(command; options=[:variables], allowed=[])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
