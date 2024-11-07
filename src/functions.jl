@@ -1,4 +1,41 @@
 use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf
+save(fname::AbstractString) = writestat(fname, getdf())
+
+function append(fname::AbstractString)
+    ispath(fname) || ArgumentError("File $fname does not exist.") |> throw
+    _, ext = splitext(fname)
+    if ext in [".dta", ".sav", ".por", ".sas7bdat", ".xpt"]
+        df = readstat(fname) |> DataFrame
+    else
+        df = CSV.read(fname, DataFrame)
+    end
+    cdf = getdf()
+    cdf, df = create_cols(cdf, df)
+    df = vcat(cdf,df)
+    setdf(df)
+end
+
+function append(df::DataFrame)
+    cdf, df  = create_cols(getdf(), df)
+    setdf(vcat(cdf, df))
+end
+
+function create_cols(cdf::DataFrame, df::DataFrame)
+    if names(cdf) != names(df)
+        for col in names(df)
+            if col ∉ names(cdf)
+                cdf[!, col] .= missing
+            end
+        end
+        for col in names(cdf)
+            if col ∉ names(df)
+                df[!, col] .= missing
+            end
+        end
+    end
+    return cdf, df
+end
+
 
 """
     getdf() -> AbstractDataFrame
@@ -12,7 +49,7 @@ getdf() = _global_dataframe
 
 Set the global data frame.
 """
-setdf(df::Union{AbstractDataFrame, Nothing}) = global _global_dataframe = df
+setdf(df::Union{AbstractDataFrame, Nothing}) = global _global_dataframe = isnothing(df) ? nothing : copy(df)
 display_and_return(x) = (display(x); x)
 
 """
@@ -111,3 +148,5 @@ function _describe(df::AbstractDataFrame, cols::Vector{Symbol}=Symbol[])
     table.eltype = nonmissingtype.(table.eltype)
     table[!, [:variable, :eltype]]
 end
+
+mvreplace(x, y) = ismissing(x) ? y : x

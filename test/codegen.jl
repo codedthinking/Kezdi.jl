@@ -125,4 +125,10 @@ end
         @test Kezdi.get_dot_parts(:(x.y)) == [:x, :y]
         @test Kezdi.get_dot_parts(:(x.y.z)) == [:x, :y, :z]
     end
+
+    @testset "Add skipmissing" begin
+        @test Kezdi.add_skipmissing(:(log(df.x))) == :(log(skipmissing(df.x)))
+        @test Kezdi.add_skipmissing(:(log(df.x)-log(df.y))) == :(log(skipmissing(df.x)) - log(skipmissing(df.y)))
+        @test Kezdi.add_skipmissing(:(log(df.x - df.y))) == :(log(skipmissing(df.x) - skipmissing(df.y)))
+    end
 end

@@ -1,5 +1,3 @@
-global_logger(Logging.ConsoleLogger(stderr, Logging.Info))
-
 macro mockmacro(exprs...)
     command = :mockmacro
     parse(exprs, command)
@@ -17,7 +15,7 @@ end
 """
     @drop y1 y2 ... 
 or
-    @drop if condition]    
+    @drop [@if condition]    
 
 Drop the variables `y1`, `y2`, etc. from `df`. If `condition` is provided, the rows for which the condition is true are dropped.
 """
@@ -91,7 +89,7 @@ macro tabulate(exprs...)
 end
 
 """
-    @count if condition]
+    @count [@if condition]
 
 Count the number of rows for which the condition is true. If `condition` is not provided, the total number of rows is counted.
 """
@@ -100,7 +98,7 @@ macro count(exprs...)
 end
 
 """
-    @sort y1 y2 ...[, desc]
+    @sort y1 y2 ... , [desc]
 
 Sort the data frame by the variables `y1`, `y2`, etc. By default, the variables are sorted in ascending order. If `desc` is provided, the variables are sorted in descending order
 """
@@ -109,7 +107,7 @@ macro sort(exprs...)
 end
 
 """
-    @order y1 y2 ... [desc] [last] [after=var] [before=var] [alphabetical]
+    @order y1 y2 ... , [desc] [last] [after=var] [before=var] [alphabetical]
 
 Reorder the variables `y1`, `y2`, etc. in the data frame. By default, the variables are ordered in the order they are listed. If `desc` is provided, the variables are ordered in descending order. If `last` is provided, the variables are moved to the end of the data frame. If `after` is provided, the variables are moved after the variable `var`. If `before` is provided, the variables are moved before the variable `var`. If `alphabetical` is provided, the variables are ordered alphabetically.
 """
@@ -128,7 +126,7 @@ end
 
 
 """
-    @use "filename.dta"[, clear]
+    @use "filename.dta", [clear]
 
 Read the data from the file `filename.dta` and set it as the global data frame. If there is already a global data frame, `@use` will throw an error unless the `clear` option is provided
 """
@@ -144,6 +142,33 @@ macro use(exprs...)
     :(println("$(Kezdi.prompt())$($command)\n");Kezdi.use($fname)) |> esc
 end
 
+"""
+    @save "filename.dta", [replace]
+
+Save the global data frame to the file `filename.dta`. If the file already exists, the `replace` option must be provided.
+"""
+macro save(exprs...)
+    command = parse(exprs, :save)
+    length(command.arguments) == 1 || ArgumentError("@save takes a single file name as an argument:\n@save \"filename.dta\"") |> throw
+    isnothing(getdf()) && ArgumentError("There is no data frame to save.") |> throw
+    fname = command.arguments[1]
+    replace = :replace in command.options
+    ispath(fname) && !replace && ArgumentError("File $fname already exists.") |> throw
+    :(println("$(Kezdi.prompt())$($command)\n");Kezdi.save($fname)) |> esc
+end
+
+"""
+    @append "filename.dta"
+
+Append the data from the file `filename.dta` to the global data frame. Columns that are not common filled with missing values.
+"""
+macro append(exprs...)
+    command = parse(exprs, :append)
+    length(command.arguments) == 1 || ArgumentError("@append takes a single file name as an argument:\n@append \"filename.dta\"") |> throw
+    isnothing(getdf()) && ArgumentError("There is no data frame to append to.") |> throw
+    fname = command.arguments[1]
+    :(println("$(Kezdi.prompt())$($command)\n");Kezdi.append($fname)) |> esc
+end
 """
     @head [n]
 
@@ -214,4 +239,13 @@ macro reshape(exprs...)
     else
         ArgumentError("Invalid option $(exprs[1]). Correct syntax:\n@reshape long y1 y2 ... i(var) j(var)\n@reshape wide y1 y2 ... i(var) j(var)") |> throw
     end
+end 
+
+"""
+    @mvencode y1 y2 [_all] ... [if condition], [mv(value)]
+
+Encode missing values in the variables `y1`, `y2`, etc. in the data frame. If `condition` is provided, the operation is executed only on rows for which the condition is true. If `mv` is provided, the missing values are encoded with the value `value`. By default value is `missing` making no changes on the dataframe. Using `_all` encodes all varibles of the DataFrame.
+"""
+macro mvencode(exprs...)
+    :mvencode |> parse(exprs) |> rewrite
 end

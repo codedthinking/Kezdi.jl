@@ -2,6 +2,7 @@ using Test
 using Expronicon
 using Kezdi
 using Logging
+using BenchmarkTools
 
 macro return_arguments(expr)
     return (expr,)
@@ -41,5 +42,9 @@ end
 
 @testset "Functions" begin
     include("functions.jl")
+end
+
+@testset "Speed" begin
+    include("speed.jl")
 end
 end # all tests

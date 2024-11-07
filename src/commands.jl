@@ -38,7 +38,7 @@ function rewrite(::Val{:rename}, command::Command)
     quote
         (length($arguments) != 2) && ArgumentError("Syntax is @rename oldname newname") |> throw
         $setup
-        rename!($local_copy, $arguments[1] => $arguments[2]) |> $teardown |> setdf
+        rename!($local_copy, $arguments[1] => $arguments[2]) |> $teardown
     end |> esc
 end
 
@@ -52,7 +52,7 @@ function rewrite(::Val{:generate}, command::Command)
         $setup
         $local_copy[!, $target_column] .= missing
         $target_df[!, $target_column] .= $RHS
-        $local_copy |> $teardown |> setdf
+        $local_copy |> $teardown
     end |> esc
 end
 
@@ -73,12 +73,12 @@ function rewrite(::Val{:replace}, command::Command)
         if $eltype_RHS != $eltype_LHS
             local $third_vector = Vector{promote_type($eltype_LHS, $eltype_RHS)}(undef, nrow($local_copy))
             $third_vector[$bitmask] .= $RHS
-            $third_vector[.!$bitmask] .= $local_copy[.!$bitmask, $target_column]
+            $third_vector[.!($bitmask)] .= $local_copy[.!($bitmask), $target_column]
             $local_copy[!, $target_column] = $third_vector
         else
             $target_df[!, $target_column] .= $RHS
         end
-        $local_copy |> $teardown |> setdf
+        $local_copy |> $teardown
     end |> esc
 end
 
@@ -98,7 +98,7 @@ function rewrite(::Val{:drop}, command::Command)
     if isnothing(command.condition)
         return quote
             $setup
-            select($local_copy, Not(collect($(command.arguments)))) |> $teardown |> setdf
+            select!($local_copy, Not(collect($(command.arguments)))) |> $teardown |> setdf
         end |> esc
     end 
     bitmask = build_bitmask(local_copy, command.condition)
@@ -127,7 +127,7 @@ function rewrite(::Val{:egen}, command::Command)
         ($target_column in names(getdf())) && ArgumentError("Column \"$($target_column)\" already exists in $(names(getdf()))") |> throw
         $setup
         $transform_expression
-        $local_copy |> $teardown |> setdf
+        $local_copy |> $teardown
     end |> esc
 end
 
@@ -138,7 +138,7 @@ function rewrite(::Val{:sort}, command::Command)
     desc = :desc in get_top_symbol.(options) ? true : false
     quote
         $setup
-        sort($target_df, $columns, rev=$desc) |> $teardown |> setdf
+        sort!($target_df, $columns, rev=$desc) |> $teardown
     end |> esc
 end
 
@@ -204,7 +204,35 @@ function rewrite(::Val{:order}, command::Command)
             $cols = pushfirst!($cols, $target_cols...)
         end
 
-        $target_df[!, $cols]|> $teardown |> setdf
+        $target_df[!, $cols]|> $teardown
     end |> esc
 end
 
+function rewrite(::Val{:mvencode}, command::Command)
+    gc = generate_command(command; options=[:variables, :ifable, :nofunction, :replace_options], allowed=[:mv])
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    cols = :(collect($command.arguments))
+    if :_all in collect(command.arguments)
+        cols = :(names($local_copy))
+    end
+    value = isnothing(get_option(command, :mv)) ? missing : replace_column_references(local_copy, get_option(command, :mv)[1])
+    value isa AbstractVector && ArgumentError("The value for @mvencode cannot be a vector") |> throw
+    value = add_skipmissing(value)
+    bitmask = build_bitmask(local_copy, command.condition)
+    third_vector = gensym()
+    valtype = gensym()
+    coltype = gensym()
+    quote
+        $setup
+        $valtype = typeof($value)   
+        for col in $cols
+            $coltype = eltype($local_copy[.!($bitmask), col])
+            if $valtype != $coltype
+                local $third_vector = Vector{promote_type($coltype, $valtype)}($local_copy[!, col])
+                $local_copy[!, col] = $third_vector
+            end
+        end
+        $local_copy[$bitmask, $cols] = mvreplace.($local_copy[$bitmask, $cols], $value)
+        $local_copy |> $teardown
+    end |> esc
+end

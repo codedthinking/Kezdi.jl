@@ -30,7 +30,7 @@ function generate_command(command::Command; options=[], allowed=[])
 
     push!(setup, :(println("$(Kezdi.prompt())$($(string(command)))\n")))
     push!(setup, :(getdf() isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a global DataFrame set by setdf()")))
-    push!(setup, :(local $df2 = copy(getdf())))
+    push!(setup, :(local $df2 = Kezdi._global_dataframe))
     variables_condition = (:ifable in options) ? vcat(extract_column_references(command.condition)...) : Symbol[]
     variables_RHS = (:variables in options) ? vcat(extract_column_references.(command.arguments)...) : Symbol[]
     variables = vcat(variables_condition, variables_RHS)
@@ -266,3 +266,11 @@ isfunctioncall(ex::Expr) =
     Meta.isexpr(ex, :., 3)  # Vectorized function call (broadcasting)
 =#
 isfunctioncall(x::Expr) = x.head == :call || (x.head == Symbol(".") && x.args[1] isa Symbol && x.args[2] isa Expr && x.args[2].head == :tuple) || x.head in SYNTACTIC_OPERATORS
+
+add_skipmissing(expr::Any) = expr
+function add_skipmissing(expr::Expr)
+    if expr.head == Symbol(".") && expr.args[2] isa QuoteNode
+        return Expr(:call, :skipmissing, expr)
+    end
+    Expr(expr.head, expr.args[1], [add_skipmissing(x) for x in expr.args[2:end]]...)
+end
