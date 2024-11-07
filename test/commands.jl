@@ -874,7 +874,6 @@ end
         @test all(df2.y2 .=== [6, missing, 8])
     end
 end
-end
 
 @testset "Save" begin
     @clear
