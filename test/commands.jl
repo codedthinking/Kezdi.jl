@@ -821,7 +821,11 @@ end
     df = DataFrame(x=1:10, y=11:20)
     @use "test.dta", clear
     @test df == getdf()
-    try @use "test.dta" @if x<5, clear; catch e; @test e isa LoadError; end
+    try
+        @use "test.dta" @if x < 5, clear
+    catch e
+        @test e isa UndefVarError
+    end
 end
 
 @testset "Reshape wide" begin
@@ -873,6 +877,28 @@ end
         @test all(df2.y1 .=== [5, 7, missing])
         @test all(df2.y2 .=== [6, missing, 8])
     end
+end
+
+@testset "Reshape long" begin
+    df = DataFrame(i=[1, 1, 2, 2], j=[1, 2, 1, 2], x=1:4, y=5:8)
+    @testset "Known values" begin
+        @test_throws UndefVarError df2 = @with df @reshape long x y, i(i) j(j)
+    end
+
+    @testset "Unbalanced panel" begin
+        df = DataFrame(i=[1, 1, 2, 2, 2], j=[1, 2, 1, 2, 3], x=1:5, y=5:9)
+        @test_throws UndefVarError df2 = @with df @reshape long x y, i(i) j(j)
+    end
+
+    @testset "Multiple i variables" begin
+        df = DataFrame(i1=[1, 1, 2, 2], i2=[0, 0, 0, 1], j=[1, 2, 1, 2], x=1:4, y=5:8)
+        @test_throws UndefVarError df2 = @with df @reshape long x y, i(i1, i2) j(j)
+    end
+end
+
+@testset "Reshape invalid" begin
+    df = DataFrame(i=[1, 1, 2, 2], j=[1, 2, 1, 2], x=1:4, y=5:8)
+    @test_throws UndefVarError df2 = @with df @reshape invalid x y, i(i) j(j)
 end
 
 @testset "Save" begin

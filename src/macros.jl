@@ -132,14 +132,14 @@ Read the data from the file `filename.dta` and set it as the global data frame. 
 """
 macro use(exprs...)
     command = parse(exprs, :use)
-    length(command.arguments) == 1 || ArgumentError("@use takes a single file name as an argument:\n@use \"filename.dta\"[, clear]") |> throw 
+    length(command.arguments) == 1 || ArgumentError("@use takes a single file name as an argument:\n@use \"filename.dta\"[, clear]") |> throw
     # clear is the only permissible option
     isempty(filter(x -> x != :clear, command.options)) || ArgumentError("Invalid options $(string.(command.options)). Correct syntax:\n@use \"filename.dta\"[, clear]") |> throw
     fname = command.arguments[1]
     clear = :clear in command.options
     isnothing(getdf()) || clear || ArgumentError("There is already a global data frame set. If you want to replace it, use the \", clear\" option.") |> throw
 
-    :(println("$(Kezdi.prompt())$($command)\n");Kezdi.use($fname)) |> esc
+    :(println("$(Kezdi.prompt())$($command)\n"); Kezdi.use($fname)) |> esc
 end
 
 """
@@ -154,7 +154,7 @@ macro save(exprs...)
     fname = command.arguments[1]
     replace = :replace in command.options
     ispath(fname) && !replace && ArgumentError("File $fname already exists.") |> throw
-    :(println("$(Kezdi.prompt())$($command)\n");Kezdi.save($fname)) |> esc
+    :(println("$(Kezdi.prompt())$($command)\n"); Kezdi.save($fname)) |> esc
 end
 
 """
@@ -167,7 +167,7 @@ macro append(exprs...)
     length(command.arguments) == 1 || ArgumentError("@append takes a single file name as an argument:\n@append \"filename.dta\"") |> throw
     isnothing(getdf()) && ArgumentError("There is no data frame to append to.") |> throw
     fname = command.arguments[1]
-    :(println("$(Kezdi.prompt())$($command)\n");Kezdi.append($fname)) |> esc
+    :(println("$(Kezdi.prompt())$($command)\n"); Kezdi.append($fname)) |> esc
 end
 """
     @head [n]
@@ -175,7 +175,7 @@ end
 Display the first `n` rows of the data frame. By default, `n` is 5.
 """
 macro head(n=5)
-    :(println("$(Kezdi.prompt())@head $($n)\n");first(getdf(), $n) |> display_and_return) |> esc
+    :(println("$(Kezdi.prompt())@head $($n)\n"); first(getdf(), $n) |> display_and_return) |> esc
 end
 
 """
@@ -184,7 +184,7 @@ end
 Display the last `n` rows of the data frame. By default, `n` is 5.
 """
 macro tail(n=5)
-    :(println("$(Kezdi.prompt())@tail $($n)\n");last(getdf(), $n) |> display_and_return) |> esc
+    :(println("$(Kezdi.prompt())@tail $($n)\n"); last(getdf(), $n) |> display_and_return) |> esc
 end
 
 """
@@ -193,7 +193,7 @@ end
 Display the names of the variables in the data frame.
 """
 macro names()
-    :(println("$(Kezdi.prompt())@names\n");names(getdf()) |> display_and_return) |> esc
+    :(println("$(Kezdi.prompt())@names\n"); names(getdf()) |> display_and_return) |> esc
 end
 
 """
@@ -211,7 +211,7 @@ end
 Clears the global dataframe.
 """
 macro clear()
-    :(println("$(Kezdi.prompt())@clear\n");setdf(nothing))
+    :(println("$(Kezdi.prompt())@clear\n"); setdf(nothing))
 end
 
 """
@@ -220,7 +220,7 @@ end
 Show the names and data types of columns of the data frame. If no variable names given, all are shown. 
 """
 macro describe(exprs...)
-    :describe |> parse(exprs)  |> rewrite
+    :describe |> parse(exprs) |> rewrite
 end
 
 """
@@ -233,18 +233,22 @@ The option `i()` may include multiple variables, like `i(var1, var2, var3)`. The
 """
 macro reshape(exprs...)
     if exprs[1] == :long
-        :reshape_long |> parse(exprs[2:end]) |> rewrite
+        return quote
+            :reshape_long |> parse(exprs[2:end]) |> rewrite
+        end
     elseif exprs[1] == :wide
         :reshape_wide |> parse(exprs[2:end]) |> rewrite
     else
-        ArgumentError("Invalid option $(exprs[1]). Correct syntax:\n@reshape long y1 y2 ... i(var) j(var)\n@reshape wide y1 y2 ... i(var) j(var)") |> throw
+        return quote
+            ArgumentError("Invalid option $(exprs[1]). Correct syntax:\n@reshape long y1 y2 ... i(var) j(var)\n@reshape wide y1 y2 ... i(var) j(var)") |> throw
+        end
     end
-end 
+end
 
 """
     @mvencode y1 y2 [_all] ... [if condition], [mv(value)]
 
-Encode missing values in the variables `y1`, `y2`, etc. in the data frame. If `condition` is provided, the operation is executed only on rows for which the condition is true. If `mv` is provided, the missing values are encoded with the value `value`. By default value is `missing` making no changes on the dataframe. Using `_all` encodes all varibles of the DataFrame.
+Encode missing values in the variables `y1`, `y2`, etc. in the data frame. If `condition` is provided, the operation is executed only on rows for which the condition is true. If `mv` is provided, the missing values are encoded with the value `value`. By default value is `missing` making no changes on the dataframe. Using `_all` encodes all variables of the DataFrame.
 """
 macro mvencode(exprs...)
     :mvencode |> parse(exprs) |> rewrite
