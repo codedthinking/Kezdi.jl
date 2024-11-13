@@ -12,21 +12,20 @@ function rewrite(::Val{:reshape_long}, command::Command)
     vars = collect(arguments) |> replace_column_references
     var_lists = gensym()
     combined_df = gensym()
-    combined_list = gensym()
+    df_list = gensym()
     quote
         $setup
-        $var_lists = [[Symbol(name) for name in names($target_df) if startswith(name, var)] for var in $vars]
-        $combined_list = [stack($target_df, list, view=true) for list in $var_lists]
-        for (i, df) in enumerate(combined_list)
-            df[:, :j] = df[:, :variable] .|> x -> parse(Int, x[length(String(vars[i]))+1:end])
-            rename!(df, :value => String(vars[i]))
+        $var_lists = [[Symbol(name) for name in names($target_df) if startswith(name, String(var))] for var in $vars]
+        $df_list = [stack($target_df, list) for list in $var_lists]
+        for (i, df) in enumerate($df_list)
+            df[!, $j] = df[:, :variable] .|> x -> parse(Int, x[length(String($vars[i]))+1:end])
+            rename!(df, :value => String($vars[i]))
             select!(df, Not(:variable))
         end
-        $combined_df = $combined_list[1]
-        for df in $combined_list[2:end]
-            $combined_df = leftjoin($combined_df, df, on=[$i, $j], makeunique=true)
+        $combined_df = $df_list[1]
+        for df in $df_list[2:end]
+            $combined_df = innerjoin($combined_df, df, on=[$i..., $j], makeunique=true)
         end
-        $combined_df = select($combined_df, collect(union(intersect(names.($combined_list)...), String.($vars))))
         $combined_df |> $teardown |> setdf
     end |> esc
 end

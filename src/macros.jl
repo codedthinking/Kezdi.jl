@@ -233,9 +233,7 @@ The option `i()` may include multiple variables, like `i(var1, var2, var3)`. The
 """
 macro reshape(exprs...)
     if exprs[1] == :long
-        return quote
-            :reshape_long |> parse(exprs[2:end]) |> rewrite
-        end
+        :reshape_long |> parse(exprs[2:end]) |> rewrite
     elseif exprs[1] == :wide
         :reshape_wide |> parse(exprs[2:end]) |> rewrite
     else
