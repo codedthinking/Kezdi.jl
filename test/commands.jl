@@ -880,19 +880,32 @@ end
 end
 
 @testset "Reshape long" begin
-    df = DataFrame(i=[1, 1, 2, 2], j=[1, 2, 1, 2], x=1:4, y=5:8)
+    df = DataFrame(i=[1, 1, 2, 2], x1=1:4, x2=5:8)
     @testset "Known values" begin
-        @test_throws UndefVarError df2 = @with df @reshape long x y, i(i) j(j)
+        df2 = @with df @reshape long x, i(i) j(j)
+        @test names(df2) == ["i", "x", "j"]
+        @test all(df2.i .== [1, 1, 2, 2, 1, 1, 2, 2])
+        @test all(df2.j .== [1, 1, 1, 1, 2, 2, 2, 2])
+        @test all(df2.x .== [1, 2, 3, 4, 5, 6, 7, 8])
     end
 
     @testset "Unbalanced panel" begin
-        df = DataFrame(i=[1, 1, 2, 2, 2], j=[1, 2, 1, 2, 3], x=1:5, y=5:9)
-        @test_throws UndefVarError df2 = @with df @reshape long x y, i(i) j(j)
+        df = DataFrame(i=[1, 1, 2, 2, 2], x1=1:5, x2=[missing, 7, missing, 9, 10], y1=5:9, y2=[10, missing, 12, missing, missing])
+        df2 = @with df @reshape long x y, i(i) j(j)
+        @test names(df2) == ["i", "j", "x", "y"]
+        @test all(df2.j .== [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        @test all(df2.x .=== [1, 2, 1, 2, 3, 4, 5, 3, 4, 5, 3, 4, 5, missing, 7, missing, 7, missing, 9, 10, missing, 9, 10, missing, 9, 10])
+        @test all(df2.y .=== [5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, missing, missing, 12, 12, 12, missing, missing, missing, missing, missing, missing])
     end
 
     @testset "Multiple i variables" begin
-        df = DataFrame(i1=[1, 1, 2, 2], i2=[0, 0, 0, 1], j=[1, 2, 1, 2], x=1:4, y=5:8)
-        @test_throws UndefVarError df2 = @with df @reshape long x y, i(i1, i2) j(j)
+        df = DataFrame(i1=[1, 1, 2, 2], i2=[0, 0, 0, 1], x1=1:4, x2=5:8)
+        df2 = @with df @reshape long x, i(i1, i2) j(j)
+        @test names(df2) == ["i1", "i2", "x", "j"]
+        @test all(df2.i1 .== [1, 1, 2, 2, 1, 1, 2, 2])
+        @test all(df2.i2 .== [0, 0, 0, 1, 0, 0, 0, 1])
+        @test all(df2.j .== [1, 1, 1, 1, 2, 2, 2, 2])
+        @test all(df2.x .== [1, 2, 3, 4, 5, 6, 7, 8])
     end
 end
 

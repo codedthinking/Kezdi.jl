@@ -17,15 +17,16 @@ function rewrite(::Val{:reshape_long}, command::Command)
         $setup
         $var_lists = [[Symbol(name) for name in names($target_df) if startswith(name, String(var))] for var in $vars]
         $df_list = [stack($target_df, list) for list in $var_lists]
-        for (i, df) in enumerate($df_list)
-            df[!, $j] = df[:, :variable] .|> x -> parse(Int, x[length(String($vars[i]))+1:end])
-            rename!(df, :value => String($vars[i]))
+        for (n, df) in enumerate($df_list)
+            df[!, $j] = df[:, :variable] .|> x -> Base.parse(Int, x[length(String($vars[n]))+1:end])
+            rename!(df, :value => String($vars[n]))
             select!(df, Not(:variable))
         end
         $combined_df = $df_list[1]
         for df in $df_list[2:end]
             $combined_df = innerjoin($combined_df, df, on=[$i..., $j], makeunique=true)
         end
+        $combined_df = select!($combined_df, collect(union(intersect(names.($df_list)...), String.($vars))))
         $combined_df |> $teardown |> setdf
     end |> esc
 end
@@ -45,7 +46,6 @@ function rewrite(::Val{:reshape_wide}, command::Command)
     quote
         $setup
         $df_list = [unstack($target_df, $i, $j, var, renamecols=x -> Symbol(var, x)) for var in $vars]
-        $combined_df = innerjoin($df_list, on=$i)
         $combined_df = $df_list[1]
         for df in $df_list[2:end]
             $combined_df = innerjoin($combined_df, df, on=$i)
