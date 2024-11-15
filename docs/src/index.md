@@ -109,6 +109,10 @@ setdf
 ```
 
 ```@docs
+@save
+```
+
+```@docs
 getdf
 ```
 
@@ -132,6 +136,9 @@ getdf
 @clear
 ```
 
+```@docs
+@describe
+```
 ### Filtering columns and rows
 ```@docs
 @keep
@@ -155,6 +162,10 @@ getdf
 ```
 
 ```@docs
+@mvencode
+```
+
+```@docs
 @egen
 ```
 
@@ -166,6 +177,17 @@ getdf
 @sort
 ```
 
+```@docs
+@order
+```
+
+```@docs
+@reshape
+```
+
+```@docs
+@append
+```
 
 ### Summarizing and analyzing data
 ```@docs
@@ -278,7 +300,7 @@ If you need to apply a function to individual elements of a column, you need to 
 ```
 
 !!! tip "Note: `length(words)` vs `length.(words)`" 
-    Here, `words` becomes a vector of vectors, where each element is a vector of words in the corresponding `Model` string. The function `legth.` will operate on each cell in `words`, counting the number of words in each `Model` string. By contrast, `length(words)` would return the number of elements in the `words` vector, which is the number of rows in the DataFrame.
+    Here, `words` becomes a vector of vectors, where each element is a vector of words in the corresponding `Model` string. The function `length.` will operate on each cell in `words`, counting the number of words in each `Model` string. By contrast, `length(words)` would return the number of elements in the `words` vector, which is the number of rows in the DataFrame.
 
 ### The `@if` condition
 Almost every command can be followed by an `@if` condition that filters the data frame. The command will only be executed on the subset of rows for which the condition evaluates to `true`. The condition can use any combination of column names and functions.

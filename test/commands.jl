@@ -821,6 +821,97 @@ end
     df = DataFrame(x=1:10, y=11:20)
     @use "test.dta", clear
     @test df == getdf()
+    try
+        @use "test.dta" @if x < 5, clear
+    catch e
+        @test e isa UndefVarError
+    end
+end
+
+@testset "Reshape wide" begin
+    df = DataFrame(i=[1, 1, 2, 2], j=[1, 2, 1, 2], x=1:4, y=5:8)
+    @testset "Known values" begin
+        df2 = @with df @reshape wide x y, i(i) j(j)
+        @test names(df2) == ["i", "x1", "x2", "y1", "y2"]
+        @test all(df2.x1 .== [1, 3])
+        @test all(df2.x2 .== [2, 4])
+        @test all(df2.y1 .== [5, 7])
+        @test all(df2.y2 .== [6, 8])
+        df2 = @with df @reshape wide x, i(i) j(j)
+        @test names(df2) == ["i", "x1", "x2"]
+        @test all(df2.x1 .== [1, 3])
+        @test all(df2.x2 .== [2, 4])
+        df2 = @with df @reshape wide x, i(j) j(i)
+        @test names(df2) == ["j", "x1", "x2"]
+        @test all(df2.x1 .== [1, 2])
+        @test all(df2.x2 .== [3, 4])
+    end
+
+    @testset "Unbalanced panel" begin
+        df = DataFrame(i=[1, 1, 2, 2, 2], j=[1, 2, 1, 2, 3], x=1:5, y=5:9)
+        df2 = @with df @reshape wide x y, i(i) j(j)
+        @test names(df2) == ["i", "x1", "x2", "x3", "y1", "y2", "y3"]
+        @test all(df2.x1 .== [1, 3])
+        @test all(df2.x2 .== [2, 4])
+        @test all(df2.x3 .=== [missing, 5])
+        @test all(df2.y1 .== [5, 7])
+        @test all(df2.y2 .== [6, 8])
+        @test all(df2.y3 .=== [missing, 9])
+        df2 = @with df @reshape wide x y, i(j) j(i)
+        @test names(df2) == ["j", "x1", "x2", "y1", "y2"]
+        @test all(df2.j .== [1, 2, 3])
+        @test all(df2.x1 .=== [1, 2, missing])
+        @test all(df2.x2 .== [3, 4, 5])
+        @test all(df2.y1 .=== [5, 6, missing])
+        @test all(df2.y2 .== [7, 8, 9])
+    end
+
+    @testset "Multiple i variables" begin
+        df = DataFrame(i1=[1, 1, 2, 2], i2=[0, 0, 0, 1], j=[1, 2, 1, 2], x=1:4, y=5:8)
+        df2 = @with df @reshape wide x y, i(i1, i2) j(j)
+        @test names(df2) == ["i1", "i2", "x1", "x2", "y1", "y2"]
+        @test all(df2.i1 .== [1, 2, 2])
+        @test all(df2.i2 .== [0, 0, 1])
+        @test all(df2.x1 .=== [1, 3, missing])
+        @test all(df2.x2 .=== [2, missing, 4])
+        @test all(df2.y1 .=== [5, 7, missing])
+        @test all(df2.y2 .=== [6, missing, 8])
+    end
+end
+
+@testset "Reshape long" begin
+    df = DataFrame(i=[1, 1, 2, 2], x1=1:4, x2=5:8)
+    @testset "Known values" begin
+        df2 = @with df @reshape long x, i(i) j(j)
+        @test names(df2) == ["i", "x", "j"]
+        @test all(df2.i .== [1, 1, 2, 2, 1, 1, 2, 2])
+        @test all(df2.j .== [1, 1, 1, 1, 2, 2, 2, 2])
+        @test all(df2.x .== [1, 2, 3, 4, 5, 6, 7, 8])
+    end
+
+    @testset "Unbalanced panel" begin
+        df = DataFrame(i=[1, 1, 2, 2, 2], x1=1:5, x2=[missing, 7, missing, 9, 10], y1=5:9, y2=[10, missing, 12, missing, missing])
+        df2 = @with df @reshape long x y, i(i) j(j)
+        @test names(df2) == ["i", "j", "x", "y"]
+        @test all(df2.j .== [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        @test all(df2.x .=== [1, 2, 1, 2, 3, 4, 5, 3, 4, 5, 3, 4, 5, missing, 7, missing, 7, missing, 9, 10, missing, 9, 10, missing, 9, 10])
+        @test all(df2.y .=== [5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, missing, missing, 12, 12, 12, missing, missing, missing, missing, missing, missing])
+    end
+
+    @testset "Multiple i variables" begin
+        df = DataFrame(i1=[1, 1, 2, 2], i2=[0, 0, 0, 1], x1=1:4, x2=5:8)
+        df2 = @with df @reshape long x, i(i1, i2) j(j)
+        @test names(df2) == ["i1", "i2", "x", "j"]
+        @test all(df2.i1 .== [1, 1, 2, 2, 1, 1, 2, 2])
+        @test all(df2.i2 .== [0, 0, 0, 1, 0, 0, 0, 1])
+        @test all(df2.j .== [1, 1, 1, 1, 2, 2, 2, 2])
+        @test all(df2.x .== [1, 2, 3, 4, 5, 6, 7, 8])
+    end
+end
+
+@testset "Reshape invalid" begin
+    df = DataFrame(i=[1, 1, 2, 2], j=[1, 2, 1, 2], x=1:4, y=5:8)
+    @test_throws UndefVarError df2 = @with df @reshape invalid x y, i(i) j(j)
 end
 
 @testset "Save" begin
