@@ -1,21 +1,22 @@
 use(fname::AbstractString) = readstat(fname) |> DataFrame |> setdf
 save(fname::AbstractString) = writestat(fname, getdf())
+
 function append(fname::AbstractString)
     ispath(fname) || ArgumentError("File $fname does not exist.") |> throw
     _, ext = splitext(fname)
-    if ext in [".dta", ".sav", ".por", ".sas7bdat", ".xpt"]
+    if ext in [".dta", ".save", ".por", ".sas7bdat", ".xpt"]
         df = readstat(fname) |> DataFrame
     else
         df = CSV.read(fname, DataFrame)
     end
     cdf = getdf()
     cdf, df = create_cols(cdf, df)
-    df = vcat(cdf,df)
+    df = vcat(cdf, df)
     setdf(df)
 end
 
 function append(df::DataFrame)
-    cdf, df  = create_cols(getdf(), df)
+    cdf, df = create_cols(getdf(), df)
     setdf(vcat(cdf, df))
 end
 
@@ -48,7 +49,7 @@ getdf() = _global_dataframe
 
 Set the global data frame.
 """
-setdf(df::Union{AbstractDataFrame, Nothing}) = global _global_dataframe = df
+setdf(df::Union{AbstractDataFrame,Nothing}) = global _global_dataframe = isnothing(df) ? nothing : copy(df)
 display_and_return(x) = (display(x); x)
 
 """
@@ -79,7 +80,7 @@ function summarize(df::AbstractDataFrame, column::Symbol)::Summarize
     skewness_val = skewness(data)
     # julia reports excess kurtosis, so we add 3 to get the kurtosis
     kurtosis_val = 3.0 + kurtosis(data)
-    
+
     percentiles = [1, 5, 10, 25, 50, 75, 90, 95, 99]
     percentiles_values = quantile(data, percentiles ./ 100; alpha=0.5, beta=0.5)
 
@@ -148,4 +149,9 @@ function _describe(df::AbstractDataFrame, cols::Vector{Symbol}=Symbol[])
     table[!, [:variable, :eltype]]
 end
 
+"""
+    mvreplace(x, y)
+
+Return `y` if `x` is `missing`, otherwise return `x`. If `x` is a vector, the operation is vectorized. This function mimics `x ? y : z`, which cannot be vectorized.
+"""
 mvreplace(x, y) = ismissing(x) ? y : x

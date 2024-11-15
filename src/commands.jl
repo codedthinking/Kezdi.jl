@@ -1,13 +1,70 @@
 # use multiple dispatch to generate code 
 rewrite(command::Command) = rewrite(Val(command.command), command)
 
+function rewrite(::Val{:reshape_long}, command::Command)
+    gc = generate_command(command; options=[:variables], allowed=[:i, :j])
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    get_option(command, :i) isa Nothing && ArgumentError("i() is mandatory. Syntax is @reshape long y1 y2 ... i(var) j(var)") |> throw
+    get_option(command, :j) isa Nothing && ArgumentError("j() is mandatory. Syntax is @reshape long y1 y2 ... i(var) j(var)") |> throw
+    length(get_option(command, :j)) > 1 && ArgumentError("Only one variable can be specified for j() in @reshape long") |> throw
+    i = get_option(command, :i) |> replace_column_references
+    j = get_option(command, :j)[1] |> replace_column_references
+    vars = collect(arguments) |> replace_column_references
+    var_lists = gensym()
+    combined_df = gensym()
+    df_list = gensym()
+    quote
+        $setup
+        $var_lists = [[Symbol(name) for name in names($target_df) if startswith(name, String(var))] for var in $vars]
+        $df_list = [stack($target_df, list) for list in $var_lists]
+        for (n, df) in enumerate($df_list)
+            df[!, $j] = df[:, :variable] .|> x -> Base.parse(Int, x[length(String($vars[n]))+1:end])
+            rename!(df, :value => String($vars[n]))
+            select!(df, Not(:variable))
+        end
+        $combined_df = $df_list[1]
+        for df in $df_list[2:end]
+            $combined_df = innerjoin($combined_df, df, on=[$i..., $j], makeunique=true)
+        end
+        $combined_df = select!($combined_df, collect(union(intersect(names.($df_list)...), String.($vars))))
+        $combined_df |> $teardown |> setdf
+    end |> esc
+end
+
+function rewrite(::Val{:reshape_wide}, command::Command)
+    gc = generate_command(command; options=[:variables], allowed=[:i, :j])
+    (; local_copy, target_df, setup, teardown, arguments, options) = gc
+    get_option(command, :i) isa Nothing && ArgumentError("i() is mandatory. Syntax is @reshape wide y1 y2 ... i(var) j(var)") |> throw
+    get_option(command, :j) isa Nothing && ArgumentError("j() is mandatory. Syntax is @reshape wide y1 y2 ... i(var) j(var)") |> throw
+    length(get_option(command, :j)) > 1 && ArgumentError("Only one variable can be specified for j() in @reshape wide") |> throw
+    i = get_option(command, :i) |> replace_column_references
+    j = get_option(command, :j)[1] |> replace_column_references
+    vars = collect(arguments) |> replace_column_references
+    df_list = gensym()
+    combined_df = gensym()
+    length(vars) > 1 ?
+    quote
+        $setup
+        $df_list = [unstack($target_df, $i, $j, var, renamecols=x -> Symbol(var, x)) for var in $vars]
+        $combined_df = $df_list[1]
+        for df in $df_list[2:end]
+            $combined_df = innerjoin($combined_df, df, on=$i)
+        end
+        $combined_df |> $teardown |> setdf
+    end |> esc :
+    quote
+        $setup
+        unstack($target_df, $i, $j, $vars[1], renamecols=x -> Symbol($vars[1], x)) |> $teardown |> setdf
+    end |> esc
+end
+
 function rewrite(::Val{:rename}, command::Command)
     gc = generate_command(command; options=[:variables], allowed=[])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     quote
         (length($arguments) != 2) && ArgumentError("Syntax is @rename oldname newname") |> throw
         $setup
-        rename!($local_copy, $arguments[1] => $arguments[2]) |> $teardown |> setdf
+        rename!($local_copy, $arguments[1] => $arguments[2]) |> $teardown
     end |> esc
 end
 
@@ -21,7 +78,7 @@ function rewrite(::Val{:generate}, command::Command)
         $setup
         $local_copy[!, $target_column] .= missing
         $target_df[!, $target_column] .= $RHS
-        $local_copy |> $teardown |> setdf
+        $local_copy |> $teardown
     end |> esc
 end
 
@@ -47,7 +104,7 @@ function rewrite(::Val{:replace}, command::Command)
         else
             $target_df[!, $target_column] .= $RHS
         end
-        $local_copy |> $teardown |> setdf
+        $local_copy |> $teardown
     end |> esc
 end
 
@@ -57,7 +114,7 @@ function rewrite(::Val{:keep}, command::Command)
     cols = isempty(command.arguments) ? :(:) : :(collect($command.arguments))
     quote
         $setup
-        $target_df[!, $cols]  |> $teardown |> setdf
+        $target_df[!, $cols] |> $teardown |> setdf
     end |> esc
 end
 
@@ -67,9 +124,9 @@ function rewrite(::Val{:drop}, command::Command)
     if isnothing(command.condition)
         return quote
             $setup
-            select($local_copy, Not(collect($(command.arguments)))) |> $teardown |> setdf
+            select!($local_copy, Not(collect($(command.arguments)))) |> $teardown |> setdf
         end |> esc
-    end 
+    end
     bitmask = build_bitmask(local_copy, command.condition)
     return quote
         $setup
@@ -96,7 +153,7 @@ function rewrite(::Val{:egen}, command::Command)
         ($target_column in names(getdf())) && ArgumentError("Column \"$($target_column)\" already exists in $(names(getdf()))") |> throw
         $setup
         $transform_expression
-        $local_copy |> $teardown |> setdf
+        $local_copy |> $teardown
     end |> esc
 end
 
@@ -107,12 +164,12 @@ function rewrite(::Val{:sort}, command::Command)
     desc = :desc in get_top_symbol.(options) ? true : false
     quote
         $setup
-        sort($target_df, $columns, rev=$desc) |> $teardown |> setdf
+        sort!($target_df, $columns, rev=$desc) |> $teardown
     end |> esc
 end
 
 function rewrite(::Val{:order}, command::Command)
-    gc = generate_command(command; options = [:variables, :nofunction], allowed=[:desc, :last, :after, :before , :alphabetical])
+    gc = generate_command(command; options=[:variables, :nofunction], allowed=[:desc, :last, :after, :before, :alphabetical])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
     desc = :desc in get_top_symbol.(options)
     last = :last in get_top_symbol.(options)
@@ -129,7 +186,7 @@ function rewrite(::Val{:order}, command::Command)
     if desc && !alphabetical
         ArgumentError("Cannot use `desc` without `alphabetical` option in @order") |> throw
     end
-    
+
     if before
         var = get_option(command, :before)
     elseif after
@@ -150,7 +207,7 @@ function rewrite(::Val{:order}, command::Command)
         $setup
         $cols = [Symbol(col) for col in names($target_df) if Symbol(col) ∉ $target_cols]
         if $alphabetical
-            $cols = sort($cols, rev = $desc)
+            $cols = sort($cols, rev=$desc)
         end
 
         if $after
@@ -173,7 +230,7 @@ function rewrite(::Val{:order}, command::Command)
             $cols = pushfirst!($cols, $target_cols...)
         end
 
-        $target_df[!, $cols]|> $teardown |> setdf
+        $target_df[!, $cols] |> $teardown
     end |> esc
 end
 
@@ -193,7 +250,7 @@ function rewrite(::Val{:mvencode}, command::Command)
     coltype = gensym()
     quote
         $setup
-        $valtype = typeof($value)   
+        $valtype = typeof($value)
         for col in $cols
             $coltype = eltype($local_copy[.!($bitmask), col])
             if $valtype != $coltype
@@ -202,6 +259,6 @@ function rewrite(::Val{:mvencode}, command::Command)
             end
         end
         $local_copy[$bitmask, $cols] = mvreplace.($local_copy[$bitmask, $cols], $value)
-        $local_copy |> $teardown |> setdf
+        $local_copy |> $teardown
     end |> esc
 end

@@ -1,5 +1,5 @@
 @testset "Generate" begin
-    df = DataFrame(x=1:4, z= 5:8, s= ["a", "b", "c", "d"])
+    df = DataFrame(x=1:4, z=5:8, s=["a", "b", "c", "d"])
 
     @testset "Column added" begin
         df2 = @with df @generate y = 4.0
@@ -60,14 +60,14 @@
         df = DataFrame(x=[[1, 2], [3, 4], [5, 6], [7, 8]])
         @test (@with df @generate x1 = getindex(x, 1)).x1 == [1, 3, 5, 7]
         @test (@with df @generate x2 = getindex(x, 2)).x2 == [2, 4, 6, 8]
-        df = DataFrame(text = ["a,b", "c,d,e", "f"])
+        df = DataFrame(text=["a,b", "c,d,e", "f"])
         df2 = @with df @generate n_terms = length.(split.(text, ","))
         @test df2.n_terms == [2, 3, 1]
     end
 end
 
 @testset "Replace" begin
-    df = DataFrame(x=1:4, z= 5:8)
+    df = DataFrame(x=1:4, z=5:8)
 
     @testset "Column names don't change" begin
         df2 = @with df @replace x = 4.0
@@ -99,14 +99,14 @@ end
     @testset "Mixed types" begin
         df = DataFrame(x=[1, 2, 3])
         @test eltype((@with df @replace x = 1.1 @if _n == 1).x) <: AbstractFloat
-        @test eltype((@with df @replace x = missing @if _n == 1).x) == Union{Missing, Int}
+        @test eltype((@with df @replace x = missing @if _n == 1).x) == Union{Missing,Int}
         @test eltype((@with df @replace x = "a" @if _n == 1).x) == Any
         df = DataFrame(x=[missing, 2, 3])
-        @test eltype((@with df @replace x = 1 @if _n == 1).x) == Union{Int, Missing}
+        @test eltype((@with df @replace x = 1 @if _n == 1).x) == Union{Int,Missing}
         df = DataFrame(x=[1.1, 2, 3])
         @test eltype((@with df @replace x = 1 @if _n == 1).x) <: AbstractFloat
         df = DataFrame(x=[1, 2, missing])
-        @test eltype((@with df @replace x = 1.1 @if _n == 1).x) <: Union{T, Missing} where T <: AbstractFloat
+        @test eltype((@with df @replace x = 1.1 @if _n == 1).x) <: Union{T,Missing} where {T<:AbstractFloat}
     end
 
     @testset "Error handling" begin
@@ -141,7 +141,7 @@ end
 end
 
 @testset "Constant string value" begin
-    df = DataFrame(s= ["a", "b", "c"])
+    df = DataFrame(s=["a", "b", "c"])
     df2 = @with df @replace s = "string"
     @test all(df2.s .== "string")
     df2 = @with df @replace s = "string" @if s == "a"
@@ -150,7 +150,7 @@ end
 
 @testset "Collapse" begin
     @testset "Non-vectorized aggregators" begin
-        df = DataFrame(x=1:4, z= 5:8)
+        df = DataFrame(x=1:4, z=5:8)
         df2 = @with df @collapse y = sum(x)
         @test all(df2.y .== sum(df.x))
         df2 = @with df @collapse y = minimum(x)
@@ -169,17 +169,17 @@ end
         @test df2.y == [4.0]
     end
     @testset "Vectorized does not collapse" begin
-        df = DataFrame(x=1:4, z= 5:8)
+        df = DataFrame(x=1:4, z=5:8)
         df2 = @with df @collapse y = sum.(x)
         @test all(df2.y .== df.x)
         df2 = @with df @collapse y = minimum.(x)
         @test all(df2.y .== df.x)
         df2 = @with df @collapse y = sum.(x) z = minimum(x)
         @test all(df2.y .== df.x)
-        @test all(df2.z .== minimum(df.x))         
+        @test all(df2.z .== minimum(df.x))
     end
     @testset "Known values by group(s)" begin
-        df = DataFrame(x=1:6, z= 7:12, s= ["a", "b", "a", "c", "d", "d"], group= ["red", "red", "red", "blue", "blue", "blue"])
+        df = DataFrame(x=1:6, z=7:12, s=["a", "b", "a", "c", "d", "d"], group=["red", "red", "red", "blue", "blue", "blue"])
         df2 = @with df @collapse y = sum(x), by(group)
         @test df2.y == [6, 15]
         df2 = @with df @collapse y = minimum(x), by(group)
@@ -200,7 +200,7 @@ end
 end
 
 @testset "Egen" begin
-    df = DataFrame(x=1:6, s= ["a", "b", "a", "c", "d", "d"], group= ["red", "red", "red", "blue", "blue", "blue"])
+    df = DataFrame(x=1:6, s=["a", "b", "a", "c", "d", "d"], group=["red", "red", "red", "blue", "blue", "blue"])
 
     @testset "Column added" begin
         df2 = @with df @egen y = sum(x)
@@ -271,15 +271,15 @@ end
 
     @testset "cond() function" begin
         df = DataFrame(x=1:6, g=[:a, :a, :a, :a, :b, :b])
-        df2 = @with df @egen z = maximum(cond(_n == 1, x, 0)), by(g)   
+        df2 = @with df @egen z = maximum(cond(_n == 1, x, 0)), by(g)
         @test df2.z == [1, 1, 1, 1, 5, 5]
-        df2 = @with df @egen z = minimum(cond(_n == 1, x, 0)), by(g)   
+        df2 = @with df @egen z = minimum(cond(_n == 1, x, 0)), by(g)
         @test all(df2.z .== 0)
     end
 end
 
 @testset "Keep if" begin
-    df = DataFrame(a=1:4, b= 5:8)
+    df = DataFrame(a=1:4, b=5:8)
     @test "a" in names(@with df @keep a)
     @test !("b" in names(@with df @keep a))
     @test "a" in names(@with df @keep a @if a < 3)
@@ -289,7 +289,7 @@ end
 end
 
 @testset "Keep if with missing" begin
-    df = DataFrame(a=1:4, b= [5, missing, 7, 8])
+    df = DataFrame(a=1:4, b=[5, missing, 7, 8])
     df2 = @with df @keep a @if !ismissing(b)
     @test df2.a == [1, 3, 4]
     df2 = @with df @keep a @if b > 6
@@ -297,7 +297,7 @@ end
 end
 
 @testset "Drop if" begin
-    df = DataFrame(a=1:4, b= 5:8)
+    df = DataFrame(a=1:4, b=5:8)
     @test "a" in names(@with df @drop b)
     @test !("b" in names(@with df @drop b))
     df2 = @with df @drop @if a < 3
@@ -311,26 +311,26 @@ end
 
 @testset "Generate with if" begin
     df = DataFrame(x=1:4)
-    dfxz = DataFrame(x=1:4, z= 1:4)
+    dfxz = DataFrame(x=1:4, z=1:4)
     @testset "Constant conditions" begin
         @testset "True" begin
             df2 = @with df @generate y = x @if true
             @test df2.y == df.x
             df2 = @with df @generate y = x @if 2 < 4
             @test df2.y == df.x
-            df2 = @with df @generate y = x @if 2+2 == 4
+            df2 = @with df @generate y = x @if 2 + 2 == 4
             @test df2.y == df.x
-            df2 = @with df @generate y = x @if 2+2 == 5 || 2+2 == 4
+            df2 = @with df @generate y = x @if 2 + 2 == 5 || 2 + 2 == 4
             @test df2.y == df.x
-            df2 = @with df @generate y = x @if x < 6 || 2+2 == 5
+            df2 = @with df @generate y = x @if x < 6 || 2 + 2 == 5
             @test df2.y == df.x
-            df2 = @with df @generate y = x @if 2+2 == 5 || x < 6 
+            df2 = @with df @generate y = x @if 2 + 2 == 5 || x < 6
             @test df2.y == df.x
-            df2 = @with df @generate y = x @if 2+2 == 4 && x < 6 
+            df2 = @with df @generate y = x @if 2 + 2 == 4 && x < 6
             @test df2.y == df.x
-            df2 = @with df @generate y = x @if x < 6 && 2+2 == 4
+            df2 = @with df @generate y = x @if x < 6 && 2 + 2 == 4
             @test df2.y == df.x
-            end
+        end
         @testset "False" begin
             df2 = @with df @generate y = x @if false
             @test all(df2.y .=== missing)
@@ -338,21 +338,21 @@ end
             @test all(df2.y .=== missing)
             df2 = @with df @generate y = x @if 1 < 0
             @test all(df2.y .=== missing)
-            df2 = @with df @generate y = x @if 2+2 == 5 && x <6
+            df2 = @with df @generate y = x @if 2 + 2 == 5 && x < 6
             @test all(df2.y .=== missing)
-            df2 = @with df @generate y = x @if x < 6 && 2+2 == 5
+            df2 = @with df @generate y = x @if x < 6 && 2 + 2 == 5
             @test all(df2.y .=== missing)
-            df2 = @with df @generate y = x @if 2+2 == 4 && 2+2 == 5
+            df2 = @with df @generate y = x @if 2 + 2 == 4 && 2 + 2 == 5
             @test all(df2.y .=== missing)
-            df2 = @with df @generate y = x @if 2+2 == 5 && 2+2 == 4
+            df2 = @with df @generate y = x @if 2 + 2 == 5 && 2 + 2 == 4
             @test all(df2.y .=== missing)
-            df2 = @with df @generate y = x @if 2+2 == 3 || 2+2 == 5
+            df2 = @with df @generate y = x @if 2 + 2 == 3 || 2 + 2 == 5
             @test all(df2.y .=== missing)
-            df2 = @with df @generate y = x @if x > 6 || 2+2 == 5
+            df2 = @with df @generate y = x @if x > 6 || 2 + 2 == 5
             @test all(df2.y .=== missing)
-            df2 = @with df @generate y = x @if  2+2 == 5 || x > 6
+            df2 = @with df @generate y = x @if 2 + 2 == 5 || x > 6
             @test all(df2.y .=== missing)
-            end
+        end
     end
 
     @testset "Known conditions" begin
@@ -371,7 +371,7 @@ end
     end
 
     @testset "cond() function" begin
-        @test (@with DataFrame(x = [1, 2, 3, 4]) @generate y = cond(x <= 2, 1, 0)).y == [1, 1, 0, 0]
+        @test (@with DataFrame(x=[1, 2, 3, 4]) @generate y = cond(x <= 2, 1, 0)).y == [1, 1, 0, 0]
     end
 
     @testset "Errors" begin
@@ -384,7 +384,7 @@ end
 
 @testset "x in list" begin
     df = DataFrame(x=1:4, group=["red", "red", "blue", "blue"])
-    dfxz = DataFrame(x=1:4, z= 1:4, group=["red", "red", "blue", "blue"])
+    dfxz = DataFrame(x=1:4, z=1:4, group=["red", "red", "blue", "blue"])
     df2 = @with df @generate y = sum(x) @if group in [["red", "blue"]]
     @test all(df2.y .== sum(df.x))
     df2 = @with df @generate y = sum(x) @if group in [["green", "yellow"]]
@@ -396,55 +396,55 @@ end
     df2 = @with dfxz @generate y = sum(x) @if x == 4 && group in [["blue"]] && z > 2 && z < 5
     @test all(df2.y .=== [missing, missing, missing, 4])
     df2 = @with dfxz @generate y = sum(x) @if x == 4 && group in [["blue"]] && z > 2 && z < 5 || z < 0
-        @test all(df2.y .=== [missing, missing, missing, 4])
+    @test all(df2.y .=== [missing, missing, missing, 4])
 end
 
 @testset "Egen with if" begin
     df = DataFrame(x=1:4, group=["red", "red", "blue", "blue"])
-    dfxz = DataFrame(x=1:4, z= 1:4, group=["red", "red", "blue", "blue"])
+    dfxz = DataFrame(x=1:4, z=1:4, group=["red", "red", "blue", "blue"])
     @testset "Constant conditions" begin
         @testset "True" begin
             df2 = @with df @egen y = sum(x) @if true
             @test all(df2.y .== sum(df.x))
             df2 = @with df @egen y = sum(x) @if 2 < 4
             @test all(df2.y .== sum(df.x))
-            df2 = @with df @egen y = sum(x) @if 2+2 == 4
+            df2 = @with df @egen y = sum(x) @if 2 + 2 == 4
             @test all(df2.y .== sum(df.x))
-            df2 = @with df @egen y = sum(x) @if 2+2 == 4 || 2+2 == 5
+            df2 = @with df @egen y = sum(x) @if 2 + 2 == 4 || 2 + 2 == 5
             @test all(df2.y .== sum(df.x))
-            df2 = @with df @egen y = sum(x) @if 2+2 == 5 || 2+2 == 4
+            df2 = @with df @egen y = sum(x) @if 2 + 2 == 5 || 2 + 2 == 4
             @test all(df2.y .== sum(df.x))
-            df2 = @with df @egen y = sum(x) @if x < 6 || 2+2 == 5
+            df2 = @with df @egen y = sum(x) @if x < 6 || 2 + 2 == 5
             @test all(df2.y .== sum(df.x))
-            df2 = @with df @egen y = sum(x) @if 2+2 == 5 || x < 6 
+            df2 = @with df @egen y = sum(x) @if 2 + 2 == 5 || x < 6
             @test all(df2.y .== sum(df.x))
-            df2 = @with df @egen y = sum(x) @if 2+2 == 4 && x < 6 
+            df2 = @with df @egen y = sum(x) @if 2 + 2 == 4 && x < 6
             @test all(df2.y .== sum(df.x))
-            df2 = @with df @egen y = sum(x) @if x < 6 && 2+2 == 4
+            df2 = @with df @egen y = sum(x) @if x < 6 && 2 + 2 == 4
             @test all(df2.y .== sum(df.x))
-            end
+        end
         @testset "False" begin
             df2 = @with df @egen y = sum(x) @if false
             @test all(df2.y .=== missing)
             df2 = @with df @egen y = sum(x) @if 2 > 4
             @test all(df2.y .=== missing)
-            df2 = @with df @egen y = sum(x) @if 2+2 != 4
+            df2 = @with df @egen y = sum(x) @if 2 + 2 != 4
             @test all(df2.y .=== missing)
-            df2 = @with df @egen y = sum(x) @if 2+2 == 5 && x <6
+            df2 = @with df @egen y = sum(x) @if 2 + 2 == 5 && x < 6
             @test all(df2.y .=== missing)
-            df2 = @with df @egen y = sum(x) @if x < 6 && 2+2 == 5
+            df2 = @with df @egen y = sum(x) @if x < 6 && 2 + 2 == 5
             @test all(df2.y .=== missing)
-            df2 = @with df @egen y = sum(x) @if 2+2 == 4 && 2+2 == 5
+            df2 = @with df @egen y = sum(x) @if 2 + 2 == 4 && 2 + 2 == 5
             @test all(df2.y .=== missing)
-            df2 = @with df @egen y = sum(x) @if 2+2 == 5 && 2+2 == 4
+            df2 = @with df @egen y = sum(x) @if 2 + 2 == 5 && 2 + 2 == 4
             @test all(df2.y .=== missing)
-            df2 = @with df @egen y = sum(x) @if 2+2 == 3 || 2+2 == 5
+            df2 = @with df @egen y = sum(x) @if 2 + 2 == 3 || 2 + 2 == 5
             @test all(df2.y .=== missing)
-            df2 = @with df @egen y = sum(x) @if x > 6 || 2+2 == 5
+            df2 = @with df @egen y = sum(x) @if x > 6 || 2 + 2 == 5
             @test all(df2.y .=== missing)
-            df2 = @with df @egen y = sum(x) @if  2+2 == 5 || x > 6
+            df2 = @with df @egen y = sum(x) @if 2 + 2 == 5 || x > 6
             @test all(df2.y .=== missing)
-            end
+        end
     end
     @testset "Known conditions" begin
         df2 = @with df @egen y = sum(x) @if x < 3
@@ -495,7 +495,7 @@ end
         @test s.p99 == 990.5
     end
     @testset "Interpolation" begin
-        s = @with DataFrame(x=1:11) @summarize  x
+        s = @with DataFrame(x=1:11) @summarize x
         @test s.name == :x
         @test s.N == 11
         @test s.sum_w == 11
@@ -529,7 +529,7 @@ end
         df = DataFrame(x=[1, missing, 3])
         s = @with df @summarize x
         @test s.N == 2
-        @test s.mean == 2.0        
+        @test s.mean == 2.0
     end
 
     @testset "Other NaN values" begin
@@ -540,7 +540,7 @@ end
         df = DataFrame(x=[1, Inf, 3])
         s = @with df @summarize x
         @test s.N == 2
-        @test s.mean == 2.0        
+        @test s.mean == 2.0
     end
 end
 
@@ -554,7 +554,7 @@ end
 @testset "Regression" begin
     @testset "Univariate" begin
         # use alternating +1 and -1 as error term to avoid numerical instability
-        df = DataFrame(x=1:10, y= 2 .+ 3 .* (1:10) .+ (-1) .^ (1:10))
+        df = DataFrame(x=1:10, y=2 .+ 3 .* (1:10) .+ (-1) .^ (1:10))
         @testset "Known values" begin
             r = @with df @regress y 1
             @test r.coef ≈ [18.5]
@@ -562,57 +562,57 @@ end
             @test r.coef ≈ [1.6666666666666679, 3.0606060606060606]
             r = @with df @regress y -x
             @test r.coef ≈ [1.6666666666666679, -3.0606060606060606]
-            r = @with df @regress y x/10
+            r = @with df @regress y x / 10
             @test r.coef ≈ [1.6666666666666679, 30.606060606060606]
-            r = @with df @regress -y x/10
+            r = @with df @regress -y x / 10
             @test r.coef ≈ [-1.6666666666666679, -30.606060606060606]
-            r = @with df @regress -y -x/10
+            r = @with df @regress -y -x / 10
             @test r.coef ≈ [-1.6666666666666679, 30.606060606060606]
         end
         @testset "Conditions" begin
             r = @with df @regress y x @if x < 5
             @test r.coef ≈ [1.0, 3.4000000000000004]
-            r = @with df @regress y x @if x < 5 || x > 8 
+            r = @with df @regress y x @if x < 5 || x > 8
             @test r.coef ≈ [1.795294117647062, 3.0423529411764703]
         end
     end
     @testset "Multivariate" begin
-        df = DataFrame(x=1:10, y= 2 .+ 3 .* (1:10) .+ (-1) .^ (1:10), z= (-1) .^ (1:10), s= ["a", "a", "a", "a", "b", "b", "b", "b", "c", "c"])
+        df = DataFrame(x=1:10, y=2 .+ 3 .* (1:10) .+ (-1) .^ (1:10), z=(-1) .^ (1:10), s=["a", "a", "a", "a", "b", "b", "b", "b", "c", "c"])
         @testset "Known values" begin
             r = @with df @regress y x z fe(s)
             @test r.coef ≈ [2.9999999999999996, 1.0000000000000002]
-            r = @with df @regress y x z 
+            r = @with df @regress y x z
             @test r.coef ≈ [2.0000000000000013, 3.0, 1.0]
-            r = @with df @regress y x z z*x fe(s)
+            r = @with df @regress y x z z * x fe(s)
             @test r.coef ≈ [2.9999999999999996, 1.0000000000000002, 0.0]
-            r = @with df @regress y x z z*x
+            r = @with df @regress y x z z * x
             @test r.coef ≈ [2.0000000000000013, 3.0, 1.0000000000000004, -8.881784197001259e-17]
         end
         @testset "Conditions" begin
             r = @with df @regress y x z fe(s) @if x < 5
-            @test r.coef ≈ [ 3.0000000000000004, 0.9999999999999998]
+            @test r.coef ≈ [3.0000000000000004, 0.9999999999999998]
             r = @with df @regress y x z @if x < 5
             @test r.coef ≈ [1.9999999999999998, 3.0000000000000004, 0.9999999999999998]
-            r = @with df @regress y x z z*x fe(s) @if x < 5
+            r = @with df @regress y x z z * x fe(s) @if x < 5
             @test r.coef ≈ [3.0000000000000004, 0.9999999999999987, 4.440892098500626e-16]
-            r = @with df @regress y x z z*x @if x < 5
+            r = @with df @regress y x z z * x @if x < 5
             @test r.coef ≈ [1.9999999999999996, 3.0000000000000004, 0.9999999999999987, 4.440892098500626e-16]
-            r = @with df @regress y x z fe(s) @if x < 5 || x >8
+            r = @with df @regress y x z fe(s) @if x < 5 || x > 8
             @test r.coef ≈ [3.0, 1.0]
-            r = @with df @regress y x z @if x < 5 || x >8
+            r = @with df @regress y x z @if x < 5 || x > 8
             @test r.coef ≈ [2.000000000000003, 2.9999999999999996, 1.0]
-            r = @with df @regress y x z z*x fe(s) @if x < 5 || x >8
+            r = @with df @regress y x z z * x fe(s) @if x < 5 || x > 8
             @test r.coef ≈ [3.0, 1.0000000000000002, -5.1241062675007215e-17]
-            r = @with df @regress y x z z*x @if x < 5 || x >8
+            r = @with df @regress y x z z * x @if x < 5 || x > 8
             @test r.coef ≈ [2.000000000000003, 2.9999999999999996, 0.9999999999999998, 5.124106267500724e-17]
         end
         @testset "Options" begin
             r = @with df @regress y x z fe(s), robust
-            @test r.coef ≈ [ 2.9999999999999996, 1.0000000000000002]
+            @test r.coef ≈ [2.9999999999999996, 1.0000000000000002]
             r = @with df @regress y x z fe(s), cluster(s)
-            @test r.coef ≈ [ 2.9999999999999996, 1.0000000000000002]
+            @test r.coef ≈ [2.9999999999999996, 1.0000000000000002]
             r = @with df @regress y x z fe(s), cluster(s) robust
-            @test r.coef ≈ [ 2.9999999999999996, 1.0000000000000002]
+            @test r.coef ≈ [2.9999999999999996, 1.0000000000000002]
         end
     end
 
@@ -653,9 +653,9 @@ end
 end
 
 @testset "Count" begin
-    df = DataFrame(x=1:10, y= 2 .+ 3 .* (1:10) .+ (-1) .^ (1:10), z= (-1) .^ (1:10), s= ["a", "a", "a", "a", "b", "b", "b", "b", "c", "c"])
+    df = DataFrame(x=1:10, y=2 .+ 3 .* (1:10) .+ (-1) .^ (1:10), z=(-1) .^ (1:10), s=["a", "a", "a", "a", "b", "b", "b", "b", "c", "c"])
     @testset "Known values" begin
-        c = @with df @count         
+        c = @with df @count
         @test c == 10
         c = @with df @count @if s == "a"
         @test c == 4
@@ -685,7 +685,7 @@ end
 end
 
 @testset "Sort" begin
-    df = DataFrame(x=[1, 2, 3, 2, 1, 3], y= [0, 2, 0, 1, 1, 1])
+    df = DataFrame(x=[1, 2, 3, 2, 1, 3], y=[0, 2, 0, 1, 1, 1])
     @testset "Known values" begin
         df2 = @with df @sort x
         @test all(df2.x .== [1, 1, 2, 2, 3, 3])
@@ -696,7 +696,7 @@ end
     @testset "Reverse" begin
         df2 = @with df @sort x, desc
         @test all(df2.x .== [3, 3, 2, 2, 1, 1])
-        df2 = @with df @sort x y,  desc
+        df2 = @with df @sort x y, desc
         @test all(df2.x .== [3, 3, 2, 2, 1, 1])
         @test all(df2.y .== [1, 0, 2, 1, 1, 0])
     end
@@ -723,31 +723,31 @@ end
 end
 
 @testset "Order" begin
-    df = DataFrame(x=1:5, z= (-1) .^ (1:5), y= 2 .+ 3 .* (1:5) .+ (-1) .^ (1:5), s= ["a", "a", "a", "b", "c"])
-    df2 = @with df @order 
+    df = DataFrame(x=1:5, z=(-1) .^ (1:5), y=2 .+ 3 .* (1:5) .+ (-1) .^ (1:5), s=["a", "a", "a", "b", "c"])
+    df2 = @with df @order
     @test names(df2) == names(df)
     df2 = @with df @order s
-    @test names(df2) == ["s","x","z","y"]
+    @test names(df2) == ["s", "x", "z", "y"]
     df2 = @with df @order s, alphabetical
-    @test names(df2) == ["s","x","y","z"]
+    @test names(df2) == ["s", "x", "y", "z"]
     df2 = @with df @order s, alphabetical last
-    @test names(df2) == ["x","y","z","s"]
+    @test names(df2) == ["x", "y", "z", "s"]
     df2 = @with df @order s, alphabetical desc
-    @test names(df2) == ["s","z","y","x"]
+    @test names(df2) == ["s", "z", "y", "x"]
     df2 = @with df @order s, alphabetical desc last
-    @test names(df2) == ["z","y","x","s"]
+    @test names(df2) == ["z", "y", "x", "s"]
     df2 = @with df @order s, after(z)
-    @test names(df2) == ["x","z","s","y"]
+    @test names(df2) == ["x", "z", "s", "y"]
     df2 = @with df @order s, after(z) alphabetical
-    @test names(df2) == ["x","y","z","s"]
+    @test names(df2) == ["x", "y", "z", "s"]
     df2 = @with df @order s, after(z) alphabetical desc
-    @test names(df2) == ["z","s","y","x"]
+    @test names(df2) == ["z", "s", "y", "x"]
     df2 = @with df @order s, before(y)
-    @test names(df2) == ["x","z","s","y"]
+    @test names(df2) == ["x", "z", "s", "y"]
     df2 = @with df @order s, before(y) alphabetical
-    @test names(df2) == ["x","s","y","z"]
+    @test names(df2) == ["x", "s", "y", "z"]
     df2 = @with df @order s, before(y) alphabetical desc
-    @test names(df2) == ["z","s","y","x"]
+    @test names(df2) == ["z", "s", "y", "x"]
 
 end
 
@@ -770,16 +770,16 @@ end
         @test all(df2.x .=== [1, 2, missing, 3, missing, 4])
         df2 = @with df @mvencode x, mv(-99.0)
         @test all(df2.x .== [1, 2, -99.0, 3, -99.0, 4])
-        @test typeof(df2.x) == Vector{Union{Missing, Float64}}
+        @test typeof(df2.x) == Vector{Union{Missing,Float64}}
         df2 = @with df @mvencode x, mv(-99)
         @test all(df2.x .== [1, 2, -99, 3, -99, 4])
-        @test typeof(df2.x) == Vector{Union{Missing, Int64}}
+        @test typeof(df2.x) == Vector{Union{Missing,Int64}}
         df2 = @with df @mvencode x, mv(mean(x))
         @test all(df2.x .== [1, 2, 2.5, 3, 2.5, 4])
-        @test typeof(df2.x) == Vector{Union{Missing, Float64}}
-        df2 = @with df @mvencode x, mv(mean(x)/mean(y))
+        @test typeof(df2.x) == Vector{Union{Missing,Float64}}
+        df2 = @with df @mvencode x, mv(mean(x) / mean(y))
         @test all(df2.x .== [1, 2, 2, 3, 2, 4])
-        @test typeof(df2.x) == Vector{Union{Missing, Float64}}
+        @test typeof(df2.x) == Vector{Union{Missing,Float64}}
         df2 = @with df @mvencode y, mv(-99)
         @test all(df2.y .== [-99, 0, 1, 2, -99, 2])
         df2 = @with df @mvencode x y, mv(-99)
@@ -821,13 +821,108 @@ end
     df = DataFrame(x=1:10, y=11:20)
     @use "test.dta", clear
     @test df == getdf()
+    try
+        @use "test.dta" @if x < 5, clear
+    catch e
+        @test e isa UndefVarError
+    end
+end
+
+@testset "Reshape wide" begin
+    df = DataFrame(i=[1, 1, 2, 2], j=[1, 2, 1, 2], x=1:4, y=5:8)
+    @testset "Known values" begin
+        df2 = @with df @reshape wide x y, i(i) j(j)
+        @test names(df2) == ["i", "x1", "x2", "y1", "y2"]
+        @test all(df2.x1 .== [1, 3])
+        @test all(df2.x2 .== [2, 4])
+        @test all(df2.y1 .== [5, 7])
+        @test all(df2.y2 .== [6, 8])
+        df2 = @with df @reshape wide x, i(i) j(j)
+        @test names(df2) == ["i", "x1", "x2"]
+        @test all(df2.x1 .== [1, 3])
+        @test all(df2.x2 .== [2, 4])
+        df2 = @with df @reshape wide x, i(j) j(i)
+        @test names(df2) == ["j", "x1", "x2"]
+        @test all(df2.x1 .== [1, 2])
+        @test all(df2.x2 .== [3, 4])
+    end
+
+    @testset "Unbalanced panel" begin
+        df = DataFrame(i=[1, 1, 2, 2, 2], j=[1, 2, 1, 2, 3], x=1:5, y=5:9)
+        df2 = @with df @reshape wide x y, i(i) j(j)
+        @test names(df2) == ["i", "x1", "x2", "x3", "y1", "y2", "y3"]
+        @test all(df2.x1 .== [1, 3])
+        @test all(df2.x2 .== [2, 4])
+        @test all(df2.x3 .=== [missing, 5])
+        @test all(df2.y1 .== [5, 7])
+        @test all(df2.y2 .== [6, 8])
+        @test all(df2.y3 .=== [missing, 9])
+        df2 = @with df @reshape wide x y, i(j) j(i)
+        @test names(df2) == ["j", "x1", "x2", "y1", "y2"]
+        @test all(df2.j .== [1, 2, 3])
+        @test all(df2.x1 .=== [1, 2, missing])
+        @test all(df2.x2 .== [3, 4, 5])
+        @test all(df2.y1 .=== [5, 6, missing])
+        @test all(df2.y2 .== [7, 8, 9])
+    end
+
+    @testset "Multiple i variables" begin
+        df = DataFrame(i1=[1, 1, 2, 2], i2=[0, 0, 0, 1], j=[1, 2, 1, 2], x=1:4, y=5:8)
+        df2 = @with df @reshape wide x y, i(i1, i2) j(j)
+        @test names(df2) == ["i1", "i2", "x1", "x2", "y1", "y2"]
+        @test all(df2.i1 .== [1, 2, 2])
+        @test all(df2.i2 .== [0, 0, 1])
+        @test all(df2.x1 .=== [1, 3, missing])
+        @test all(df2.x2 .=== [2, missing, 4])
+        @test all(df2.y1 .=== [5, 7, missing])
+        @test all(df2.y2 .=== [6, missing, 8])
+    end
+end
+
+@testset "Reshape long" begin
+    df = DataFrame(i=[1, 1, 2, 2], x1=1:4, x2=5:8)
+    @testset "Known values" begin
+        df2 = @with df @reshape long x, i(i) j(j)
+        @test names(df2) == ["i", "x", "j"]
+        @test all(df2.i .== [1, 1, 2, 2, 1, 1, 2, 2])
+        @test all(df2.j .== [1, 1, 1, 1, 2, 2, 2, 2])
+        @test all(df2.x .== [1, 2, 3, 4, 5, 6, 7, 8])
+    end
+
+    @testset "Unbalanced panel" begin
+        df = DataFrame(i=[1, 1, 2, 2, 2], x1=1:5, x2=[missing, 7, missing, 9, 10], y1=5:9, y2=[10, missing, 12, missing, missing])
+        df2 = @with df @reshape long x y, i(i) j(j)
+        @test names(df2) == ["i", "j", "x", "y"]
+        @test all(df2.j .== [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        @test all(df2.x .=== [1, 2, 1, 2, 3, 4, 5, 3, 4, 5, 3, 4, 5, missing, 7, missing, 7, missing, 9, 10, missing, 9, 10, missing, 9, 10])
+        @test all(df2.y .=== [5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, missing, missing, 12, 12, 12, missing, missing, missing, missing, missing, missing])
+    end
+
+    @testset "Multiple i variables" begin
+        df = DataFrame(i1=[1, 1, 2, 2], i2=[0, 0, 0, 1], x1=1:4, x2=5:8)
+        df2 = @with df @reshape long x, i(i1, i2) j(j)
+        @test names(df2) == ["i1", "i2", "x", "j"]
+        @test all(df2.i1 .== [1, 1, 2, 2, 1, 1, 2, 2])
+        @test all(df2.i2 .== [0, 0, 0, 1, 0, 0, 0, 1])
+        @test all(df2.j .== [1, 1, 1, 1, 2, 2, 2, 2])
+        @test all(df2.x .== [1, 2, 3, 4, 5, 6, 7, 8])
+    end
+end
+
+@testset "Reshape invalid" begin
+    df = DataFrame(i=[1, 1, 2, 2], j=[1, 2, 1, 2], x=1:4, y=5:8)
+    @test_throws UndefVarError df2 = @with df @reshape invalid x y, i(i) j(j)
 end
 
 @testset "Save" begin
     @clear
     df = DataFrame(x=Vector{Any}(1:11), y=11:21)
     setdf(df)
-    try @save "test.dta", replace catch e @test e == ErrorException("element type Any is not supported") end
+    try
+        @save "test.dta", replace
+    catch e
+        @test e == ErrorException("element type Any is not supported")
+    end
     df = DataFrame(x=1:11, y=11:21)
     setdf(df)
     @save "test.dta", replace
@@ -838,26 +933,26 @@ end
     @save "test.dta", replace
 end
 
-@testset "Append" begin  
+@testset "Append" begin
     df = @use "test.dta", clear
     @testset "Same columns" begin
         @append "test.sas7bdat"
         @test nrow(df) == nrow(getdf()) / 2
-        @test df == getdf()[11:nrow(getdf()),:]
+        @test df == getdf()[11:nrow(getdf()), :]
         @append "test.csv"
         @test nrow(df) == nrow(getdf()) / 3
-        @test df == getdf()[21:nrow(getdf()),:]
+        @test df == getdf()[21:nrow(getdf()), :]
     end
 
     df2 = @use "test2.sas7bdat", clear
     df = @use "test.dta", clear
     df = convert.(Float64, df)
-    @testset "Different columns" begin   
+    @testset "Different columns" begin
         @append "test2.sas7bdat"
         @test nrow(df) == nrow(getdf()) / 2
-        @test df == getdf()[1:10,[:x,:y]]
+        @test df == getdf()[1:10, [:x, :y]]
         @test all(getdf()[1:10, :z] .=== missing)
-        @test getdf()[11:end,:] == df2
+        @test getdf()[11:end, :] == df2
     end
 
     @testset "With in-memory dataframe" begin
@@ -866,16 +961,16 @@ end
             df2 = copy(df)
             @append df2
             @test nrow(df) == nrow(getdf()) / 2
-            @test df == getdf()[11:nrow(getdf()),:]
+            @test df == getdf()[11:nrow(getdf()), :]
         end
         df = @use "test.dta", clear
         @testset "Different Columns" begin
-            df2 = @with df @generate z=x+y
+            df2 = @with df @generate z = x + y
             @append df2
             @test nrow(df) == nrow(getdf()) / 2
-            @test df[:,[:x,:y]] == getdf()[1:10,[:x,:y]]
+            @test df[:, [:x, :y]] == getdf()[1:10, [:x, :y]]
             @test all(getdf()[1:10, :z] .=== missing)
-            @test getdf()[11:end,:] == df2
+            @test getdf()[11:end, :] == df2
         end
     end
 end
