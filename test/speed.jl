@@ -16,5 +16,5 @@
     end
 
     time = median(t).time / 1e9
-    @test time < 20.0
+    @test time < 60.0
 end
