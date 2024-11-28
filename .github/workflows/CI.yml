@@ -85,7 +85,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.DOCS_REPO_ACCESS_TOKEN }}
-          repository: codedthinking/docs.koren.dev
+          repository: gergelyattilakiss/docs.koren.dev
           event-type: copy-kezdi-docs
           client-payload: |
             {
