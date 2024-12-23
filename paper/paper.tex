@@ -1,0 +1,194 @@
+\documentclass{juliacon}
+
+\setcounter{page}{1}
+
+\begin{document}
+\input{header}
+\maketitle
+
+\begin{abstract}
+	Economists overwhelmingly rely on proprietary data analysis languages such as Stata and MATLAB for their research computing needs. The transition to open-source languages like Julia presents both syntactic and semantic challenges. We introduce Kezdi.jl, a data analysis package designed for economists that provides a Stata-like interface for working with data frames in Julia. Kezdi.jl aims to ease the transition for economists by offering convenient and familiar data manipulation and analysis functionalities. The package is built on DataFrames.jl and related libraries, but uses a streamlined macro-based interface to eliminate common points of confusion. By emulating best practices from Stata, Kezdi.jl allows economists to be productive in Julia from day one. Kezdi.jl supports a wide range of data wrangling and analysis tasks, including cleaning and transforming data, handling missing values, generating new variables, aggregating data, and running regressions. The package also integrates with Julia's rich package ecosystem, allowing users to leverage state-of-the-art tools for tasks like optimization, machine learning, and visualization.
+\end{abstract}
+
+\section{Introduction}
+
+Research computing is central to the scientific workflow of economists. Yet the most widely used software tools are decades old proprietary languages \citep{koren2022adoption}. Of the 364 replication packages studied by \citet{koren2023replication}, 72\% used Stata and 41\% used MATLAB, while only 3\% contained any Julia code.
+
+Stata in particular has a dominant position in the data analysis and statistical modeling stages of the research workflow. 88\% of code lines in a typical replication package are devoted to data wrangling and related programming tasks, with only 5\% implementing statistical analysis \citep{koren2023share}. This is no surprise, given that a typical empirical economics paper assembles and harmonizes data from several disparate sources.
+
+The transition from proprietary languages like Stata or MATLAB to open-source ones like Julia presents several challenges. First, the syntax and mental model is very different. Stata is a data-centric language, where commands operate directly on columns of a dataset, and the details of the type system are hidden from the user. Second, Stata and MATLAB have had decades to build a rich library of statistical and econometric routines that are part of the core language. Third, they have developed coding styles and best practices that are ingrained in the muscle memory of economists. To name a concrete example, in Stata one can calculate a heteroskedasticity-robust standard error in a regression by simply adding the option \texttt{robust}. Achieving the same in Julia requires several more keystrokes even if the required packages are loaded.
+
+Kezdi.jl \footnote{\url{https://github.com/korenmiklos/Kezdi.jl}} is a data analysis package for economists that aims to ease the transition to Julia by providing a Stata-like user experience. It allows users to manipulate data frames and conduct statistical analysis using Stata-inspired macro commands that are both powerful and easy to read.
+
+\section{Key features of Kezdi.jl}
+
+The overarching design principle of Kezdi.jl is to provide a convenient and familiar interface for economists working with data frames. Here we highlight some key features that help achieve this.
+
+\subsection{Stata-like command syntax}
+
+Commands in Kezdi.jl follow Stata naming conventions and syntax. All commands start with the \texttt{@} sign. Options are separated from arguments by a comma.
+
+\begin{verbatim}
+julia> @use "trade.dta"
+julia> @generate log_trade = log(trade)
+julia> @regress log_trade log_distance, robust
+\end{verbatim}
+
+Kezdi.jl has near complete coverage of Stata's data manipulation commands, including \texttt{egen}, \texttt{collapse}, \texttt{reshape} and \texttt{mvencode}. Combined with Julia's superior performance, this allows economists to easily translate their Stata workflows.
+
+Some examples of common data wrangling tasks in Kezdi.jl:
+
+\begin{verbatim}
+# Create a new variable that is 1 if x > 10, 0 otherwise
+@generate y = cond(x > 10, 1, 0)
+
+# Rename variables
+@rename oldname newname
+
+# Encode missing values
+@mvencode y1 y2 y3 if x < 0, mv(999)
+
+# Collapse data by group, calculating the mean of x
+@collapse avg_x = mean(x), by(group)
+
+# Reshape data from wide to long format
+@reshape long y, i(id) j(year)
+\end{verbatim}
+
+\subsection{Automatic column selection and vectorization}
+
+Variable names are automatically matched to data frame column names in Kezdi.jl. In standard Julia one would need to wrap these in \texttt{:} or string macros to refer to variables.
+
+Function calls are also automatically vectorized. In the examples above, \texttt{log(trade)} is equivalent to \texttt{log.(trade)} and \texttt{cond(x > 10, 1, 0)} is equivalent to \texttt{cond.(x .> 10, 1, 0)} in base Julia.
+
+This allows for concise and readable code that operates directly on data frame columns.
+
+\subsection{Use any Julia function}
+
+Because Kezdi.jl supports arbitrary Julia syntax within commands, user-defined and external package functions work seamlessly with data frame columns.
+
+\begin{verbatim}
+julia> using Dates
+julia> @generate date = Date(year, month, day)
+
+julia> using Statistics
+julia> @collapse std_x = std(x), by(group) 
+\end{verbatim}
+
+This allows economists to easily extend their data manipulation and modeling capabilities beyond Stata's built-in functions by leveraging Julia's package ecosystem.
+
+\subsection{Handling of missing values}
+
+Stata has special \texttt{missing} values and carefully defined rules for their propagation. For example, \texttt{sum(x)} in Stata returns the sum of non-missing values of \texttt{x}.
+
+Missing value handling in Kezdi.jl follows these rules to ensure consistency with Stata:
+
+\begin{itemize}
+	\item In logical expressions, \texttt{missing} is treated as \texttt{false}.
+	\item Mathematical operations return \texttt{missing} if any of their arguments are missing.
+	\item Aggregation functions skip missing values by default.
+\end{itemize}
+
+\begin{verbatim}
+julia> using Kezdi
+julia> df = DataFrame(x=[1, 2, missing], y=[missing, 3, 4])
+julia> @collapse sum_x = sum(x)
+1×1 DataFrame
+ Row │ sum_x   
+     │ Int64?  
+─────┼─────────
+   1 │      3
+
+julia> @generate z = x + y
+3×3 DataFrame
+ Row │ x        y        z
+     │ Int64?   Int64?   Int64?
+─────┼───────────────────────────
+   1 │       1  missing  missing
+   2 │       2        3        5
+   3 │ missing        4  missing
+\end{verbatim}
+
+\subsection{Syntactic sugar for operating row-wise}
+
+One of the most convenient features of Stata is the ability to restrict any command to a subset of rows using logical expressions with the \texttt{if} qualifier.
+
+Kezdi.jl implements the same with the \texttt{@if} macro-call, but without an actually implemented macro. Logical expressions are automatically broadcast over rows.
+
+\begin{verbatim}
+julia> @replace trade = 0 @if ismissing(trade)
+julia> @regress log_trade log_distance @if trade > 0
+julia> @keep @if !ismissing(trade) 
+julia> @collapse mean_x = mean(x) @if group == "treatment"
+\end{verbatim}
+
+\subsection{Integration with Julia's package ecosystem}
+
+Kezdi.jl builds on the DataFrames.jl ecosystem \citep{DataFrame.jl2023} to provide its data manipulation features. It also integrates tightly with other packages:
+
+\begin{itemize}
+	\item FreqTables.jl \citep{FreqTables.jl2023} for frequency tables via \texttt{@tabulate}
+	\item FixedEffectModels.jl \citep{FixedEffectModels.jl2023} for estimating regressions with many fixed effects
+	\item Chain.jl for piping a sequence of commands with \texttt{@with}
+	\item ReadStatTables.jl for importing Stata \texttt{.dta} files
+\end{itemize}
+
+\section{Comparison with related packages}
+
+Kezdi.jl is not the first attempt to provide a simplified data analysis workflow in Julia. TimeSeriesRecipes.jl \citep{TimeSeriesRecipes2022} provides a grammar for time series operations. DataFramesMeta.jl \citep{DataFramesMeta2023} and SplitApplyCombine.jl \citep{SplitApplyCombine2023} extend data frame operations.
+
+On the R side, dplyr \citep{dplyr2023} has been a hugely successful abstraction. Tidier.jl \citep{tidier2022} ports many ideas from dplyr to Julia. However, the dplyr "verb + data pipeline" model is very different from how economists approach data analysis in Stata.
+
+Kezdi.jl was inspired by Douglass.jl, a work-in-progress package that also aims to provide a Stata-like user experience in Julia \citep{Douglass.jl2023}. The two packages share many design principles, but Kezdi.jl has a more extensive feature set that covers a larger portion of a typical economics workflow.
+
+\section{Performance}
+
+Stata is often perceived as slow by its users, especially for larger datasets. A promise of moving to Julia is faster code execution.
+
+We benchmarked selected Kezdi.jl commands against their Stata equivalents on a 1.2GB dataset with 15 million observations. The results are summarized in Table \ref{tab:benchmark}.
+
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{lrrr}
+		\hline
+		Command            & Stata & Kezdi.jl & Speedup \\
+		\hline
+		\texttt{@rename}   & 0.23  & 0.03     & 7x      \\
+		\texttt{@generate} & 0.23  & 0.05     & 5x      \\
+		\texttt{@collapse} & 0.94  & 0.28     & 3x      \\
+		\texttt{@egen}     & 5.00  & 0.37     & 13x     \\
+		\texttt{@regress}  & 0.85  & 0.14     & 6x      \\
+		\hline
+	\end{tabular}
+	\caption{Execution time (seconds) of equivalent Stata and Kezdi.jl commands. Benchmarks were run on a **is this true????** Windows 11 machine with an AMD Ryzen 7 processor and 32 GB RAM.}
+	\label{tab:benchmark}
+\end{table}
+
+The speedup ranges from 3x for \texttt{@collapse} to 13x for \texttt{@egen}. This can provide a significant productivity boost for data-intensive research projects. The performance edge of Kezdi.jl is likely to grow as datasets get larger.
+
+\section{Conclusion}
+
+We introduced Kezdi.jl, a data analysis package for economists that provides a Stata-like interface to Julia's data manipulation and statistics ecosystem. Kezdi.jl aims to shorten the learning curve for economists transitioning from Stata, while also unlocking the power and expressiveness of Julia.
+
+With Kezdi.jl, economists can manipulate data frames, calculate summary statistics, estimate regressions, and generate plots using familiar keystrokes and mental models. At the same time, the package opens the door to Julia's rich ecosystem of packages for optimization, machine learning, visualization, and high-performance computing.
+
+Our hope is that Kezdi.jl will accelerate adoption of Julia in economics and other social sciences, and ultimately lead to better, more reproducible research. We invite researchers and developers to try out the package and share their feedback on how we can expand its capabilities to better meet their scientific computing needs.
+
+\backmatter
+
+\bmhead{Acknowledgments}
+
+We thank Gábor Kézdi for inspiration and the DataFrames.jl community, especially Bogumił Kamiński, for technical support.
+
+\section*{References}
+\begingroup
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2pt}
+\def\small{\small}
+
+\bibliography{ref}
+\bibliographystyle{juliacon}
+
+\endgroup
+
+\end{document}

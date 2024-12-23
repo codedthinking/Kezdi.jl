@@ -1,0 +1,23 @@
+title: "Kezdi.jl: A data analysis package for economists"
+keywords:
+  - Julia
+  - Data analysis
+  - Data wrangling
+  - Stata
+authors:
+  - name: Miklós Koren
+    orcid: 0000-0003-1361-440X
+    affiliation: 1, 2, 3, 4
+  - name: Gergely Attila Kiss
+    affiliation: 1, 2
+affiliations:
+  - name: Central European University, Vienna, Austria
+    index: 1
+  - name: HUN-REN KRTK, Budapest, Hungary
+    index: 2
+  - name: CEPR, London, United Kingdom
+    index: 3
+  - name: CESifo, Munich, Germany
+    index: 4
+date: 11 December 2ö24
+bibliography: ref.bib
