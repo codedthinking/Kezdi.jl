@@ -2,15 +2,12 @@
 \providecommand\hyper@newdestlabel[2]{}
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
-\citation{koren2023share}
-\citation{koren2024ten}
 \newlabel{@firstpg}{{}{1}{}{Doc-Start}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Programming language usage in economics replication packages submitted to the Review of Economic Studies. A package can contain code in multiple languages.}}{1}{figure.caption.3}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{fig:languages}{{1}{1}{Programming language usage in economics replication packages submitted to the Review of Economic Studies. A package can contain code in multiple languages}{figure.caption.3}{}}
 \citation{DataFrame.jl2023}
-\citation{FreqTables.jl2023}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Commands in Kezdi.jl follow Stata naming conventions and syntax. All commands start with the \texttt  {@} sign. Options are separated from arguments by a comma.}}{2}{figure.caption.4}\protected@file@percent }
 \newlabel{fig:syntax}{{2}{2}{Commands in Kezdi.jl follow Stata naming conventions and syntax. All commands start with the \texttt {@} sign. Options are separated from arguments by a comma}{figure.caption.4}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Some data wrangling commands illustrating the syntax of Kezdi.jl.}}{2}{figure.caption.5}\protected@file@percent }
@@ -18,14 +15,16 @@
 \@writefile{toc}{\contentsline {section}{\numberline {2}Key features of Kezdi.jl}{2}{section.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Stata-like command syntax}{2}{subsection.2.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Automatic column selection and vectorization}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Use any Julia function}{2}{subsection.2.3}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Functions are automatically vectorized, but only if necessary.}}{2}{figure.caption.6}\protected@file@percent }
 \newlabel{fig:vectorization}{{4}{2}{Functions are automatically vectorized, but only if necessary}{figure.caption.6}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Missing values are handled in a logical way.}}{2}{figure.caption.7}\protected@file@percent }
 \newlabel{fig:missing}{{5}{2}{Missing values are handled in a logical way}{figure.caption.7}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Use any Julia function}{2}{subsection.2.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces The @if macro can be used to limit the scope of any command.}}{2}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:ifmacro}{{6}{2}{The @if macro can be used to limit the scope of any command}{figure.caption.8}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Handling of missing values}{2}{subsection.2.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Syntactic sugar for operating row-wise}{2}{subsection.2.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}Integration with Julia's package ecosystem}{2}{subsection.2.6}\protected@file@percent }
+\citation{FreqTables.jl2023}
 \citation{FixedEffectModels.jl2023}
 \citation{krafczyk2021learning}
 \citation{huntington2021influence}
@@ -51,16 +50,15 @@
 \bibcite{mccullough1999numerical}{11}
 \bibcite{TimeSeriesRecipes2022}{12}
 \bibcite{tidier2022}{13}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces The @if macro can be used to limit the scope of any command.}}{3}{figure.caption.8}\protected@file@percent }
-\newlabel{fig:ifmacro}{{6}{3}{The @if macro can be used to limit the scope of any command}{figure.caption.8}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.7}Support for Reproducible Workflows}{3}{subsection.2.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3}Comparison with related packages}{3}{section.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4}Performance}{3}{section.4}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Execution time (seconds) of equivalent Stata and Kezdi.jl commands. Benchmarks were run on a **is this true????** Windows 11 machine with an AMD Ryzen 7 processor and 32 GB RAM.}}{3}{table.caption.9}\protected@file@percent }
-\newlabel{tab:benchmark}{{1}{3}{Execution time (seconds) of equivalent Stata and Kezdi.jl commands. Benchmarks were run on a **is this true????** Windows 11 machine with an AMD Ryzen 7 processor and 32 GB RAM}{table.caption.9}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusion}{3}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}References}{3}{section.6}\protected@file@percent }
 \bibcite{DataFrame.jl2023}{14}
 \bibcite{dplyr2023}{15}
 \bibstyle{juliacon}
-\gdef \@abspage@last{4}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}Integration with Julia's package ecosystem}{3}{subsection.2.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.7}Support for Reproducible Workflows}{3}{subsection.2.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Comparison with related packages}{3}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Performance}{3}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusion}{3}{section.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Execution time (seconds) of equivalent Stata and Kezdi.jl commands. Benchmarks were run on a **is this true????** Windows 11 machine with an AMD Ryzen 7 processor and 32 GB RAM.}}{3}{table.caption.9}\protected@file@percent }
+\newlabel{tab:benchmark}{{1}{3}{Execution time (seconds) of equivalent Stata and Kezdi.jl commands. Benchmarks were run on a **is this true????** Windows 11 machine with an AMD Ryzen 7 processor and 32 GB RAM}{table.caption.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}References}{3}{section.6}\protected@file@percent }
+\gdef \@abspage@last{3}
