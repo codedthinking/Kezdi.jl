@@ -2,47 +2,56 @@ This is BibTeX, Version 0.99d (TeX Live 2024/Homebrew)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: paper.aux
 The style file: juliacon.bst
-I found no \citation commands---while reading file paper.aux
 Database file #1: ref.bib
-You've used 0 entries,
+Warning--I didn't find a database entry for "koren2023replication"
+Warning--empty journal in FreqTables.jl2023
+Warning--empty journal in DataFramesMeta2023
+Warning--empty journal in Douglass.jl2023
+Warning--empty journal in SplitApplyCombine2023
+Warning--empty journal in FixedEffectModels.jl2023
+Warning--empty journal in TimeSeriesRecipes2022
+Warning--empty journal in tidier2022
+Warning--empty journal in DataFrame.jl2023
+Warning--empty journal in dplyr2023
+You've used 15 entries,
             2314 wiz_defined-function locations,
-            523 strings with 4155 characters,
-and the built_in function-call counts, 18 in all, are:
-= -- 0
-> -- 0
+            594 strings with 5916 characters,
+and the built_in function-call counts, 4358 in all, are:
+= -- 414
+> -- 237
 < -- 0
-+ -- 0
-- -- 0
-* -- 2
-:= -- 7
-add.period$ -- 0
-call.type$ -- 0
-change.case$ -- 0
++ -- 96
+- -- 78
+* -- 256
+:= -- 791
+add.period$ -- 45
+call.type$ -- 15
+change.case$ -- 75
 chr.to.int$ -- 0
-cite$ -- 0
-duplicate$ -- 0
-empty$ -- 1
-format.name$ -- 0
-if$ -- 1
+cite$ -- 24
+duplicate$ -- 168
+empty$ -- 332
+format.name$ -- 78
+if$ -- 886
 int.to.chr$ -- 0
-int.to.str$ -- 0
-missing$ -- 0
-newline$ -- 3
-num.names$ -- 0
-pop$ -- 0
+int.to.str$ -- 15
+missing$ -- 15
+newline$ -- 78
+num.names$ -- 30
+pop$ -- 102
 preamble$ -- 1
-purify$ -- 0
+purify$ -- 60
 quote$ -- 0
-skip$ -- 1
+skip$ -- 137
 stack$ -- 0
-substring$ -- 0
-swap$ -- 0
+substring$ -- 152
+swap$ -- 6
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 0
-warning$ -- 0
-while$ -- 0
-width$ -- 0
-write$ -- 2
-(There was 1 error message)
+type$ -- 60
+warning$ -- 9
+while$ -- 35
+width$ -- 17
+write$ -- 146
+(There were 10 warnings)

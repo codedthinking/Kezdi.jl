@@ -12,13 +12,13 @@ Economists overwhelmingly rely on proprietary data analysis languages such as St
 
 \section{Introduction}
 
-Research computing is central to the scientific workflow of economists. Yet the most widely used software tools are decades old proprietary languages \citep{koren2022adoption}. Of the 364 replication packages studied by \citet{koren2023replication}, 72\% used Stata and 41\% used MATLAB, while only 3\% contained any Julia code.
+Research computing is central to the scientific workflow of economists. Yet the most widely used software tools are decades old proprietary languages \cite{koren2022adoption}. Of the 364 replication packages studied by \cite{koren2023replication}, 72\% used Stata and 41\% used MATLAB, while only 3\% contained any Julia code.
 
-Stata in particular has a dominant position in the data analysis and statistical modeling stages of the research workflow. 88\% of code lines in a typical replication package are devoted to data wrangling and related programming tasks, with only 5\% implementing statistical analysis \citep{koren2023share}. This is no surprise, given that a typical empirical economics paper assembles and harmonizes data from several disparate sources.
+Stata in particular has a dominant position in the data analysis and statistical modeling stages of the research workflow. 88\% of code lines in a typical replication package are devoted to data wrangling and related programming tasks, with only 5\% implementing statistical analysis \cite{koren2023share}. This is no surprise, given that a typical empirical economics paper assembles and harmonizes data from several disparate sources.
 
 The transition from proprietary languages like Stata or MATLAB to open-source ones like Julia presents several challenges. First, the syntax and mental model is very different. Stata is a data-centric language, where commands operate directly on columns of a dataset, and the details of the type system are hidden from the user. Second, Stata and MATLAB have had decades to build a rich library of statistical and econometric routines that are part of the core language. Third, they have developed coding styles and best practices that are ingrained in the muscle memory of economists. To name a concrete example, in Stata one can calculate a heteroskedasticity-robust standard error in a regression by simply adding the option \texttt{robust}. Achieving the same in Julia requires several more keystrokes even if the required packages are loaded.
 
-Beyond syntax and functionality, reproducible research practices pose additional challenges when transitioning between languages. While Stata enforces a single-dataset workflow that naturally documents data transformations, Julia's more flexible approach requires careful attention to reproducibility. Kezdi.jl addresses this by providing clear audit trails of data transformations through its command syntax, similar to how Stata preserves transformation history in do-files \citep{koren2024ten}.
+Beyond syntax and functionality, reproducible research practices pose additional challenges when transitioning between languages. While Stata enforces a single-dataset workflow that naturally documents data transformations, Julia's more flexible approach requires careful attention to reproducibility. Kezdi.jl addresses this by providing clear audit trails of data transformations through its command syntax, similar to how Stata preserves transformation history in do-files \cite{koren2024ten}.
 
 Kezdi.jl \footnote{\url{https://github.com/korenmiklos/Kezdi.jl}} is a data analysis package for economists that aims to ease the transition to Julia by providing a Stata-like user experience. It allows users to manipulate data frames and conduct statistical analysis using Stata-inspired macro commands that are both powerful and easy to read.
 
@@ -126,32 +126,32 @@ julia> @collapse mean_x = mean(x) @if group == "treatment"
 
 \subsection{Integration with Julia's package ecosystem}
 
-Kezdi.jl builds on the DataFrames.jl ecosystem \citep{DataFrame.jl2023} to provide its data manipulation features. It also integrates tightly with other packages:
+Kezdi.jl builds on the DataFrames.jl ecosystem \cite{DataFrame.jl2023} to provide its data manipulation features. It also integrates tightly with other packages:
 
 \begin{itemize}
-	\item FreqTables.jl \citep{FreqTables.jl2023} for frequency tables via \texttt{@tabulate}
-	\item FixedEffectModels.jl \citep{FixedEffectModels.jl2023} for estimating regressions with many fixed effects
+	\item FreqTables.jl \cite{FreqTables.jl2023} for frequency tables via \texttt{@tabulate}
+	\item FixedEffectModels.jl \cite{FixedEffectModels.jl2023} for estimating regressions with many fixed effects
 	\item Chain.jl for piping a sequence of commands with \texttt{@with}
 	\item ReadStatTables.jl for importing Stata \texttt{.dta} files
 \end{itemize}
 
 \subsection{Support for Reproducible Workflows}
 
-Kezdi.jl is designed with reproducibility as a core principle. The package follows established best practices for computational reproducibility \citep{krafczyk2021learning} in several ways:
+Kezdi.jl is designed with reproducibility as a core principle. The package follows established best practices for computational reproducibility \cite{krafczyk2021learning} in several ways:
 
-First, all data transformations are explicitly recorded through macro commands, creating an auditable trail similar to Stata do-files. This addresses the "hidden researcher degrees of freedom" problem identified by \citet{huntington2021influence} in empirical research.
+First, all data transformations are explicitly recorded through macro commands, creating an auditable trail similar to Stata do-files. This addresses the "hidden researcher degrees of freedom" problem identified by \cite{huntington2021influence} in empirical research.
 
-Second, the package provides a consistent environment across different machines by explicitly handling missing values and maintaining consistent random number generation seeds. This follows recommendations by \citet{mccullough1999numerical} regarding numerical reproducibility across computing environments.
+Second, the package provides a consistent environment across different machines by explicitly handling missing values and maintaining consistent random number generation seeds. This follows recommendations by \cite{mccullough1999numerical} regarding numerical reproducibility across computing environments.
 
-Finally, Kezdi.jl encourages organizing analysis as sequential scripts that can be executed from a main control file. This project organization pattern, recommended by \citet{koren2024ten}, ensures that the full analysis can be reproduced with minimal manual intervention.
+Finally, Kezdi.jl encourages organizing analysis as sequential scripts that can be executed from a main control file. This project organization pattern, recommended by \cite{koren2024ten}, ensures that the full analysis can be reproduced with minimal manual intervention.
 
 \section{Comparison with related packages}
 
-Kezdi.jl is not the first attempt to provide a simplified data analysis workflow in Julia. TimeSeriesRecipes.jl \citep{TimeSeriesRecipes2022} provides a grammar for time series operations. DataFramesMeta.jl \citep{DataFramesMeta2023} and SplitApplyCombine.jl \citep{SplitApplyCombine2023} extend data frame operations.
+Kezdi.jl is not the first attempt to provide a simplified data analysis workflow in Julia. TimeSeriesRecipes.jl \cite{TimeSeriesRecipes2022} provides a grammar for time series operations. DataFramesMeta.jl \cite{DataFramesMeta2023} and SplitApplyCombine.jl \cite{SplitApplyCombine2023} extend data frame operations.
 
-On the R side, dplyr \citep{dplyr2023} has been a hugely successful abstraction. Tidier.jl \citep{tidier2022} ports many ideas from dplyr to Julia. However, the dplyr "verb + data pipeline" model is very different from how economists approach data analysis in Stata.
+On the R side, dplyr \cite{dplyr2023} has been a hugely successful abstraction. Tidier.jl \cite{tidier2022} ports many ideas from dplyr to Julia. However, the dplyr "verb + data pipeline" model is very different from how economists approach data analysis in Stata.
 
-Kezdi.jl was inspired by Douglass.jl, a work-in-progress package that also aims to provide a Stata-like user experience in Julia \citep{Douglass.jl2023}. The two packages share many design principles, but Kezdi.jl has a more extensive feature set that covers a larger portion of a typical economics workflow.
+Kezdi.jl was inspired by Douglass.jl, a work-in-progress package that also aims to provide a Stata-like user experience in Julia \cite{Douglass.jl2023}. The two packages share many design principles, but Kezdi.jl has a more extensive feature set that covers a larger portion of a typical economics workflow.
 
 \section{Performance}
 

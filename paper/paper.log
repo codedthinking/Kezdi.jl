@@ -1,8 +1,8 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  30 DEC 2024 15:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  30 DEC 2024 16:45
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**paper.tex
+**paper
 (./paper.tex
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
@@ -496,7 +496,7 @@ Package hyperref Info: Link coloring OFF on input line 5.
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
  (./header.tex)
-<logojuliacon.pdf, id=48, 430.91032pt x 145.96547pt>
+<logojuliacon.pdf, id=56, 430.91032pt x 145.96547pt>
 File: logojuliacon.pdf Graphic file (type pdf)
 <use logojuliacon.pdf>
 Package pdftex.def Info: logojuliacon.pdf  used on input line 7.
@@ -525,31 +525,16 @@ LaTeX Font Info:    Font shape `U/lasy/b/n' in size <8> not available
 LaTeX Font Info:    Font shape `U/lasy/b/n' in size <6> not available
 (Font)              Font shape `U/lasy/m/n' tried instead on input line 7.
 
-! Undefined control sequence.
-l.15 ...e decades old proprietary languages \citep
-                                                  {koren2022adoption}. Of th...
 
-? 
-! Undefined control sequence.
-l.15 ...364 replication packages studied by \citet
-                                                  {koren2023replication}, 72...
+LaTeX Warning: Citation `koren2023replication' on page 1 undefined on input lin
+e 15.
 
-? 
 
 Underfull \hbox (badness 1708) in paragraph at lines 15--16
 \T1/ptm/m/n/9 Research com-put-ing is cen-tral to the sci-en-tific work-flow of
 
  []
 
-! Undefined control sequence.
-l.17 ...% implementing statistical analysis \citep
-                                                  {koren2023share}. This is ...
-
-? 
-! Undefined control sequence.
-l.21 ... transformation history in do-files \citep
-                                                  {koren2024ten}.
-? 
 LaTeX Font Info:    Font shape `U/lasy/b/n' in size <9> not available
 (Font)              Font shape `U/lasy/m/n' tried instead on input line 23.
 LaTeX Font Info:    Font shape `U/lasy/b/n' in size <5> not available
@@ -1228,93 +1213,18 @@ Overfull \hbox (33.9831pt too wide) in paragraph at lines 125--125
 []\T1/cmtt/m/n/9 julia> @collapse mean_x = mean(x) @if group == "treatment"[] 
  []
 
-! Undefined control sequence.
-l.129 ...lds on the DataFrames.jl ecosystem \citep
-                                                  {DataFrame.jl2023} to prov...
-
-? 
-! Undefined control sequence.
-l.132 	\item FreqTables.jl \citep
-                                 {FreqTables.jl2023} for frequency tables vi...
-
-? 
-
-Underfull \hbox (badness 10000) in paragraph at lines 132--133
-[]\T1/ptm/m/n/9 FreqTables.jl Fre-qTa-bles.jl2023 for fre-quency ta-bles via
- []
-
-! Undefined control sequence.
-l.133 	\item FixedEffectModels.jl \citep
-                                        {FixedEffectModels.jl2023} for estim...
-
-? 
-! Undefined control sequence.
-l.140 ... for computational reproducibility \citep
-                                                  {krafczyk2021learning} in ...
-
-? 
-! Undefined control sequence.
-l.142 ... of freedom" problem identified by \citet
-                                                  {huntington2021influence} ...
-
-? 
-! Undefined control sequence.
-l.144 ...s. This follows recommendations by \citet
-                                                  {mccullough1999numerical} ...
-
-? 
-! Undefined control sequence.
-l.146 ...ganization pattern, recommended by \citet
-                                                  {koren2024ten}, ensures th...
-
-? 
 
 Underfull \hbox (badness 1297) in paragraph at lines 146--147
 []\T1/ptm/m/n/9 Finally, Kezdi.jl en-cour-ages or-ga-niz-ing anal-y-sis as se-q
 uen-tial
  []
 
-! Undefined control sequence.
-l.150 ...low in Julia. TimeSeriesRecipes.jl \citep
-                                                  {TimeSeriesRecipes2022} pr...
-
-? 
-! Undefined control sequence.
-l.150 ...ries operations. DataFramesMeta.jl \citep
-                                                  {DataFramesMeta2023} and S...
-
-? 
-! Undefined control sequence.
-l.150 ...Meta2023} and SplitApplyCombine.jl \citep
-                                                  {SplitApplyCombine2023} ex...
-
-? 
-
-Underfull \hbox (badness 1571) in paragraph at lines 150--151
-\T1/ptm/m/n/9 pro-vides a gram-mar for time se-ries op-er-a-tions. DataFrames-
- []
-
-! Undefined control sequence.
-l.152 On the R side, dplyr \citep
-                                 {dplyr2023} has been a hugely successful ab...
-
-? 
-! Undefined control sequence.
-l.152 ... successful abstraction. Tidier.jl \citep
-                                                  {tidier2022} ports many id...
-
-? 
-! Undefined control sequence.
-l.154 ...tata-like user experience in Julia \citep
-                                                  {Douglass.jl2023}. The two...
-
-? 
 
 Overfull \vbox (2.39996pt too high) has occurred while \output is active []
 
 
 Underfull \hbox (badness 10000) has occurred while \output is active
-  \T1/ptm/m/n/9 2
+  \T1/ptm/m/n/8 2
  []
 
 [2{/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/enc/dvips/cm-
@@ -1327,11 +1237,7 @@ l.189 \backmatter
 l.191 \bmhead
              {Acknowledgments}
 ? 
-(./paper.bbl
-
-LaTeX Warning: Empty `thebibliography' environment on input line 3.
-
-)
+(./paper.bbl)
 Overfull \vbox (2.39996pt too high) has occurred while \output is active []
 
 
@@ -1339,34 +1245,26 @@ Underfull \hbox (badness 10000) has occurred while \output is active
   \T1/ptm/m/n/9 3
  []
 
-[3
-
-] (./paper.aux)
+[3] (./paper.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
  ***********
 
 
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+LaTeX Warning: There were undefined references.
 
-
-Package rerunfilecheck Warning: File `paper.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `paper.out':
-(rerunfilecheck)             Before: D19BC3B67E0A7B12A2463566CA537E64;2067
-(rerunfilecheck)             After:  5E3D9BB208F6FFDA6C552259E4C975AE;2398.
+Package rerunfilecheck Info: File `paper.out' has not changed.
+(rerunfilecheck)             Checksum: 5E3D9BB208F6FFDA6C552259E4C975AE;2398.
  ) 
 Here is how much of TeX's memory you used:
- 13109 strings out of 474116
- 207204 string characters out of 5732613
+ 13143 strings out of 474116
+ 207874 string characters out of 5732613
  1950187 words of memory out of 5000000
- 35243 multiletter control sequences out of 15000+600000
- 599937 words of font info for 125 fonts, out of 8000000 for 9000
+ 35261 multiletter control sequences out of 15000+600000
+ 602740 words of font info for 127 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 90i,12n,93p,941b,579s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,11n,93p,937b,579s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/
 amsfonts/cm/cmr6.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/
 fonts/type1/public/cm-super/sftt0800.pfb></opt/homebrew/Cellar/texlive/20240312
@@ -1376,10 +1274,10 @@ b></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/urw/tim
 es/utmb8a.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/t
 ype1/urw/times/utmr8a.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-
 dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on paper.pdf (3 pages, 161407 bytes).
+Output written on paper.pdf (3 pages, 168043 bytes).
 PDF statistics:
- 125 PDF objects out of 1000 (max. 8388607)
- 102 compressed objects within 2 object streams
- 22 named destinations out of 1000 (max. 500000)
- 94 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 167 PDF objects out of 1000 (max. 8388607)
+ 144 compressed objects within 2 object streams
+ 37 named destinations out of 1000 (max. 500000)
+ 110 words of extra memory for PDF output out of 10000 (max. 10000000)
 
