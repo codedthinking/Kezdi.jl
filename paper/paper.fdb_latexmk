@@ -1,16 +1,15 @@
 # Fdb version 4
-["bibtex paper"] 1735569582.55405 "paper.aux" "paper.bbl" "paper" 1735573500.08731 0
+["bibtex paper"] 1735573966.17462 "paper.aux" "paper.bbl" "paper" 1735573981.47346 0
   "./juliacon.bst" 1735568640.4413 20997 2eaa317b2b3889daf19a84ad3db6071a ""
   "./ref.bib" 1735569578.53267 3358 5780e9280d4adf6b544c6b8af6241c5e ""
-  "paper.aux" 1735573499.85205 2983 1c3afc4c5c3dfb70d34b3beaa106244c "pdflatex"
+  "paper.aux" 1735573981.24416 4610 cd70edbe0b7e254b2b16a5c728906fff "pdflatex"
   (generated)
   "paper.bbl"
   "paper.blg"
   (rewritten before read)
-["pdflatex"] 1735573492.5169 "paper.tex" "paper.pdf" "paper" 1735573500.08744 2
+["pdflatex"] 1735573966.23403 "paper.tex" "paper.pdf" "paper" 1735573981.47358 2
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/enc/dvips/base/8r.enc" 1710106625 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1710106625 2971 def0b6c1f0b107b3b936def894055589 ""
-  "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1710106625 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/map/fontname/texfonts.map" 1710106625 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/map/pdftex/updmap/pdftex.map" 1710106625 5472554 f7861620179a71a79d4bd86251f559d0 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/tfm/adobe/times/ptmb8r.tfm" 1710106625 4524 6bce29db5bc272ba5f332261583fee9c ""
@@ -24,7 +23,6 @@
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/tfm/jknappen/ec/ectt0800.tfm" 1710106625 1536 0b0b8ca286de6a006b681926403f35cd ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/tfm/jknappen/ec/ectt0900.tfm" 1710106625 1536 ae7aab2f8a4bc9edfce2899f53ba88c3 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/tfm/jknappen/ec/ectt1000.tfm" 1710106625 1536 06717a2b50de47d4087ac0e6cd759455 ""
-  "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/tfm/jknappen/ec/tctt0900.tfm" 1710106625 1536 bda3e6bf9784a4cc572c754e0c3eeb00 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1710106625 1004 54797486969f23fa377b128694d548df ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1710106625 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex9.tfm" 1710106625 996 a18840b13b499c08ac2de96a99eda4bc ""
@@ -64,6 +62,7 @@
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/tfm/public/latex-fonts/lasy9.tfm" 1710106625 520 1cc7cc05f4d7bae5c23bf7516f88fa52 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/tfm/public/latex-fonts/lasyb10.tfm" 1710106625 520 4bf1455197d190cb95c579bde4c2f0ba ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb" 1710106625 32734 69e00a6b65cedb993666e42eedb3d48f ""
+  "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/amsfonts/latxfont/lcircle1.pfb" 1710106625 10594 310261a6407d360eda1ed257d05cd4df ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/cm-super/sftt0800.pfb" 1710106625 175641 e30a691dc1402b08fd6535cf8a31e5b7 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/cm-super/sftt0900.pfb" 1710106625 170827 2e4b634de7b58578eae1dc93e51dfe48 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb" 1710106625 169201 9ebf99020dde51a5086e186761a34e8f ""
@@ -99,7 +98,6 @@
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/tex/latex/base/latexsym.sty" 1710106625 2853 22ef275b938b198870f6474b02bbd3b1 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/tex/latex/base/t1cmtt.fd" 1710106625 2443 790016d75def8d3127df5c216a45abcc ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/tex/latex/base/textcomp.sty" 1710106625 2894 fc64867f9d198785eabe71a88276a9cb ""
-  "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/tex/latex/base/ts1cmtt.fd" 1710106625 2287 003e26f17fb2011982a0904ffee9cab0 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/tex/latex/base/ulasy.fd" 1710106625 2233 223b021f06a068bcbf05919274832728 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/tex/latex/caption/caption.sty" 1710106625 56128 c2ccf1a29d78c33bc553880402e4fb9a ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/tex/latex/caption/caption3.sty" 1710106625 72619 ee90b6612147680fd73c3b1406a74245 ""
@@ -140,15 +138,15 @@
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/tex/latex/xcolor/xcolor.sty" 1710106625 55487 80a65caedd3722f4c20a14a69e785d8f ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/web2c/texmf.cnf" 1710106625 41652 e14926ab86fde7902cad99d9eeaa5ca5 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-var/web2c/pdftex/pdflatex.fmt" 1710106625 8221853 2329800d8a3184f5dd913ef4611b5d1d ""
-  "header.tex" 1735573492.46152 650 31c4556cac1c829461424cb40de58238 ""
+  "header.tex" 1735573966.16788 650 31c4556cac1c829461424cb40de58238 ""
   "jlcode.sty" 1735568640.44102 18247 c7ed2bfdf5b1011566e15a16b8dc985b ""
-  "journal_dat.tex" 1735573492.46168 150 e8f5f0ce758e2580b918922de6715366 ""
+  "journal_dat.tex" 1735573966.16795 150 e8f5f0ce758e2580b918922de6715366 ""
   "juliacon.cls" 1735568640.44154 30597 785899b4e284a01edd6bca4c84b3467c ""
   "logojuliacon.pdf" 1735568640.44187 4937 0cb75c4e65b0cf72a69c7716f140efe5 ""
-  "paper.aux" 1735573499.85205 2983 1c3afc4c5c3dfb70d34b3beaa106244c "pdflatex"
-  "paper.bbl" 1735569582.63734 49 0eba253fc001332e731e8aba3f23127b "bibtex paper"
-  "paper.out" 1735573499.85346 2398 5e3d9bb208f6ffda6c552259e4c975ae "pdflatex"
-  "paper.tex" 1735573489.04963 12817 67c861a30af5fc39d3f584d8c9359dff ""
+  "paper.aux" 1735573981.24416 4610 cd70edbe0b7e254b2b16a5c728906fff "pdflatex"
+  "paper.bbl" 1735573966.23112 1935 58738b0c189c72f76d9bb35e0688602b "bibtex paper"
+  "paper.out" 1735573981.24598 2398 5e3d9bb208f6ffda6c552259e4c975ae "pdflatex"
+  "paper.tex" 1735573957.55591 13586 35ecf742753f7734d4526391a1d1aefe ""
   (generated)
   "paper.aux"
   "paper.log"

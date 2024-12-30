@@ -1,8 +1,8 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  30 DEC 2024 16:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  30 DEC 2024 16:52
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**paper
+**paper.tex
 (./paper.tex
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
@@ -552,8 +552,16 @@ and
  []
 
 
-Overfull \hbox (24.5354pt too wide) in paragraph at lines 58--58
-[]\T1/cmtt/m/n/9 # Create a new variable that is 1 if x > 10, 0 otherwise[] 
+Overfull \hbox (43.43079pt too wide) in paragraph at lines 45--46
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
+[][][][][][][][] 
+ []
+
+
+Overfull \hbox (19.81155pt too wide) in paragraph at lines 54--55
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
@@ -570,651 +578,731 @@ Non-PDF special ignored!
 
 {/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/enc/dvips/cm-su
 per/cm-super-t1.enc} <./logojuliacon.pdf>]
-Overfull \hbox (0.91617pt too wide) in paragraph at lines 58--58
-[]\T1/cmtt/m/n/9 # Collapse data by group, calculating the mean of x[] 
+LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <7> not available
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 79.
+
+Overfull \hbox (76.49771pt too wide) in paragraph at lines 108--109
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (38.70694pt too wide) in paragraph at lines 112--112
-[]\T1/cmtt/m/n/9 julia> df = DataFrame(x=[1, 2, missing], y=[missing, 3, 4])[] 
-
- []
-
-LaTeX Font Info:    Trying to load font information for TS1+cmtt on input line 
-112.
-
-(/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/tex/latex/base/ts1cmt
-t.fd
-File: ts1cmtt.fd 2023/04/13 v2.5m Standard LaTeX font definitions
-)
-
-! LaTeX Error: Unicode character │ (U+2502)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.110 		1×1 
+             DataFrame
 ? 
 
-! LaTeX Error: Unicode character │ (U+2502)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte "97.
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.110 		1×1 
+             DataFrame
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.111 		 Row │ 
+                 sum_x
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte "82.
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.111 		 Row │ 
+                 sum_x
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.112 			 │ 
+              Int64?
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte "82.
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.112 			 │ 
+              Int64?
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character ┼ (U+253C)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte "80.
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character │ (U+2502)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character │ (U+2502)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character │ (U+2502)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
+l.113 ...��───┼─────────
+                                                  
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
+l.113 ...��───┼─────────
                                                   
-l.112 \end{verbatim}
-                    
 ? 
 
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ┼ (U+253C)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character ─ (U+2500)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character │ (U+2502)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character │ (U+2502)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-! LaTeX Error: Unicode character │ (U+2502)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.112 \end{verbatim}
-                    
-? 
-
-Overfull \hbox (5.64001pt too wide) in paragraph at lines 125--125
-[]\T1/cmtt/m/n/9 julia> @regress log_trade log_distance @if trade > 0[] 
+Overfull \hbox (10.36386pt too wide) in paragraph at lines 113--114
+[][][][][][][][][] 
  []
 
 
-Overfull \hbox (33.9831pt too wide) in paragraph at lines 125--125
-[]\T1/cmtt/m/n/9 julia> @collapse mean_x = mean(x) @if group == "treatment"[] 
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.114 		   1 │ 
+                      3
+? 
+
+! LaTeX Error: Invalid UTF-8 byte "82.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.114 		   1 │ 
+                      3
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.117 		3×3 
+             DataFrame
+? 
+
+! LaTeX Error: Invalid UTF-8 byte "97.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.117 		3×3 
+             DataFrame
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.118 		 Row │ 
+                 x        y        z
+? 
+
+! LaTeX Error: Invalid UTF-8 byte "82.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.118 		 Row │ 
+                 x        y        z
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.119 			 │ 
+              Int64?   Int64?   Int64?
+? 
+
+! LaTeX Error: Invalid UTF-8 byte "82.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.119 			 │ 
+              Int64?   Int64?   Int64?
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte "80.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@EC�\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...��─────────────
+                                                  
+? 
+
+Overfull \hbox (265.45157pt too wide) in paragraph at lines 120--121
+[][][][][][][][][] 
  []
 
 
-Underfull \hbox (badness 1297) in paragraph at lines 146--147
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.121 		   1 │ 
+                       1  missing  missing
+? 
+
+! LaTeX Error: Invalid UTF-8 byte "82.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.121 		   1 │ 
+                       1  missing  missing
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.122 		   2 │ 
+                       2        3        5
+? 
+
+! LaTeX Error: Invalid UTF-8 byte "82.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.122 		   2 │ 
+                       2        3        5
+? 
+
+! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.123 		   3 │ 
+                 missing        4  missing
+? 
+
+! LaTeX Error: Invalid UTF-8 byte "82.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.123 		   3 │ 
+                 missing        4  missing
+? 
+
+Underfull \hbox (badness 10000) in paragraph at lines 141--142
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
+ []
+
+
+Underfull \hbox (badness 1297) in paragraph at lines 167--168
 []\T1/ptm/m/n/9 Finally, Kezdi.jl en-cour-ages or-ga-niz-ing anal-y-sis as se-q
 uen-tial
  []
@@ -1224,17 +1312,16 @@ Overfull \vbox (2.39996pt too high) has occurred while \output is active []
 
 
 Underfull \hbox (badness 10000) has occurred while \output is active
-  \T1/ptm/m/n/8 2
+  \T1/ptm/m/n/9 2
  []
 
-[2{/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/enc/dvips/cm-
-super/cm-super-ts1.enc}]
+[2]
 ! Undefined control sequence.
-l.189 \backmatter
+l.210 \backmatter
                  
 ? 
 ! Undefined control sequence.
-l.191 \bmhead
+l.212 \bmhead
              {Acknowledgments}
 ? 
 (./paper.bbl)
@@ -1254,30 +1341,38 @@ L3 programming layer <2024-02-20>
 
 LaTeX Warning: There were undefined references.
 
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
 Package rerunfilecheck Info: File `paper.out' has not changed.
 (rerunfilecheck)             Checksum: 5E3D9BB208F6FFDA6C552259E4C975AE;2398.
  ) 
 Here is how much of TeX's memory you used:
- 13143 strings out of 474116
- 207874 string characters out of 5732613
- 1950187 words of memory out of 5000000
- 35261 multiletter control sequences out of 15000+600000
- 602740 words of font info for 127 fonts, out of 8000000 for 9000
+ 14153 strings out of 474116
+ 217903 string characters out of 5732613
+ 2018187 words of memory out of 5000000
+ 36226 multiletter control sequences out of 15000+600000
+ 607122 words of font info for 130 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 90i,11n,93p,937b,579s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmr6.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/
-fonts/type1/public/cm-super/sftt0800.pfb></opt/homebrew/Cellar/texlive/20240312
-_1/share/texmf-dist/fonts/type1/public/cm-super/sftt0900.pfb></opt/homebrew/Cel
-lar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/cm-super/sftt1000.pf
-b></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/urw/tim
-es/utmb8a.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/t
-ype1/urw/times/utmr8a.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-
-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on paper.pdf (3 pages, 168043 bytes).
+ 90i,12n,93p,941b,1986s stack positions out of 10000i,1000n,20000p,200000b,200000s
+
+pdfTeX warning (dest): name{table.caption.3} has been referenced but does not e
+xist, replaced by a fixed one
+
+</opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmr6.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fo
+nts/type1/public/amsfonts/latxfont/lcircle1.pfb></opt/homebrew/Cellar/texlive/2
+0240312_1/share/texmf-dist/fonts/type1/public/cm-super/sftt0800.pfb></opt/homeb
+rew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/cm-super/sftt
+0900.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/
+public/cm-super/sftt1000.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/tex
+mf-dist/fonts/type1/urw/times/utmb8a.pfb></opt/homebrew/Cellar/texlive/20240312
+_1/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></opt/homebrew/Cellar/texl
+ive/20240312_1/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on paper.pdf (3 pages, 183129 bytes).
 PDF statistics:
- 167 PDF objects out of 1000 (max. 8388607)
- 144 compressed objects within 2 object streams
- 37 named destinations out of 1000 (max. 500000)
+ 227 PDF objects out of 1000 (max. 8388607)
+ 202 compressed objects within 3 object streams
+ 86 named destinations out of 1000 (max. 500000)
  110 words of extra memory for PDF output out of 10000 (max. 10000000)
 

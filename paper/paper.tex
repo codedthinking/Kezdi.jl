@@ -40,22 +40,27 @@ Kezdi.jl has near complete coverage of Stata's data manipulation commands, inclu
 
 Some examples of common data wrangling tasks in Kezdi.jl:
 
-\begin{verbatim}
-# Create a new variable that is 1 if x > 10, 0 otherwise
-@generate y = cond(x > 10, 1, 0)
-
-# Rename variables
-@rename oldname newname
-
-# Encode missing values
-@mvencode y1 y2 y3 if x < 0, mv(999)
-
-# Collapse data by group, calculating the mean of x
-@collapse avg_x = mean(x), by(group)
-
-# Reshape data from wide to long format
-@reshape long y, i(id) j(year)
-\end{verbatim}
+\begin{figure}[t]
+	\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
+	# Create a new variable that is 1 if x > 10, 0 otherwise
+	@generate y = cond(x > 10, 1, 0)
+	
+	# Rename variables
+	@rename oldname newname
+	
+	# Encode missing values
+	@mvencode y1 y2 y3 @if x < 0, mv(999)
+	
+	# Collapse data by group, calculating the mean of x
+	@collapse avg_x = mean(x), by(group)
+	
+	# Reshape data from wide to long format
+	@reshape long y, i(id) j(year)
+	\end{lstlisting}
+	
+\caption{Some data wrangling commands illustrating the syntax of Kezdi.jl.}
+\label{fig:syntax}
+\end{figure}
 
 \subsection{Automatic column selection and vectorization}
 
@@ -69,13 +74,18 @@ This allows for concise and readable code that operates directly on data frame c
 
 Because Kezdi.jl supports arbitrary Julia syntax within commands, user-defined and external package functions work seamlessly with data frame columns.
 
-\begin{verbatim}
-julia> using Dates
-julia> @generate date = Date(year, month, day)
-
-julia> using Statistics
-julia> @collapse std_x = std(x), by(group) 
-\end{verbatim}
+\begin{figure}[t]
+	\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
+	using Dates
+	@generate date = Date(year, month, day)
+	
+	using Statistics
+	@collapse std_x = std(x), by(group) 
+	\end{lstlisting}
+	
+\caption{Functions are automatically vectorized, but only if necessary.}
+\label{fig:vectorization}
+\end{figure}
 
 This allows economists to easily extend their data manipulation and modeling capabilities beyond Stata's built-in functions by leveraging Julia's package ecosystem.
 
@@ -91,25 +101,31 @@ Missing value handling in Kezdi.jl follows these rules to ensure consistency wit
 	\item Aggregation functions skip missing values by default.
 \end{itemize}
 
-\begin{verbatim}
-julia> using Kezdi
-julia> df = DataFrame(x=[1, 2, missing], y=[missing, 3, 4])
-julia> @collapse sum_x = sum(x)
-1×1 DataFrame
- Row │ sum_x   
-     │ Int64?  
-─────┼─────────
-   1 │      3
 
-julia> @generate z = x + y
-3×3 DataFrame
- Row │ x        y        z
-     │ Int64?   Int64?   Int64?
-─────┼───────────────────────────
-   1 │       1  missing  missing
-   2 │       2        3        5
-   3 │ missing        4  missing
-\end{verbatim}
+\begin{figure}[t]
+	\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
+		julia> using Kezdi
+		julia> df = DataFrame(x=[1, 2, missing], y=[missing, 3, 4])
+		julia> @collapse sum_x = sum(x)
+		1×1 DataFrame
+		 Row │ sum_x   
+			 │ Int64?  
+		─────┼─────────
+		   1 │      3
+		
+		julia> @generate z = x + y
+		3×3 DataFrame
+		 Row │ x        y        z
+			 │ Int64?   Int64?   Int64?
+		─────┼───────────────────────────
+		   1 │       1  missing  missing
+		   2 │       2        3        5
+		   3 │ missing        4  missing
+			\end{lstlisting}
+	
+\caption{Missing values are handled in a logical way.}
+\label{fig:missing}
+\end{figure}
 
 \subsection{Syntactic sugar for operating row-wise}
 
@@ -117,12 +133,17 @@ One of the most convenient features of Stata is the ability to restrict any comm
 
 Kezdi.jl implements the same with the \texttt{@if} macro-call, but without an actually implemented macro. Logical expressions are automatically broadcast over rows.
 
-\begin{verbatim}
-julia> @replace trade = 0 @if ismissing(trade)
-julia> @regress log_trade log_distance @if trade > 0
-julia> @keep @if !ismissing(trade) 
-julia> @collapse mean_x = mean(x) @if group == "treatment"
-\end{verbatim}
+\begin{figure}[t]
+	\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
+	@replace trade = 0 @if ismissing(trade)
+	@regress log_trade log_distance @if trade > 0
+	@keep @if !ismissing(trade) 
+	@collapse mean_x = mean(x) @if group == "treatment"		
+	\end{lstlisting}
+	
+\caption{The @if macro can be used to limit the scope of any command.}
+\label{fig:ifmacro}
+\end{figure}
 
 \subsection{Integration with Julia's package ecosystem}
 
