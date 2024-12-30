@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex paper"] 1735573966.17462 "paper.aux" "paper.bbl" "paper" 1735573981.47346 0
+["bibtex paper"] 1735573966.17462 "paper.aux" "paper.bbl" "paper" 1735574745.5535 0
   "./juliacon.bst" 1735568640.4413 20997 2eaa317b2b3889daf19a84ad3db6071a ""
   "./ref.bib" 1735569578.53267 3358 5780e9280d4adf6b544c6b8af6241c5e ""
-  "paper.aux" 1735573981.24416 4610 cd70edbe0b7e254b2b16a5c728906fff "pdflatex"
+  "paper.aux" 1735574745.348 5524 680529ced93d595bdfbf4304727ffa92 "pdflatex"
   (generated)
   "paper.bbl"
   "paper.blg"
   (rewritten before read)
-["pdflatex"] 1735573966.23403 "paper.tex" "paper.pdf" "paper" 1735573981.47358 2
+["pdflatex"] 1735574737.88385 "paper.tex" "paper.pdf" "paper" 1735574745.55364 2
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/enc/dvips/base/8r.enc" 1710106625 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1710106625 2971 def0b6c1f0b107b3b936def894055589 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/map/fontname/texfonts.map" 1710106625 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -138,15 +138,16 @@
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/tex/latex/xcolor/xcolor.sty" 1710106625 55487 80a65caedd3722f4c20a14a69e785d8f ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/web2c/texmf.cnf" 1710106625 41652 e14926ab86fde7902cad99d9eeaa5ca5 ""
   "/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-var/web2c/pdftex/pdflatex.fmt" 1710106625 8221853 2329800d8a3184f5dd913ef4611b5d1d ""
-  "header.tex" 1735573966.16788 650 31c4556cac1c829461424cb40de58238 ""
+  "header.tex" 1735574737.87493 650 31c4556cac1c829461424cb40de58238 ""
   "jlcode.sty" 1735568640.44102 18247 c7ed2bfdf5b1011566e15a16b8dc985b ""
-  "journal_dat.tex" 1735573966.16795 150 e8f5f0ce758e2580b918922de6715366 ""
+  "journal_dat.tex" 1735574737.87517 150 e8f5f0ce758e2580b918922de6715366 ""
   "juliacon.cls" 1735568640.44154 30597 785899b4e284a01edd6bca4c84b3467c ""
+  "languages.png" 1735574552 21118 340c444ae4fe017c9c6dd5c1ef710e0b ""
   "logojuliacon.pdf" 1735568640.44187 4937 0cb75c4e65b0cf72a69c7716f140efe5 ""
-  "paper.aux" 1735573981.24416 4610 cd70edbe0b7e254b2b16a5c728906fff "pdflatex"
+  "paper.aux" 1735574745.348 5524 680529ced93d595bdfbf4304727ffa92 "pdflatex"
   "paper.bbl" 1735573966.23112 1935 58738b0c189c72f76d9bb35e0688602b "bibtex paper"
-  "paper.out" 1735573981.24598 2398 5e3d9bb208f6ffda6c552259e4c975ae "pdflatex"
-  "paper.tex" 1735573957.55591 13586 35ecf742753f7734d4526391a1d1aefe ""
+  "paper.out" 1735574745.34936 2398 5e3d9bb208f6ffda6c552259e4c975ae "pdflatex"
+  "paper.tex" 1735574734.88078 14681 adacb1b1972237cb346b27ade5d41a07 ""
   (generated)
   "paper.aux"
   "paper.log"

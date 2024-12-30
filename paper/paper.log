@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  30 DEC 2024 16:52
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  30 DEC 2024 17:05
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -525,44 +525,30 @@ LaTeX Font Info:    Font shape `U/lasy/b/n' in size <8> not available
 LaTeX Font Info:    Font shape `U/lasy/b/n' in size <6> not available
 (Font)              Font shape `U/lasy/m/n' tried instead on input line 7.
 
-
-LaTeX Warning: Citation `koren2023replication' on page 1 undefined on input lin
-e 15.
-
-
-Underfull \hbox (badness 1708) in paragraph at lines 15--16
+Underfull \hbox (badness 1708) in paragraph at lines 15--17
 \T1/ptm/m/n/9 Research com-put-ing is cen-tral to the sci-en-tific work-flow of
 
  []
 
+<languages.png, id=58, 451.6875pt x 301.125pt>
+File: languages.png Graphic file (type png)
+<use languages.png>
+Package pdftex.def Info: languages.png  used on input line 20.
+(pdftex.def)             Requested size: 252.0pt x 168.00395pt.
+
+Overfull \hbox (12.0pt too wide) in paragraph at lines 20--21
+ [][] 
+ []
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
 LaTeX Font Info:    Font shape `U/lasy/b/n' in size <9> not available
-(Font)              Font shape `U/lasy/m/n' tried instead on input line 23.
+(Font)              Font shape `U/lasy/m/n' tried instead on input line 33.
 LaTeX Font Info:    Font shape `U/lasy/b/n' in size <5> not available
-(Font)              Font shape `U/lasy/m/n' tried instead on input line 23.
+(Font)              Font shape `U/lasy/m/n' tried instead on input line 33.
 
-Underfull \hbox (badness 1888) in paragraph at lines 39--40
-[]\T1/ptm/m/n/9 Kezdi.jl has near com-plete cov-er-age of Stata's data ma-nip-
- []
-
-
-Underfull \hbox (badness 1286) in paragraph at lines 39--40
-\T1/ptm/m/n/9 u-la-tion com-mands, in-clud-ing \T1/cmtt/m/n/9 egen\T1/ptm/m/n/9
- , \T1/cmtt/m/n/9 collapse\T1/ptm/m/n/9 , \T1/cmtt/m/n/9 reshape \T1/ptm/m/n/9 
-and
- []
-
-
-Overfull \hbox (43.43079pt too wide) in paragraph at lines 45--46
-[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
-[][][][][][][][] 
- []
-
-
-Overfull \hbox (19.81155pt too wide) in paragraph at lines 54--55
-[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-][][][][][][][][][][][][][][][][][][][][][][][][][][] 
- []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Underfull \hbox (badness 10000) has occurred while \output is active
@@ -577,13 +563,40 @@ Non-PDF special ignored!
 
 
 {/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/enc/dvips/cm-su
-per/cm-super-t1.enc} <./logojuliacon.pdf>]
-LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <7> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 79.
+per/cm-super-t1.enc} <./logojuliacon.pdf> <./languages.png>]
+Underfull \hbox (badness 1888) in paragraph at lines 51--52
+[]\T1/ptm/m/n/9 Kezdi.jl has near com-plete cov-er-age of Stata's data ma-nip-
+ []
 
-Overfull \hbox (76.49771pt too wide) in paragraph at lines 108--109
+
+Underfull \hbox (badness 1286) in paragraph at lines 51--52
+\T1/ptm/m/n/9 u-la-tion com-mands, in-clud-ing \T1/cmtt/m/n/9 egen\T1/ptm/m/n/9
+ , \T1/cmtt/m/n/9 collapse\T1/ptm/m/n/9 , \T1/cmtt/m/n/9 reshape \T1/ptm/m/n/9 
+and
+ []
+
+
+Overfull \hbox (24.5354pt too wide) in paragraph at lines 57--58
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-][][][][][][][][][][][][][][][] 
+][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
+[][][][][][][] 
+ []
+
+
+Overfull \hbox (0.91617pt too wide) in paragraph at lines 66--67
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <7> not available
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 90.
+
+Underfull \vbox (badness 1881) has occurred while \output is active []
+
+
+Overfull \hbox (38.70694pt too wide) in paragraph at lines 119--120
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][][][][][][][][][][][][][][] 
  []
 
 
@@ -593,8 +606,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.110 		1×1 
-             DataFrame
+l.121 1×1 
+           DataFrame
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte "97.
@@ -603,8 +616,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.110 		1×1 
-             DataFrame
+l.121 1×1 
+           DataFrame
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
@@ -613,8 +626,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.111 		 Row │ 
-                 sum_x
+l.122 	Row │ 
+               sum_x
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte "82.
@@ -623,8 +636,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.111 		 Row │ 
-                 sum_x
+l.122 	Row │ 
+               sum_x
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
@@ -633,8 +646,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 			 │ 
-              Int64?
+l.123 		│ 
+            Int64?
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte "82.
@@ -643,8 +656,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.112 			 │ 
-              Int64?
+l.123 		│ 
+            Int64?
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
@@ -653,7 +666,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -663,7 +676,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -673,7 +686,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -683,7 +696,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -693,7 +706,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -703,7 +716,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -713,7 +726,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -723,7 +736,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -733,7 +746,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -743,7 +756,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -753,7 +766,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -763,7 +776,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -773,7 +786,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -783,7 +796,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -793,7 +806,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
 
@@ -803,14 +816,9 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.113 ...��───┼─────────
+l.124 ...��───┼─────────
                                                   
 ? 
-
-Overfull \hbox (10.36386pt too wide) in paragraph at lines 113--114
-[][][][][][][][][] 
- []
-
 
 ! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
 
@@ -818,8 +826,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.114 		   1 │ 
-                      3
+l.125 	1 │ 
+                  3
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte "82.
@@ -828,8 +836,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.114 		   1 │ 
-                      3
+l.125 	1 │ 
+                  3
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@).
@@ -838,8 +846,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.117 		3×3 
-             DataFrame
+l.128 3×3 
+           DataFrame
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte "97.
@@ -848,8 +856,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.117 		3×3 
-             DataFrame
+l.128 3×3 
+           DataFrame
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
@@ -858,8 +866,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.118 		 Row │ 
-                 x        y        z
+l.129 	Row │ 
+               x        y        z
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte "82.
@@ -868,8 +876,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.118 		 Row │ 
-                 x        y        z
+l.129 	Row │ 
+               x        y        z
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
@@ -878,8 +886,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.119 			 │ 
-              Int64?   Int64?   Int64?
+l.130 		│ 
+            Int64?   Int64?   Int64?
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte "82.
@@ -888,8 +896,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.119 			 │ 
-              Int64?   Int64?   Int64?
+l.130 		│ 
+            Int64?   Int64?   Int64?
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
@@ -898,7 +906,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -908,7 +916,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -918,7 +926,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -928,7 +936,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -938,7 +946,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -948,7 +956,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -958,7 +966,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -968,7 +976,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -978,7 +986,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -988,7 +996,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -998,7 +1006,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1008,7 +1016,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1018,7 +1026,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1028,7 +1036,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1038,7 +1046,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1048,7 +1056,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1058,7 +1066,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1068,7 +1076,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1078,7 +1086,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1088,7 +1096,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1098,7 +1106,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1108,7 +1116,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1118,7 +1126,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1128,7 +1136,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1138,7 +1146,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1148,7 +1156,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1158,7 +1166,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1168,7 +1176,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1178,7 +1186,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1188,7 +1196,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1198,7 +1206,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1208,7 +1216,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1218,7 +1226,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
@@ -1228,12 +1236,12 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.120 ...��─────────────
+l.131 ...��─────────────
                                                   
 ? 
 
-Overfull \hbox (265.45157pt too wide) in paragraph at lines 120--121
-[][][][][][][][][] 
+Overfull \hbox (227.6608pt too wide) in paragraph at lines 131--132
+[][][][][][][][] 
  []
 
 
@@ -1243,8 +1251,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.121 		   1 │ 
-                       1  missing  missing
+l.132 	1 │ 
+                   1  missing  missing
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte "82.
@@ -1253,8 +1261,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.121 		   1 │ 
-                       1  missing  missing
+l.132 	1 │ 
+                   1  missing  missing
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
@@ -1263,8 +1271,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.122 		   2 │ 
-                       2        3        5
+l.133 	2 │ 
+                   2        3        5
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte "82.
@@ -1273,8 +1281,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.122 		   2 │ 
-                       2        3        5
+l.133 	2 │ 
+                   2        3        5
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte sequence (�\lst@FillFixed@\lst@EC�).
@@ -1283,8 +1291,8 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.123 		   3 │ 
-                 missing        4  missing
+l.134 	3 │ 
+             missing        4  missing
 ? 
 
 ! LaTeX Error: Invalid UTF-8 byte "82.
@@ -1293,18 +1301,12 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.123 		   3 │ 
-                 missing        4  missing
+l.134 	3 │ 
+             missing        4  missing
 ? 
 
-Underfull \hbox (badness 10000) in paragraph at lines 141--142
-[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
- []
-
-
-Underfull \hbox (badness 1297) in paragraph at lines 167--168
-[]\T1/ptm/m/n/9 Finally, Kezdi.jl en-cour-ages or-ga-niz-ing anal-y-sis as se-q
-uen-tial
+Underfull \hbox (badness 10000) in paragraph at lines 152--153
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
  []
 
 
@@ -1316,15 +1318,20 @@ Underfull \hbox (badness 10000) has occurred while \output is active
  []
 
 [2]
+Underfull \hbox (badness 1297) in paragraph at lines 178--179
+[]\T1/ptm/m/n/9 Finally, Kezdi.jl en-cour-ages or-ga-niz-ing anal-y-sis as se-q
+uen-tial
+ []
+
 ! Undefined control sequence.
-l.210 \backmatter
+l.221 \backmatter
                  
 ? 
 ! Undefined control sequence.
-l.212 \bmhead
+l.223 \bmhead
              {Acknowledgments}
 ? 
-(./paper.bbl)
+(./paper.bbl
 Overfull \vbox (2.39996pt too high) has occurred while \output is active []
 
 
@@ -1332,14 +1339,21 @@ Underfull \hbox (badness 10000) has occurred while \output is active
   \T1/ptm/m/n/9 3
  []
 
-[3] (./paper.aux)
+[3])
+Overfull \vbox (2.39996pt too high) has occurred while \output is active []
+
+
+Underfull \hbox (badness 10000) has occurred while \output is active
+  \T1/ptm/m/n/9 4
+ []
+
+[4
+
+] (./paper.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
  ***********
-
-
-LaTeX Warning: There were undefined references.
 
 
 LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
@@ -1348,15 +1362,15 @@ Package rerunfilecheck Info: File `paper.out' has not changed.
 (rerunfilecheck)             Checksum: 5E3D9BB208F6FFDA6C552259E4C975AE;2398.
  ) 
 Here is how much of TeX's memory you used:
- 14153 strings out of 474116
- 217903 string characters out of 5732613
+ 14168 strings out of 474116
+ 218116 string characters out of 5732613
  2018187 words of memory out of 5000000
- 36226 multiletter control sequences out of 15000+600000
- 607122 words of font info for 130 fonts, out of 8000000 for 9000
+ 36235 multiletter control sequences out of 15000+600000
+ 604319 words of font info for 128 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 90i,12n,93p,941b,1986s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,11n,93p,941b,1993s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-pdfTeX warning (dest): name{table.caption.3} has been referenced but does not e
+pdfTeX warning (dest): name{table.caption.8} has been referenced but does not e
 xist, replaced by a fixed one
 
 </opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/am
@@ -1369,10 +1383,10 @@ public/cm-super/sftt1000.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/tex
 mf-dist/fonts/type1/urw/times/utmb8a.pfb></opt/homebrew/Cellar/texlive/20240312
 _1/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></opt/homebrew/Cellar/texl
 ive/20240312_1/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on paper.pdf (3 pages, 183129 bytes).
+Output written on paper.pdf (4 pages, 198916 bytes).
 PDF statistics:
- 227 PDF objects out of 1000 (max. 8388607)
- 202 compressed objects within 3 object streams
- 86 named destinations out of 1000 (max. 500000)
- 110 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 241 PDF objects out of 1000 (max. 8388607)
+ 213 compressed objects within 3 object streams
+ 93 named destinations out of 1000 (max. 500000)
+ 115 words of extra memory for PDF output out of 10000 (max. 10000000)
 

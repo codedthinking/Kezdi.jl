@@ -12,7 +12,17 @@ Economists overwhelmingly rely on proprietary data analysis languages such as St
 
 \section{Introduction}
 
-Research computing is central to the scientific workflow of economists. Yet the most widely used software tools are decades old proprietary languages \cite{koren2022adoption}. Of the 364 replication packages studied by \cite{koren2023replication}, 72\% used Stata and 41\% used MATLAB, while only 3\% contained any Julia code.
+Research computing is central to the scientific workflow of economists. We studied 357 replication packages submitted to the Review of Economic Studies in recent years to understand what programming languages economists use.
+Figure \ref{fig:languages} shows the number of packages that contain code in various languages. Stata is by far the most popular, used in 72\% of packages, followed by MATLAB with 41\%. In contrast, only 3\% of replication packages contain any Julia code, which is even less prevalent than Fortran and C or C++.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.5\textwidth]{languages.png}
+\caption{Programming language usage in economics replication packages submitted to the Review of Economic Studies. A package can contain code in multiple languages.}
+\label{fig:languages}
+\end{figure}
+
+Stata and MATLAB are often used together in the same replication package, with Stata focusing on data manipulation and analysis, while MATLAB handles computationally intensive tasks like model simulations. These findings highlight both the current dominance of proprietary scientific computing languages in economics and the large untapped potential for open source tools like Julia to make inroads in the field. Lowering the barriers to entry through familiar interfaces, as Kezdi.jl aims to do for Stata users, could play an important role in accelerating adoption.
 
 Stata in particular has a dominant position in the data analysis and statistical modeling stages of the research workflow. 88\% of code lines in a typical replication package are devoted to data wrangling and related programming tasks, with only 5\% implementing statistical analysis \cite{koren2023share}. This is no surprise, given that a typical empirical economics paper assembles and harmonizes data from several disparate sources.
 
@@ -28,38 +38,39 @@ The overarching design principle of Kezdi.jl is to provide a convenient and fami
 
 \subsection{Stata-like command syntax}
 
-Commands in Kezdi.jl follow Stata naming conventions and syntax. All commands start with the \texttt{@} sign. Options are separated from arguments by a comma.
-
-\begin{verbatim}
-julia> @use "trade.dta"
-julia> @generate log_trade = log(trade)
-julia> @regress log_trade log_distance, robust
-\end{verbatim}
+\begin{figure}[t]
+\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
+@use "trade.dta"
+@generate log_trade = log(trade)
+@regress log_trade log_distance, robust
+\end{lstlisting}
+\caption{Commands in Kezdi.jl follow Stata naming conventions and syntax. All commands start with the \texttt{@} sign. Options are separated from arguments by a comma.}
+\label{fig:syntax}
+\end{figure}
 
 Kezdi.jl has near complete coverage of Stata's data manipulation commands, including \texttt{egen}, \texttt{collapse}, \texttt{reshape} and \texttt{mvencode}. Combined with Julia's superior performance, this allows economists to easily translate their Stata workflows.
 
 Some examples of common data wrangling tasks in Kezdi.jl:
 
 \begin{figure}[t]
-	\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
-	# Create a new variable that is 1 if x > 10, 0 otherwise
-	@generate y = cond(x > 10, 1, 0)
-	
-	# Rename variables
-	@rename oldname newname
-	
-	# Encode missing values
-	@mvencode y1 y2 y3 @if x < 0, mv(999)
-	
-	# Collapse data by group, calculating the mean of x
-	@collapse avg_x = mean(x), by(group)
-	
-	# Reshape data from wide to long format
-	@reshape long y, i(id) j(year)
-	\end{lstlisting}
-	
+\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
+# Create a new variable that is 1 if x > 10, 0 otherwise
+@generate y = cond(x > 10, 1, 0)
+
+# Rename variables
+@rename oldname newname
+
+# Encode missing values
+@mvencode y1 y2 y3 @if x < 0, mv(999)
+
+# Collapse data by group, calculating the mean of x
+@collapse avg_x = mean(x), by(group)
+
+# Reshape data from wide to long format
+@reshape long y, i(id) j(year)
+\end{lstlisting}
 \caption{Some data wrangling commands illustrating the syntax of Kezdi.jl.}
-\label{fig:syntax}
+\label{fig:wrangling}
 \end{figure}
 
 \subsection{Automatic column selection and vectorization}
@@ -75,13 +86,13 @@ This allows for concise and readable code that operates directly on data frame c
 Because Kezdi.jl supports arbitrary Julia syntax within commands, user-defined and external package functions work seamlessly with data frame columns.
 
 \begin{figure}[t]
-	\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
-	using Dates
-	@generate date = Date(year, month, day)
-	
-	using Statistics
-	@collapse std_x = std(x), by(group) 
-	\end{lstlisting}
+\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
+using Dates
+@generate date = Date(year, month, day)
+
+using Statistics
+@collapse std_x = std(x), by(group) 
+\end{lstlisting}
 	
 \caption{Functions are automatically vectorized, but only if necessary.}
 \label{fig:vectorization}
@@ -103,25 +114,25 @@ Missing value handling in Kezdi.jl follows these rules to ensure consistency wit
 
 
 \begin{figure}[t]
-	\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
-		julia> using Kezdi
-		julia> df = DataFrame(x=[1, 2, missing], y=[missing, 3, 4])
-		julia> @collapse sum_x = sum(x)
-		1×1 DataFrame
-		 Row │ sum_x   
-			 │ Int64?  
-		─────┼─────────
-		   1 │      3
-		
-		julia> @generate z = x + y
-		3×3 DataFrame
-		 Row │ x        y        z
-			 │ Int64?   Int64?   Int64?
-		─────┼───────────────────────────
-		   1 │       1  missing  missing
-		   2 │       2        3        5
-		   3 │ missing        4  missing
-			\end{lstlisting}
+\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
+julia> using Kezdi
+julia> df = DataFrame(x=[1, 2, missing], y=[missing, 3, 4])
+julia> @collapse sum_x = sum(x)
+1×1 DataFrame
+	Row │ sum_x   
+		│ Int64?  
+─────┼─────────
+	1 │      3
+
+julia> @generate z = x + y
+3×3 DataFrame
+	Row │ x        y        z
+		│ Int64?   Int64?   Int64?
+─────┼───────────────────────────
+	1 │       1  missing  missing
+	2 │       2        3        5
+	3 │ missing        4  missing
+	\end{lstlisting}
 	
 \caption{Missing values are handled in a logical way.}
 \label{fig:missing}
@@ -134,12 +145,12 @@ One of the most convenient features of Stata is the ability to restrict any comm
 Kezdi.jl implements the same with the \texttt{@if} macro-call, but without an actually implemented macro. Logical expressions are automatically broadcast over rows.
 
 \begin{figure}[t]
-	\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
-	@replace trade = 0 @if ismissing(trade)
-	@regress log_trade log_distance @if trade > 0
-	@keep @if !ismissing(trade) 
-	@collapse mean_x = mean(x) @if group == "treatment"		
-	\end{lstlisting}
+\begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
+@replace trade = 0 @if ismissing(trade)
+@regress log_trade log_distance @if trade > 0
+@keep @if !ismissing(trade) 
+@collapse mean_x = mean(x) @if group == "treatment"		
+\end{lstlisting}
 	
 \caption{The @if macro can be used to limit the scope of any command.}
 \label{fig:ifmacro}
