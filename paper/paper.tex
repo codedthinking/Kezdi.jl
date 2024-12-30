@@ -7,7 +7,7 @@
 \maketitle
 
 \begin{abstract}
-	Economists overwhelmingly rely on proprietary data analysis languages such as Stata and MATLAB for their research computing needs. The transition to open-source languages like Julia presents both syntactic and semantic challenges. We introduce Kezdi.jl, a data analysis package designed for economists that provides a Stata-like interface for working with data frames in Julia. Kezdi.jl aims to ease the transition for economists by offering convenient and familiar data manipulation and analysis functionalities. The package is built on DataFrames.jl and related libraries, but uses a streamlined macro-based interface to eliminate common points of confusion. By emulating best practices from Stata, Kezdi.jl allows economists to be productive in Julia from day one. Kezdi.jl supports a wide range of data wrangling and analysis tasks, including cleaning and transforming data, handling missing values, generating new variables, aggregating data, and running regressions. The package also integrates with Julia's rich package ecosystem, allowing users to leverage state-of-the-art tools for tasks like optimization, machine learning, and visualization.
+Economists overwhelmingly rely on proprietary data analysis languages such as Stata and MATLAB for their research computing needs. The transition to open-source languages like Julia presents various challenges due to differences in syntax, functionality, and best practices. We introduce \texttt{Kezdi.jl}, a data analysis package designed for economists that provides a Stata-like interface for working with data frames in Julia. The package is built on \texttt{DataFrames.jl} and related libraries, but uses a streamlined macro-based interface to eliminate common points of confusion. By emulating best practices from Stata, \texttt{Kezdi.jl} allows economists to be productive in Julia from day one. It supports a wide range of data wrangling and analysis tasks, including cleaning and transforming data, handling missing values, generating new variables, aggregating data, and running regressions.
 \end{abstract}
 
 \section{Introduction}
@@ -17,6 +17,8 @@ Research computing is central to the scientific workflow of economists. Yet the 
 Stata in particular has a dominant position in the data analysis and statistical modeling stages of the research workflow. 88\% of code lines in a typical replication package are devoted to data wrangling and related programming tasks, with only 5\% implementing statistical analysis \citep{koren2023share}. This is no surprise, given that a typical empirical economics paper assembles and harmonizes data from several disparate sources.
 
 The transition from proprietary languages like Stata or MATLAB to open-source ones like Julia presents several challenges. First, the syntax and mental model is very different. Stata is a data-centric language, where commands operate directly on columns of a dataset, and the details of the type system are hidden from the user. Second, Stata and MATLAB have had decades to build a rich library of statistical and econometric routines that are part of the core language. Third, they have developed coding styles and best practices that are ingrained in the muscle memory of economists. To name a concrete example, in Stata one can calculate a heteroskedasticity-robust standard error in a regression by simply adding the option \texttt{robust}. Achieving the same in Julia requires several more keystrokes even if the required packages are loaded.
+
+Beyond syntax and functionality, reproducible research practices pose additional challenges when transitioning between languages. While Stata enforces a single-dataset workflow that naturally documents data transformations, Julia's more flexible approach requires careful attention to reproducibility. Kezdi.jl addresses this by providing clear audit trails of data transformations through its command syntax, similar to how Stata preserves transformation history in do-files \citep{koren2024ten}.
 
 Kezdi.jl \footnote{\url{https://github.com/korenmiklos/Kezdi.jl}} is a data analysis package for economists that aims to ease the transition to Julia by providing a Stata-like user experience. It allows users to manipulate data frames and conduct statistical analysis using Stata-inspired macro commands that are both powerful and easy to read.
 
@@ -132,6 +134,16 @@ Kezdi.jl builds on the DataFrames.jl ecosystem \citep{DataFrame.jl2023} to provi
 	\item Chain.jl for piping a sequence of commands with \texttt{@with}
 	\item ReadStatTables.jl for importing Stata \texttt{.dta} files
 \end{itemize}
+
+\subsection{Support for Reproducible Workflows}
+
+Kezdi.jl is designed with reproducibility as a core principle. The package follows established best practices for computational reproducibility \citep{krafczyk2021learning} in several ways:
+
+First, all data transformations are explicitly recorded through macro commands, creating an auditable trail similar to Stata do-files. This addresses the "hidden researcher degrees of freedom" problem identified by \citet{huntington2021influence} in empirical research.
+
+Second, the package provides a consistent environment across different machines by explicitly handling missing values and maintaining consistent random number generation seeds. This follows recommendations by \citet{mccullough1999numerical} regarding numerical reproducibility across computing environments.
+
+Finally, Kezdi.jl encourages organizing analysis as sequential scripts that can be executed from a main control file. This project organization pattern, recommended by \citet{koren2024ten}, ensures that the full analysis can be reproduced with minimal manual intervention.
 
 \section{Comparison with related packages}
 
