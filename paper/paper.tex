@@ -25,7 +25,7 @@ Figure \ref{fig:languages} shows the number of packages that contain code in var
 
 Stata and MATLAB are often used together in the same replication package, with Stata focusing on data manipulation and analysis, while MATLAB handles computationally intensive tasks like model simulations. These findings highlight both the current dominance of proprietary scientific computing languages in economics and the large untapped potential for open source tools like Julia. Lowering the barriers to entry through familiar interfaces, as Kezdi.jl aims to do for Stata users, could play an important role in accelerating adoption.
 
-Stata in particular has a dominant position in the data analysis and statistical modeling stages of the research workflow. 88\% of code lines in a typical replication package with Stata scripts are devoted to data wrangling and related programming tasks, with only 5\% implementing statistical analysis. This is no surprise, given that a typical empirical economics paper assembles and harmonizes data from several disparate sources.
+Stata in particular has a dominant position in the data analysis and statistical modeling stages of the research workflow. The vast majority of code in a typical replication package with Stata scripts are devoted to data wrangling and related programming tasks. This is no surprise, given that a typical empirical economics paper assembles and harmonizes data from several disparate sources and the numerous judgment calls that go into this process \cite{huntington2021influence}.
 
 The transition from proprietary languages like Stata or MATLAB to open-source ones like Julia presents several challenges. First, the syntax and mental model is very different. Stata is a data-centric language, where commands operate directly on columns of a dataset, and the details of the type system are hidden from the user. Second, Stata and MATLAB have had decades to build a rich library of statistical and econometric routines that are part of the core language. Third, they have developed coding styles and best practices that are familiar with economists. To name a concrete example, in Stata one can calculate a heteroskedasticity-robust standard error in a regression by simply adding the option \texttt{robust} to the \texttt{regress} command. Achieving the same in Julia requires selecting the appropriate regression function from a package like GLM.jl, exploring the documentation, and, finally, passing the correct arguments.
 
@@ -37,7 +37,7 @@ The overarching design principle of Kezdi.jl is to provide a convenient and fami
 
 \subsection{Stata-like command syntax}
 
-\begin{figure}[t]
+\begin{figure}[h!]
 \begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
 @use "trade.dta"
 @generate log_trade = log(trade)
@@ -47,9 +47,9 @@ The overarching design principle of Kezdi.jl is to provide a convenient and fami
 \label{fig:syntax}
 \end{figure}
 
-Kezdi.jl has near complete coverage of Stata's data manipulation commands, including \texttt{egen}, \texttt{collapse}, \texttt{reshape} and \texttt{mvencode}. Combined with Julia's superior performance, this allows economists to easily translate their Stata workflows. Some examples of common data wrangling tasks in Kezdi.jl:
+Kezdi.jl has a good coverage of Stata's data manipulation commands, including \texttt{egen}, \texttt{collapse}, \texttt{reshape} and \texttt{mvencode}. Combined with Julia's superior performance, this allows economists to easily translate their Stata workflows. Some examples of common data wrangling tasks in Kezdi.jl:
 
-\begin{figure}[t]
+\begin{figure}[h!]
 \begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
 @generate y = cond(x > 10, 1, 0)
 @rename oldname newname
@@ -63,9 +63,9 @@ Kezdi.jl has near complete coverage of Stata's data manipulation commands, inclu
 
 \subsection{Automatic column selection and vectorization}
 
-Variable names are automatically matched to data frame column names in Kezdi.jl. In standard Julia one would need to refer data frame columns with \texttt{df[:x]} or \texttt{df.x}. In other helper packages like DataFramesMeta.jl, one would need to refer to columns with symbols or strings.
+Variable names are automatically matched to DataFrame column names in Kezdi.jl. In standard Julia one would need to refer DataFrame columns with \texttt{df[:x]} or \texttt{df.x}. In other helper packages like \texttt{DataFramesMeta.jl} \cite{DataFramesMeta}, one would need to refer to columns with symbols or strings.
 
-Function calls are also automatically vectorized. In the examples above, \texttt{log(trade)} is equivalent to \texttt{log.(trade)} and \texttt{cond(x > 10, 1, 0)} is equivalent to \texttt{cond.(x .> 10, 1, 0)} in base Julia. The \texttt{cond} function returns 1 if the condition is true and 0 otherwise. This is similar to Stata's \texttt{cond()} function. Users can stop vectorization by adding a \texttt{~} before the function name, like \texttt{~log(trade)}.
+Function calls are also automatically vectorized. In the examples above, \texttt{log(trade)} is equivalent to \texttt{log.(trade)} and \texttt{cond(x > 10, 1, 0)} is equivalent to \texttt{cond.(x .> 10, 1, 0)} in base Julia. The \texttt{cond} function returns 1 if the condition is true and 0 otherwise. This is similar to Stata's \texttt{cond()} function. Users can stop vectorization by adding a \texttt{\~} before the function name, like \texttt{\~log(trade)}.
 
 Note that not all functions are vectorized. Statistical aggregation functions like \texttt{mean()} and \texttt{sum()} operate on the entire column by default and not elementwise. Any function that takes a \texttt{Vector} as its first argument is not vectorized by default. Users can manually vectorize these functions by adding a dot after the function name.
 
@@ -75,7 +75,7 @@ This way the user has full control over the vectorization of their code. We beli
 
 Because Kezdi.jl supports arbitrary Julia syntax within commands, user-defined and external package functions work seamlessly with DataFrame columns.
 
-\begin{figure}[t]
+\begin{figure}[h!]
 \begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
 using Dates
 @generate date = Date(year, month, day)
@@ -84,7 +84,7 @@ using Statistics
 @collapse std_x = std(x), by(group) 
 \end{lstlisting}
 	
-\caption{Functions are automatically vectorized, but only if necessary.}
+\caption{Any existing or user-defined function can be used in Kezdi.jl code. These are also vectorized automatically.}
 \label{fig:vectorization}
 \end{figure}
 
@@ -94,14 +94,13 @@ This allows economists to easily extend their data manipulation and modeling cap
 Missing values are a common pain point in data analysis. Julia requires users to handle missing values explicitly, which can be cumbersome, even if it less error-prone. Stata has special rules for the propagation of missing values. For example, \texttt{sum(x)} in Stata returns the sum of non-missing values of \texttt{x}. This is less explicit but more convenient for users.
 
 We follows these rules to handle missing values:
-\begin{itemize}
+\begin{enumerate}
 \item Mathematical operations return \texttt{missing} if any of their arguments are missing. This is also true for functions that do not support missing values. For example, \texttt{log(missing)} returns \texttt{missing}.
 \item Aggregation functions skip missing values by default. For example, \texttt{sum(x)} returns the sum of non-missing values of \texttt{x}.
 \item In logical expressions, \texttt{missing} is treated as \texttt{false}. This is unlike Stata, where \texttt{missing} is treated as \texttt{true}. This is a conscious decision to avoid common pitfalls with missing values.
-\end{itemize}
+\end{enumerate}
 
-
-\begin{figure}[t]
+\begin{figure}[h!]
 \begin{lstlisting}[language = Julia, numbers=left, numberstyle=\tiny\color{gray}]
 using Kezdi
 df = DataFrame(x=[1, 2, missing], y=[missing, 3, 4])
@@ -116,7 +115,7 @@ df = DataFrame(x=[1, 2, missing], y=[missing, 3, 4])
 \label{fig:missing}
 \end{figure}
 
-\subsection{Syntactic sugar for operating row-wise}
+\subsection{Syntactic sugar for operating on a subset of rows}
 
 One of the most convenient features of Stata is the ability to restrict any command to a subset of rows using logical expressions with the \texttt{if} qualifier. Kezdi.jl implements the same with the \texttt{@if} macro.\footnote{Even though \texttt{@if} looks like a macro, it is not implemented as one, because \texttt{if} is a reserved word in Julia. The macro call is processed during parsing the Kezdi.jl command.} 
 
@@ -133,7 +132,7 @@ One of the most convenient features of Stata is the ability to restrict any comm
 
 \subsection{Integration with Julia's package ecosystem}
 
-Kezdi.jl builds on the DataFrames.jl ecosystem \cite{DataFrame.jl2023} to provide its data manipulation features. It also integrates tightly with other packages:
+\texttt{Kezdi.jl} builds on the \texttt{DataFrames.jl} ecosystem \cite{DataFrame.jl2023} to provide its data manipulation features. It also integrates tightly with other packages:
 
 \begin{itemize}
 	\item FreqTables.jl \cite{FreqTables.jl2023} for frequency tables via \texttt{@tabulate}
@@ -142,19 +141,9 @@ Kezdi.jl builds on the DataFrames.jl ecosystem \cite{DataFrame.jl2023} to provid
 	\item ReadStatTables.jl for importing Stata \texttt{.dta} files
 \end{itemize}
 
-\subsection{Support for Reproducible Workflows}
-
-Kezdi.jl is designed with reproducibility as a core principle. The package follows established best practices for computational reproducibility \cite{krafczyk2021learning} in several ways:
-
-First, all data transformations are explicitly recorded through macro commands, creating an auditable trail similar to Stata do-files. This addresses the "hidden researcher degrees of freedom" problem identified by \cite{huntington2021influence} in empirical research.
-
-Second, the package provides a consistent environment across different machines by explicitly handling missing values and maintaining consistent random number generation seeds. This follows recommendations by \cite{mccullough1999numerical} regarding numerical reproducibility across computing environments.
-
-Finally, Kezdi.jl encourages organizing analysis as sequential scripts that can be executed from a main control file. This project organization pattern, recommended by \cite{koren2024ten}, ensures that the full analysis can be reproduced with minimal manual intervention.
-
 \section{Comparison with related packages}
 
-Kezdi.jl is not the first attempt to provide a simplified data analysis workflow in Julia. TimeSeriesRecipes.jl \cite{TimeSeriesRecipes2022} provides a grammar for time series operations. DataFramesMeta.jl \cite{DataFramesMeta2023} and SplitApplyCombine.jl \cite{SplitApplyCombine2023} extend data frame operations.
+Kezdi.jl is not the first attempt to provide a simplified data analysis workflow in Julia. TimeSeriesRecipes.jl \cite{TimeSeriesRecipes2022} provides a grammar for time series operations. DataFramesMeta.jl \cite{DataFramesMeta} and SplitApplyCombine.jl \cite{SplitApplyCombine2023} extend data frame operations.
 
 On the R side, dplyr \cite{dplyr2023} has been a hugely successful abstraction. Tidier.jl \cite{tidier2022} ports many ideas from dplyr to Julia. However, the dplyr "verb + data pipeline" model is very different from how economists approach data analysis in Stata.
 

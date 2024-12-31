@@ -5,11 +5,6 @@ Pietro Alimena et~al.
 Freqtables.jl.
 2023.
 
-\bibitem{DataFramesMeta2023}
-Hakan Arslan et~al.
-Dataframesmeta.jl.
-2023.
-
 \bibitem{Douglass.jl2023}
 Johannes Boehm.
 Douglass.jl.
@@ -31,49 +26,26 @@ Nick Huntington-Klein, Andreu Arenas, Emily Beam, Marco Bertoni, Jeffrey~R
 The influence of hidden researcher decisions in applied microeconomics.
 {\em Economic Inquiry}, 59(3):944--960, 2021.
 
-\bibitem{koren2024ten}
-Mikl{\'o}s Koren, Lars Vilhuber, Imola Cs{\'o}ka, Marie Connolly, and Joan
-  Llull.
-Ten simple rules for creating a replication package.
-{\em Working Paper}, January 2024.
-
-\bibitem{koren2022adoption}
-Miklós Koren.
-Adoption of computational reproducibility in economics.
-{\em Working paper}, 2022.
-
-\bibitem{koren2023share}
-Miklós Koren.
-A typical empirical economics paper.
-{\em Working paper}, 2023.
-
-\bibitem{krafczyk2021learning}
-Matthew~S Krafczyk, August Shi, Adhithya Bhaskar, Darko Marinov, and Victoria
-  Stodden.
-Learning from reproducing computational results: introducing three principles
-  and the reproduction package.
-{\em Philosophical Transactions of the Royal Society A}, 379(2197):20200069,
-  2021.
-
-\bibitem{mccullough1999numerical}
-Bruce~D McCullough and Hrishikesh~D Vinod.
-The numerical reliability of econometric software.
-{\em Journal of Economic Literature}, 37(2):633--665, 1999.
+\bibitem{DataFrame.jl2023}
+Harlan Harris; Tom Short; Chris DuBois; John Myles White; Milan Bouchet-Valat;
+  Bogumił~Kamiński; {other DataFrames.jl contributors}.
+Dataframes.jl.
+2023.
 
 \bibitem{TimeSeriesRecipes2022}
 Paweł Rybiński et~al.
 Timeseriesrecipes.
 2023.
 
+\bibitem{DataFramesMeta}
+Peter; Short, Tom;~Deffebach et~al.
+Dataframesmeta.jl.
+2024.
+
 \bibitem{tidier2022}
 Josh Singer et~al.
 Tidier.jl.
 2022.
-
-\bibitem{DataFrame.jl2023}
-Jacob White et~al.
-Dataframes.jl.
-2023.
 
 \bibitem{dplyr2023}
 Hadley Wickham et~al.
