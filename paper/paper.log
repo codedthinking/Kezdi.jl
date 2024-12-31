@@ -1,8 +1,8 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  31 DEC 2024 16:20
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  31 DEC 2024 16:57
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**paper
+**paper.tex
 (./paper.tex
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
@@ -496,7 +496,7 @@ Package hyperref Info: Link coloring OFF on input line 5.
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
  (./header.tex)
-<logojuliacon.pdf, id=52, 430.91032pt x 145.96547pt>
+<logojuliacon.pdf, id=48, 430.91032pt x 145.96547pt>
 File: logojuliacon.pdf Graphic file (type pdf)
 <use logojuliacon.pdf>
 Package pdftex.def Info: logojuliacon.pdf  used on input line 7.
@@ -524,13 +524,23 @@ LaTeX Font Info:    Font shape `U/lasy/b/n' in size <8> not available
 (Font)              Font shape `U/lasy/m/n' tried instead on input line 7.
 LaTeX Font Info:    Font shape `U/lasy/b/n' in size <6> not available
 (Font)              Font shape `U/lasy/m/n' tried instead on input line 7.
+LaTeX Font Info:    Font shape `U/lasy/b/n' in size <9> not available
+(Font)              Font shape `U/lasy/m/n' tried instead on input line 15.
+LaTeX Font Info:    Font shape `U/lasy/b/n' in size <5> not available
+(Font)              Font shape `U/lasy/m/n' tried instead on input line 15.
+
+Underfull \hbox (badness 10000) in paragraph at lines 15--15
+[]$\T1/cmtt/m/n/8 https : / / github . com / codedthinking / Kezdi . jl / blob 
+/ paper /
+ []
+
 
 Underfull \hbox (badness 1708) in paragraph at lines 15--16
 \T1/ptm/m/n/9 Research com-put-ing is cen-tral to the sci-en-tific work-flow of
 
  []
 
-<languages.png, id=54, 602.25pt x 401.5pt>
+<languages.png, id=53, 602.25pt x 401.5pt>
 File: languages.png Graphic file (type png)
 <use languages.png>
 Package pdftex.def Info: languages.png  used on input line 21.
@@ -538,10 +548,6 @@ Package pdftex.def Info: languages.png  used on input line 21.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-LaTeX Font Info:    Font shape `U/lasy/b/n' in size <9> not available
-(Font)              Font shape `U/lasy/m/n' tried instead on input line 32.
-LaTeX Font Info:    Font shape `U/lasy/b/n' in size <5> not available
-(Font)              Font shape `U/lasy/m/n' tried instead on input line 32.
 LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 3
 2.
 
@@ -549,7 +555,7 @@ LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 3
 tm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
-Underfull \vbox (badness 5954) has occurred while \output is active []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Underfull \hbox (badness 10000) has occurred while \output is active
@@ -565,6 +571,8 @@ Non-PDF special ignored!
 
 {/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/enc/dvips/cm-su
 per/cm-super-t1.enc} <./logojuliacon.pdf> <./languages.png>]
+LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <10> not available
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 34.
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <7> not available
 (Font)              Font shape `T1/cmtt/m/n' tried instead on input line 80.
 
@@ -586,26 +594,37 @@ Underfull \hbox (badness 10000) has occurred while \output is active
   \T1/ptm/m/n/8 2
  []
 
-[2]
-! Undefined control sequence.
-l.185 \backmatter
-                 
-? 
-! Undefined control sequence.
-l.187 \bmhead
-             {Acknowledgments}
-? 
-(./paper.bbl
-Underfull \hbox (badness 2556) in paragraph at lines 30--34
+[2] (./bib.tex (./paper.bbl
+Underfull \hbox (badness 10000) in paragraph at lines 9--12
+[]\T1/ptm/m/n/9 Johannes Boehm. Dou-glass.jl [soft-ware], 202-.
+ []
+
+
+Underfull \hbox (badness 1584) in paragraph at lines 19--22
+[]\T1/ptm/m/n/9 Junyuan Chen et al. Read-Stat-Ta-bles.jl [soft-ware], 2021.
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 35--38
+[]\T1/ptm/m/n/9 Julius Krumbiegel et al. Chain.jl [soft-ware], 2022.
+ []
+
+
+Underfull \hbox (badness 2556) in paragraph at lines 40--44
 []\T1/ptm/m/n/9 Harlan Har-ris; Tom Short; Chris DuBois; John Myles
  []
 
 
-Underfull \hbox (badness 3291) in paragraph at lines 30--34
+Underfull \hbox (badness 3291) in paragraph at lines 40--44
 \T1/ptm/m/n/9 White; Mi-lan Bouchet-Valat; Bogu-miª Kami«ski; other
  []
 
-)
+
+Underfull \hbox (badness 3428) in paragraph at lines 50--53
+[]\T1/ptm/m/n/9 Karandeep Singh et al. Ti-dier-Data.jl [soft-ware], 2023.
+ []
+
+))
 Overfull \vbox (2.39996pt too high) has occurred while \output is active []
 
 
@@ -619,16 +638,16 @@ LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
  ***********
 Package rerunfilecheck Info: File `paper.out' has not changed.
-(rerunfilecheck)             Checksum: 0704F4D65095489CAB64DD656B20CBB7;2228.
+(rerunfilecheck)             Checksum: A80C4EBCF4A9A893F734CBB8364FEBC9;2129.
  ) 
 Here is how much of TeX's memory you used:
- 14159 strings out of 474116
- 217860 string characters out of 5732613
- 1989187 words of memory out of 5000000
- 36244 multiletter control sequences out of 15000+600000
+ 14164 strings out of 474116
+ 217771 string characters out of 5732613
+ 1991187 words of memory out of 5000000
+ 36241 multiletter control sequences out of 15000+600000
  604633 words of font info for 129 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 90i,11n,93p,977b,1993s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,11n,93p,990b,1993s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/
 amsfonts/cm/cmr6.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/
 fonts/type1/public/amsfonts/latxfont/lcircle1.pfb></opt/homebrew/Cellar/texlive
@@ -639,10 +658,10 @@ tt0900.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type
 exmf-dist/fonts/type1/urw/times/utmb8a.pfb></opt/homebrew/Cellar/texlive/202403
 12_1/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></opt/homebrew/Cellar/te
 xlive/20240312_1/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on paper.pdf (3 pages, 195307 bytes).
+Output written on paper.pdf (3 pages, 198151 bytes).
 PDF statistics:
- 203 PDF objects out of 1000 (max. 8388607)
- 178 compressed objects within 2 object streams
- 71 named destinations out of 1000 (max. 500000)
- 107 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 214 PDF objects out of 1000 (max. 8388607)
+ 189 compressed objects within 2 object streams
+ 76 named destinations out of 1000 (max. 500000)
+ 99 words of extra memory for PDF output out of 10000 (max. 10000000)
 
