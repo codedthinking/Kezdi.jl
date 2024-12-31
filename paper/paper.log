@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  31 DEC 2024 16:57
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  31 DEC 2024 17:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -642,12 +642,12 @@ Package rerunfilecheck Info: File `paper.out' has not changed.
  ) 
 Here is how much of TeX's memory you used:
  14164 strings out of 474116
- 217771 string characters out of 5732613
+ 217777 string characters out of 5732613
  1991187 words of memory out of 5000000
  36241 multiletter control sequences out of 15000+600000
  604633 words of font info for 129 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 90i,11n,93p,990b,1993s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,11n,93p,978b,1993s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/
 amsfonts/cm/cmr6.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/
 fonts/type1/public/amsfonts/latxfont/lcircle1.pfb></opt/homebrew/Cellar/texlive
@@ -658,7 +658,7 @@ tt0900.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type
 exmf-dist/fonts/type1/urw/times/utmb8a.pfb></opt/homebrew/Cellar/texlive/202403
 12_1/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></opt/homebrew/Cellar/te
 xlive/20240312_1/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on paper.pdf (3 pages, 198151 bytes).
+Output written on paper.pdf (3 pages, 198168 bytes).
 PDF statistics:
  214 PDF objects out of 1000 (max. 8388607)
  189 compressed objects within 2 object streams
