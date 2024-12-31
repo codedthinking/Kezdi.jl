@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  31 DEC 2024 15:20
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  31 DEC 2024 16:02
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -530,11 +530,11 @@ Underfull \hbox (badness 1708) in paragraph at lines 15--16
 
  []
 
-<languages.png, id=58, 451.6875pt x 301.125pt>
+<languages.png, id=58, 602.25pt x 401.5pt>
 File: languages.png Graphic file (type png)
 <use languages.png>
 Package pdftex.def Info: languages.png  used on input line 21.
-(pdftex.def)             Requested size: 226.79846pt x 151.20079pt.
+(pdftex.def)             Requested size: 226.79846pt x 151.19926pt.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
@@ -549,6 +549,9 @@ LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 3
 tm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
+Underfull \vbox (badness 5954) has occurred while \output is active []
+
+
 Underfull \hbox (badness 10000) has occurred while \output is active
   
  []
@@ -575,9 +578,6 @@ and
 
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <7> not available
 (Font)              Font shape `T1/cmtt/m/n' tried instead on input line 80.
-
-Underfull \vbox (badness 6001) has occurred while \output is active []
-
 
 Overfull \hbox (5.64001pt too wide) in paragraph at lines 107--108
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
@@ -634,21 +634,17 @@ Underfull \hbox (badness 10000) has occurred while \output is active
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
  ***********
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
 Package rerunfilecheck Info: File `paper.out' has not changed.
 (rerunfilecheck)             Checksum: 5E3D9BB208F6FFDA6C552259E4C975AE;2398.
  ) 
 Here is how much of TeX's memory you used:
  14165 strings out of 474116
  218008 string characters out of 5732613
- 1989187 words of memory out of 5000000
+ 1990187 words of memory out of 5000000
  36246 multiletter control sequences out of 15000+600000
  604633 words of font info for 129 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 90i,11n,93p,1004b,1993s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,11n,93p,981b,1993s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/
 amsfonts/cm/cmr6.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/
 fonts/type1/public/amsfonts/latxfont/lcircle1.pfb></opt/homebrew/Cellar/texlive
@@ -659,10 +655,10 @@ tt0900.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type
 exmf-dist/fonts/type1/urw/times/utmb8a.pfb></opt/homebrew/Cellar/texlive/202403
 12_1/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></opt/homebrew/Cellar/te
 xlive/20240312_1/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on paper.pdf (4 pages, 197926 bytes).
+Output written on paper.pdf (4 pages, 197956 bytes).
 PDF statistics:
- 219 PDF objects out of 1000 (max. 8388607)
- 192 compressed objects within 2 object streams
+ 217 PDF objects out of 1000 (max. 8388607)
+ 191 compressed objects within 2 object streams
  75 named destinations out of 1000 (max. 500000)
  115 words of extra memory for PDF output out of 10000 (max. 10000000)
 
