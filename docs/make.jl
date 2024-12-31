@@ -9,17 +9,13 @@ makedocs(;
     format=Documenter.HTML(;
         canonical="https://docs.koren.dev/Kezdi.jl",
         edit_link="main",
-        assets=String[],
-        scripts = [
-            "https://dcas.codedthinking.workers.dev/sj/script.js"
-        ],
-        script_attributes = Dict(
-            "https://dcas.codedthinking.workers.dev/sj/script.js" => Dict(
-                "data-domain" => "koren.dev",
-                "data-api" => "https://dcas.codedthinking.workers.dev/ipa/event",
-                "defer" => ""
-            )
-        )
+        assets = [
+            asset("https://dcas.codedthinking.workers.dev/sj/script.js", class=:js, 
+            attributes=Dict(
+                Symbol("data-domain") => "koren.dev", 
+                Symbol("data-api") => "https://dcas.codedthinking.workers.dev/ipa/event",
+                :defer => ""))
+        ],   
     ),
     pages=[
         "Home" => "index.md",
