@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  30 DEC 2024 18:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.7.14)  31 DEC 2024 15:20
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -542,10 +542,13 @@ LaTeX Font Info:    Font shape `U/lasy/b/n' in size <9> not available
 (Font)              Font shape `U/lasy/m/n' tried instead on input line 32.
 LaTeX Font Info:    Font shape `U/lasy/b/n' in size <5> not available
 (Font)              Font shape `U/lasy/m/n' tried instead on input line 32.
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 3
+2.
 
-Underfull \vbox (badness 5939) has occurred while \output is active []
-
-
+(/opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/tex/latex/psnfss/ts1p
+tm.fd
+File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
+)
 Underfull \hbox (badness 10000) has occurred while \output is active
   
  []
@@ -572,6 +575,9 @@ and
 
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <7> not available
 (Font)              Font shape `T1/cmtt/m/n' tried instead on input line 80.
+
+Underfull \vbox (badness 6001) has occurred while \output is active []
+
 
 Overfull \hbox (5.64001pt too wide) in paragraph at lines 107--108
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
@@ -605,7 +611,7 @@ l.196 \backmatter
 l.198 \bmhead
              {Acknowledgments}
 ? 
-(./paper.bbl)
+(./paper.bbl
 Overfull \vbox (2.39996pt too high) has occurred while \output is active []
 
 
@@ -613,7 +619,17 @@ Underfull \hbox (badness 10000) has occurred while \output is active
   \T1/ptm/m/n/9 3
  []
 
-[3] (./paper.aux)
+[3])
+Overfull \vbox (2.39996pt too high) has occurred while \output is active []
+
+
+Underfull \hbox (badness 10000) has occurred while \output is active
+  \T1/ptm/m/n/9 4
+ []
+
+[4
+
+] (./paper.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
@@ -626,11 +642,11 @@ Package rerunfilecheck Info: File `paper.out' has not changed.
 (rerunfilecheck)             Checksum: 5E3D9BB208F6FFDA6C552259E4C975AE;2398.
  ) 
 Here is how much of TeX's memory you used:
- 14137 strings out of 474116
- 217545 string characters out of 5732613
- 1994187 words of memory out of 5000000
- 36224 multiletter control sequences out of 15000+600000
- 604319 words of font info for 128 fonts, out of 8000000 for 9000
+ 14165 strings out of 474116
+ 218008 string characters out of 5732613
+ 1989187 words of memory out of 5000000
+ 36246 multiletter control sequences out of 15000+600000
+ 604633 words of font info for 129 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  90i,11n,93p,1004b,1993s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type1/public/
@@ -643,10 +659,10 @@ tt0900.pfb></opt/homebrew/Cellar/texlive/20240312_1/share/texmf-dist/fonts/type
 exmf-dist/fonts/type1/urw/times/utmb8a.pfb></opt/homebrew/Cellar/texlive/202403
 12_1/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></opt/homebrew/Cellar/te
 xlive/20240312_1/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on paper.pdf (3 pages, 196466 bytes).
+Output written on paper.pdf (4 pages, 197926 bytes).
 PDF statistics:
- 213 PDF objects out of 1000 (max. 8388607)
- 187 compressed objects within 2 object streams
- 73 named destinations out of 1000 (max. 500000)
+ 219 PDF objects out of 1000 (max. 8388607)
+ 192 compressed objects within 2 object streams
+ 75 named destinations out of 1000 (max. 500000)
  115 words of extra memory for PDF output out of 10000 (max. 10000000)
 
