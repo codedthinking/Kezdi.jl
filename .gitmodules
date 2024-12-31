@@ -1,0 +1,3 @@
+[submodule "paper/github-data"]
+	path = paper/github-data
+	url = git@github.com:REStud/github-data.git
