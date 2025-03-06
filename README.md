@@ -11,7 +11,7 @@ It imports and reexports [CSV](https://csv.juliadata.org/stable/), [DataFrames](
 
 ## Getting started
 
-> `Kezdi.jl` is currently in beta. We have more than 500 unit tests and a large code coverage. [![Coverage](https://codecov.io/gh/codedthinking/Kezdi.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/codedthinking/Kezdi.jl) The package, however, is not guaranteed to be bug-free. If you encounter any issues, please report them as a [GitHub issue](https://github.com/codedthinking/Kezdi.jl/issues/new).
+> `Kezdi.jl` is currently in beta. We have more than 500 unit tests and a large code coverage. [![Coverage](https://codecov.io/gh/codedthinking/Kezdi.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/codedthinking/Kezdi.jl) The package, however, is not guaranteed to be bug-free. If you encounter any issues, please report them as a [GitHub issue](https://github.com/codedthinking/Kezdi.jl/issues/new). In any case you want to contribute to the software please do it in a form of pull request to the current development branch `0.5-dev`. In case you need support with installation or use please use the discussions forum on github.
 >
 > If you would like to receive updates on the package, please star the repository on GitHub and sign up for [email notifications here](https://relentless-producer-1210.ck.page/62d7ebb237).
 
@@ -217,7 +217,7 @@ To maintain compatibility with Julia, we had to rename some functions. For examp
 ## Acknowledgements
 [^stata]: Stata is a registered trademark of StataCorp LLC. Kezdi.jl is not affiliated with StataCorp LLC.
 
-Inspiration for the package came from [Tidier.jl](https://tidierorg.github.io/Tidier.jl/stable/), a similar package launched by Karandeep Singh that provides a dplyr-like interface for Julia. Johannes Boehm has also developed a similar package, [Douglass.jl](https://github.com/jmboehm/Douglass.jl).
+Inspiration for the package came from [Tidier.jl](https://tidierorg.github.io/Tidier.jl/stable/), a similar package launched by Karandeep Singh that provides a dplyr-like interface for Julia. Johannes Boehm has also developed a similar package, [Douglass.jl](https://github.com/jmboehm/Douglass.jl) although our package has a more extensive feature set and is more actively developed. We appreciate both previous work as they showed the possibility for creating and help us in formulating our idea.
 
 The package is built on top of [DataFrames.jl](https://dataframes.juliadata.org/stable/), [FreqTables.jl](https://github.com/nalimilan/FreqTables.jl) and [FixedEffectModels.jl](https://github.com/FixedEffects/FixedEffectModels.jl). The `@with` function relies on [Chain.jl](https://github.com/jkrumbiegel/Chain.jl) by Julius Krumbiegel.
 

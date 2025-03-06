@@ -50,7 +50,7 @@ getdf() = _global_dataframe
 Set the global data frame.
 """
 setdf(df::Union{AbstractDataFrame,Nothing}) = global _global_dataframe = isnothing(df) ? nothing : copy(df)
-display_and_return(x) = (display(x); x)
+display_and_return(x) = isinteractive() ? (display(x)) : (display(x); x)
 
 """
     distinct(x::AbstractVector) = unique(x)
