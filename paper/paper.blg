@@ -1,4 +1,4 @@
-This is BibTeX, Version 0.99d (TeX Live 2024/Homebrew)
+This is BibTeX, Version 0.99d (TeX Live 2025/dev/Debian)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: paper.aux
 The style file: juliacon.bst
@@ -6,34 +6,34 @@ Database file #1: ref.bib
 Warning--empty journal in dplyr2023
 You've used 11 entries,
             2314 wiz_defined-function locations,
-            581 strings with 5720 characters,
-and the built_in function-call counts, 3020 in all, are:
-= -- 280
-> -- 161
+            582 strings with 5760 characters,
+and the built_in function-call counts, 3067 in all, are:
+= -- 284
+> -- 166
 < -- 0
-+ -- 64
-- -- 52
-* -- 141
-:= -- 517
-add.period$ -- 32
++ -- 66
+- -- 54
+* -- 150
+:= -- 525
+add.period$ -- 33
 call.type$ -- 11
-change.case$ -- 50
+change.case$ -- 51
 chr.to.int$ -- 0
 cite$ -- 12
-duplicate$ -- 99
-empty$ -- 274
-format.name$ -- 52
-if$ -- 651
+duplicate$ -- 100
+empty$ -- 275
+format.name$ -- 54
+if$ -- 659
 int.to.chr$ -- 0
 int.to.str$ -- 11
 missing$ -- 4
-newline$ -- 57
+newline$ -- 58
 num.names$ -- 22
-pop$ -- 105
+pop$ -- 106
 preamble$ -- 1
-purify$ -- 40
+purify$ -- 41
 quote$ -- 0
-skip$ -- 103
+skip$ -- 101
 stack$ -- 0
 substring$ -- 81
 swap$ -- 10
@@ -44,5 +44,5 @@ type$ -- 42
 warning$ -- 1
 while$ -- 24
 width$ -- 13
-write$ -- 110
+write$ -- 112
 (There was 1 warning)

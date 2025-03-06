@@ -8,7 +8,7 @@ Cambridge University Press, 2021.
 \bibitem{Douglass.jl2023}
 Johannes Boehm.
 {Douglass.jl [software]}, 202-.
-https://github.com/jbboehm/Douglass.jl.
+https://github.com/jmboehm/Douglass.jl.
 
 \bibitem{FreqTables.jl2023}
 Milan Bouchet-Valat et~al.
@@ -40,10 +40,11 @@ https://github.com/jkrumbiegel/Chain.jl.
 Harlan Harris; Tom Short; Chris DuBois; John Myles White; Milan Bouchet-Valat;
   Bogumił~Kamiński; {other DataFrames.jl contributors}.
 {DataFrames.jl [software]}, 2023.
+\href{http://dx.doi.org/https://doi.org/10.5281/zenodo.7632427}{doi:https://doi.org/10.5281/zenodo.7632427}.
 https://github.com/JuliaData/DataFrames.jl.
 
 \bibitem{DataFramesMeta}
-Peter; Short, Tom;~Deffebach et~al.
+Tom Short, Peter Deffebach, et~al.
 {DataFramesMeta.jl [software]}, 2024.
 
 \bibitem{tidier2022}
