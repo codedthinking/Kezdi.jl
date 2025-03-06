@@ -217,7 +217,14 @@ To maintain compatibility with Julia, we had to rename some functions. For examp
 ## Acknowledgements
 [^stata]: Stata is a registered trademark of StataCorp LLC. Kezdi.jl is not affiliated with StataCorp LLC.
 
-Inspiration for the package came from [Tidier.jl](https://tidierorg.github.io/Tidier.jl/stable/), a similar package launched by Karandeep Singh that provides a dplyr-like interface for Julia. Johannes Boehm has also developed a similar package, [Douglass.jl](https://github.com/jmboehm/Douglass.jl).
+Inspiration for the package came from [Tidier.jl](https://tidierorg.github.io/Tidier.jl/stable/), a similar package launched by Karandeep Singh that provides a dplyr-like interface for Julia. Johannes Boehm has also developed a similar package, [Douglass.jl](https://github.com/jmboehm/Douglass.jl) although our package has a more extensive feature set and is more actively developed. We appreciate both previous work as they showed the possibility for creating and help us in formulating our idea.
+
+A comparison to Douglass.jl:
+1. The main difference is between how Douglass and Kezdi process the commands. Douglass uses a string parsing approach where a string using Stata-like syntax, but using Julia conventions for referencing variables in a dataframe, is used to implement the actions on the dataframe whereas Kezdi uses macros and Julia's macro parsing and processing to implement all the actions,
+2. Kezdi's reference to dataframe variables is using the Stata convention rather than using Julia symbols, 
+3. Kezdi has implemented commands for basic analysis of data, matching Stata commands and their syntax, 
+4. on data manipulation commands both packages have some that the other does not implemented yet, 
+5. and Douglass has implemented the `by:` and `bysort:` prefixes in general for commands.
 
 The package is built on top of [DataFrames.jl](https://dataframes.juliadata.org/stable/), [FreqTables.jl](https://github.com/nalimilan/FreqTables.jl) and [FixedEffectModels.jl](https://github.com/FixedEffects/FixedEffectModels.jl). The `@with` function relies on [Chain.jl](https://github.com/jkrumbiegel/Chain.jl) by Julius Krumbiegel.
 
