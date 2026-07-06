@@ -5,7 +5,7 @@ module Kezdi
 
 export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress, @use, @tabulate, @count, @sort, @order, @list, @head, @tail, @names, @rename, @clear, @describe, @mvencode, @save, @append, @reshape
 
-export getdf, setdf, display_and_return, keep_only_values, rowcount, distinct, cond, mvreplace, append
+export getdf, setdf, display_and_return, keep_only_values, rowcount, distinct, cond, mvreplace, append, anymissing
 
 using Reexport
 using Logging
@@ -20,7 +20,6 @@ using Crayons
 @reexport using DataFrames
 @reexport using StatsBase
 @reexport using Dates
-import Base: count
 
 include("consts.jl")
 include("structs.jl")

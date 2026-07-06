@@ -138,6 +138,11 @@ end
         df2 = @with df @replace x = 2 @if ismissing(x)
         @test df2.x == [1, 2, 3]
     end
+    @testset "multi-argument ismissing" begin
+        df = DataFrame(x=[1, missing, 3], y=[missing, missing, 30])
+        df2 = @with df @generate z = ismissing(x, y)
+        @test df2.z == [true, true, false]
+    end
 end
 
 @testset "Constant string value" begin

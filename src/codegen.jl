@@ -183,6 +183,11 @@ end
 vectorize_function_calls(expr::Any) = expr
 function vectorize_function_calls(expr::Expr)
     isfunctioncall(expr) || return Expr(expr.head, vectorize_function_calls.(expr.args)...)
+    # ismissing(x, y, ...) has no multi-argument method in Base; route it to
+    # Kezdi.anymissing, which vectorizes like ismissing (no passmissing wrap).
+    if expr.head == :call && expr.args[1] == :ismissing && length(expr.args) > 2
+        expr = Expr(:call, :anymissing, expr.args[2:end]...)
+    end
     fname = expr.args[1]
     # x && y is not a function call, becomes x .&& y
     is_operator(expr.head) && tovectorize(expr) && expr.head in SYNTACTIC_OPERATORS && 
@@ -232,7 +237,7 @@ is_dot_reference(e::Expr) = Base.isexpr(e, :., 2) &&
         e.args[2].value isa Symbol
 
 isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args) == 2
-operates_on_missing(expr::Any) = (expr isa Symbol && expr == :ismissing) || operates_on_type(expr, Missing)
+operates_on_missing(expr::Any) = (expr isa Symbol && expr in (:ismissing, :anymissing)) || operates_on_type(expr, Missing)
 operates_on_vector(expr::Any) = operates_on_type(expr, Vector)
 
 function operates_on_type(expr::Any, T::Type)
