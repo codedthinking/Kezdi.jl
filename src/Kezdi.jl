@@ -32,4 +32,13 @@ include("side_effects.jl")
 include("With.jl")
 @reexport using .With: @with, @with!
 
+include("precompile.jl")
+
+# Non-exported but user-facing API (Julia 1.11+ `public`). Parsed via eval so
+# this file still parses on 1.10, where `public` is not a keyword. Placed after
+# all includes so every referenced name is defined.
+@static if VERSION >= v"1.11"
+    eval(Meta.parse("public use, save, summarize, tabulate, prompt"))
+end
+
 end # module
