@@ -111,4 +111,15 @@
         end
 
     end
+
+    @testset "Previous data frame is restored when the block throws" begin
+        outer = DataFrame(a = [1])
+        setdf(outer)
+        inner = DataFrame(x = [1, 2])
+        @test_throws Exception @with inner begin
+            error("boom")
+        end
+        @test getdf().a == [1]
+        setdf(nothing)
+    end
 end

@@ -1,6 +1,5 @@
 using Test
 using Kezdi
-using Logging
 
 macro return_arguments(expr)
     return (expr,)

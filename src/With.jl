@@ -45,37 +45,36 @@ end
 
 function rewrite_with_block(block)
     block_expressions = block.args
-    isempty(block_expressions) || 
-        (length(block_expressions) == 1 && block_expressions[] isa LineNumberNode) &&
-        error("No expressions found in with block.")
-
     reconvert_docstrings!(block_expressions)
 
-    # save current dataframe
+    # save current dataframe, activate the first expression, restore on exit
     previous_df = gensym()
-    rewritten_exprs = []
-
+    header = []
+    body = []
     did_first = false
     for expr in block_expressions
-        # could be an expression first or a LineNumberNode, so a bit convoluted
-        # we just do the firstvar transformation for the first non LineNumberNode
-        # we encounter
+        # the first non-LineNumberNode is the DataFrame to activate; everything
+        # after it is the body run against that active DataFrame
         if !(did_first || expr isa LineNumberNode)
             did_first = true
-            push!(rewritten_exprs, :(local $previous_df = getdf()))
-            push!(rewritten_exprs, :(setdf($expr)))
+            push!(header, :(local $previous_df = getdf()))
+            push!(header, :(setdf($expr)))
             continue
         end
-        
-        push!(rewritten_exprs, expr)
+        push!(body, expr)
     end
-    teardown = :(x -> begin
-        setdf($previous_df)
-        x
-    end)
-    result = Expr(:block, rewritten_exprs...)
+    did_first || error("No expressions found in with block.")
 
-    :($(esc(result)) |> $(esc(teardown)))
+    # try/finally guarantees the previous DataFrame is restored even if the
+    # body throws; the block still evaluates to the value of its last expression
+    quote
+        $(header...)
+        try
+            $(body...)
+        finally
+            setdf($previous_df)
+        end
+    end |> esc
 end
 
 # if a line in a with is a string, it can be parsed as a docstring
