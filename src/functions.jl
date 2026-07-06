@@ -115,15 +115,25 @@ counter(gdf::GroupedDataFrame) = [nrow(df) for df in gdf]
 isvalue(x) = true
 isvalue(::Missing) = false
 isvalue(::Nothing) = false
-isvalue(x::Number) = isinf(x) || isnan(x) ? false : true
-isvalue(args...) = all(isvalue.(args))
+isvalue(x::Number) = isfinite(x)
+isvalue(args...) = all(isvalue, args)
 
 """
     keep_only_values(x::AbstractVector) -> AbstractVector
 
-Return a vector with only the values of `x`, excluding any `missing`` values, `nothing`s, `Inf`a and `NaN`s.
+Return a vector with only the values of `x`, excluding any `missing` values, `nothing`s, `Inf`s and `NaN`s.
 """
-keep_only_values(x) = filter(isvalue, collect(skipmissing(x)))
+keep_only_values(x) = collect(Iterators.filter(isvalue, skipmissing(x)))
+
+"""
+    tomask(m, n) -> AbstractVector{Bool}
+
+Turn a condition result `m` into a length-`n` boolean row mask: `missing`
+becomes `false`, and a scalar condition (e.g. `@if 2 < 4`) is expanded to a
+full-length vector.
+"""
+tomask(m::AbstractVector, n::Int) = coalesce.(m, false)
+tomask(m, n::Int) = fill(coalesce(m, false), n)
 
 """
     anymissing(args...) -> Bool

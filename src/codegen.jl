@@ -35,7 +35,7 @@ function generate_command(command::Command; options=[], allowed=[])
     variables_RHS = (:variables in options) ? vcat(extract_column_references.(command.arguments)...) : Symbol[]
     variables = vcat(variables_condition, variables_RHS)
     if :replace_variables in options
-        process(x) = replace_column_references(sdf, x)
+        process = x -> replace_column_references(sdf, x)
     end
     if :vectorize in options
         process = vectorize_function_calls ∘ process
@@ -125,7 +125,7 @@ end
 function build_bitmask(df::Any, condition::Any)::Expr
     condition = condition isa Nothing ? true : condition
     mask = replace_column_references(df, condition) |> vectorize_function_calls
-    :(falses(nrow($(df))) .| Missings.replace($mask, false))
+    :(Kezdi.tomask($mask, nrow($(df))))
 end
 
 build_bitmask(command::Command) = isnothing(command.condition) ? :(trues(nrow($(command.df)))) : build_bitmask(command.df, command.condition)

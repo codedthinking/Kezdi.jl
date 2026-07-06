@@ -21,7 +21,7 @@ end
 
 @testset "Bitmask" begin
     df = DataFrame(x = [1, 2, missing, 4])
-    @test_expr Kezdi.build_bitmask(:df, :(x < 4)) == :(falses(nrow(df)) .| Missings.replace(df.x .< 4, false))
+    @test_expr Kezdi.build_bitmask(:df, :(x < 4)) == :(Kezdi.tomask(df.x .< 4, nrow(df)))
     @test eval(Kezdi.build_bitmask(:(DataFrame(x = [1, 2, missing, 4])), :(2 < 4))) == [true, true, true, true]
 end
 
