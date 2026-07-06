@@ -135,6 +135,51 @@ since `Base.ismissing` has no multi-argument method.
 anymissing(args...) = any(ismissing, args)
 
 """
+    signature_mentions(f, T) -> Bool
+
+Return `true` if any method of `f` has an argument annotated with `T` or a
+supertype of `T`, excluding `Any`. This is the world-age-correct, run-time
+replacement for `InteractiveUtils.methodswith(T, f; supertypes=true)`, which the
+package used to call at macro-expansion time via `Main.eval`.
+"""
+function signature_mentions(@nospecialize(f), @nospecialize(T::Type))
+    for m in methods(f)
+        sig = Base.unwrap_unionall(m.sig)
+        sig isa DataType || continue
+        for p in sig.parameters[2:end]
+            p isa Core.TypeofVararg && (p = Base.unwrapva(p))
+            p isa TypeVar && (p = p.ub)
+            p === Any && continue
+            p isa Type || continue
+            T <: p && return true
+        end
+    end
+    return false
+end
+
+operates_on_vector(@nospecialize(f)) = signature_mentions(f, Vector)
+operates_on_missing(@nospecialize(f)) =
+    f === ismissing || f === anymissing || signature_mentions(f, Missing)
+
+"""
+    apply_function(f, args...)
+
+Apply `f` the way Kezdi commands need it, deciding at run time whether to
+broadcast or to pass whole columns:
+
+- functions that operate on vectors (like `mean`, `sum`) receive the columns
+  with `missing`/`NaN`/`Inf` removed;
+- functions that already handle `missing` are broadcast as-is;
+- every other function is broadcast wrapped in `passmissing`.
+"""
+function apply_function(f, args...)
+    f === getindex && return f.(args...)
+    operates_on_vector(f) && return f(map(keep_only_values, args)...)
+    operates_on_missing(f) && return f.(args...)
+    return passmissing(f).(args...)
+end
+
+"""
     cond(x, y, z)
 
 Return `y` if `x` is `true`, otherwise return `z`. If `x` is a vector, the operation is vectorized. This function mimics `x ? y : z`, which cannot be vectorized.
