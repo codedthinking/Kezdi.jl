@@ -1,4 +1,3 @@
-global_logger(Logging.ConsoleLogger(stderr, Logging.Info))
 function extract_args(arg)::Node
     if arg isa Expr
         if arg.head == :tuple

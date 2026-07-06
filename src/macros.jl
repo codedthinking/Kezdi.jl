@@ -16,9 +16,13 @@ macro use(exprs...)
     isempty(filter(x -> x != :clear, command.options)) || ArgumentError("Invalid options $(string.(command.options)). Correct syntax:\n@use \"filename.dta\"[, clear]") |> throw
     fname = command.arguments[1]
     clear = :clear in command.options
-    isnothing(getdf()) || clear || ArgumentError("There is already a global data frame set. If you want to replace it, use the \", clear\" option.") |> throw
-
-    :(println("$(Kezdi.prompt())$($command)\n"); Kezdi.use($fname)) |> esc
+    # the "already have a data frame" check must run when the command runs, not
+    # when the macro expands (expansion may happen at precompile time)
+    quote
+        isnothing(getdf()) || $clear || throw(ArgumentError("There is already a global data frame set. If you want to replace it, use the \", clear\" option."))
+        println("$(Kezdi.prompt())$($command)\n")
+        Kezdi.use($fname)
+    end |> esc
 end
 
 """
@@ -29,11 +33,16 @@ Save the global data frame to the file `filename.dta`. If the file already exist
 macro save(exprs...)
     command = parse(exprs, :save)
     length(command.arguments) == 1 || ArgumentError("@save takes a single file name as an argument:\n@save \"filename.dta\"") |> throw
-    isnothing(getdf()) && ArgumentError("There is no data frame to save.") |> throw
     fname = command.arguments[1]
     replace = :replace in command.options
-    ispath(fname) && !replace && ArgumentError("File $fname already exists.") |> throw
-    :(println("$(Kezdi.prompt())$($command)\n"); Kezdi.save($fname)) |> esc
+    # the "no data frame" and "file exists" checks must run at run time, not at
+    # expansion; moving ispath here also lets fname be a non-literal expression
+    quote
+        isnothing(getdf()) && throw(ArgumentError("There is no data frame to save."))
+        ispath($fname) && !$replace && throw(ArgumentError("File $($fname) already exists."))
+        println("$(Kezdi.prompt())$($command)\n")
+        Kezdi.save($fname)
+    end |> esc
 end
 
 """
@@ -213,9 +222,12 @@ Append the data from the file `filename.dta` or `df` DataFrame to the global dat
 macro append(exprs...)
     command = parse(exprs, :append)
     length(command.arguments) == 1 || ArgumentError("@append takes a single file name as an argument:\n@append \"filename.dta\"") |> throw
-    isnothing(getdf()) && ArgumentError("There is no data frame to append to.") |> throw
     fname = command.arguments[1]
-    :(println("$(Kezdi.prompt())$($command)\n"); Kezdi.append($fname)) |> esc
+    quote
+        isnothing(getdf()) && throw(ArgumentError("There is no data frame to append to."))
+        println("$(Kezdi.prompt())$($command)\n")
+        Kezdi.append($fname)
+    end |> esc
 end
 
 ### Summarizing and analyzing data

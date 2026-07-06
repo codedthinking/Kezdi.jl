@@ -8,7 +8,6 @@ export @generate, @replace, @egen, @collapse, @keep, @drop, @summarize, @regress
 export getdf, setdf, display_and_return, keep_only_values, rowcount, distinct, cond, mvreplace, append, anymissing
 
 using Reexport
-using Logging
 using InteractiveUtils
 using ReadStatTables
 using Crayons
