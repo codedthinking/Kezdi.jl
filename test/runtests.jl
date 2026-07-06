@@ -33,6 +33,10 @@ parse = Kezdi.parse
 rewrite = Kezdi.rewrite
 
 @testset "Kezdi.jl" begin
+@testset "Aqua" begin
+    include("aqua.jl")
+end
+
 @testset "Parsing" begin
     include("parse.jl")
 end

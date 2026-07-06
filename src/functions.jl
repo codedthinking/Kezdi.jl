@@ -126,11 +126,13 @@ Return a vector with only the values of `x`, excluding any `missing`` values, `n
 keep_only_values(x) = filter(isvalue, collect(skipmissing(x)))
 
 """
-    ismissing(args...) -> Bool
+    anymissing(args...) -> Bool
 
-Return `true` if any of the arguments is `missing`.
+Return `true` if any of the arguments is `missing`. Multi-argument
+`ismissing(x, y)` written inside a Kezdi command is rewritten to this function,
+since `Base.ismissing` has no multi-argument method.
 """
-Base.ismissing(args...) = any(ismissing.(args))
+anymissing(args...) = any(ismissing, args)
 
 """
     cond(x, y, z)

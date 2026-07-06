@@ -40,6 +40,14 @@ end
         @test_expr vectorize_function_calls(:(std(x))) == :(std(keep_only_values(x)))
     end
 
+    @testset "multi-argument ismissing routes to anymissing" begin
+        @test_expr vectorize_function_calls(:(ismissing(x, y))) == :(anymissing.(x, y))
+        @test_expr vectorize_function_calls(:(ismissing(x))) == :(ismissing.(x))
+        @test Kezdi.anymissing(missing, 2) == true
+        @test Kezdi.anymissing(1, 2) == false
+        @test Kezdi.anymissing(1, missing, 3) == true
+    end
+
     @testset "Explicit DNV request" begin
         @test_expr vectorize_function_calls(:(~(x + y))) == :(x + y)
         @test_expr vectorize_function_calls(:(~log(x))) == :(log(x))
