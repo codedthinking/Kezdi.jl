@@ -49,7 +49,7 @@ Removing `LineNumberNode`s for brevity, the final Julia code will look like this
 begin
     getdf() isa AbstractDataFrame || error("Kezdi.jl commands can only operate on a global DataFrame set by setdf()")
     local var"##386" = copy(getdf())
-    local var"##387" = view(var"##386", falses(nrow(var"##386")) .| Missings.replace((var"##386").distance .< 5, false), :)
+    local var"##387" = view(var"##386", Kezdi.tomask((var"##386").distance .< 5, nrow(var"##386")), :)
     function var"##389"(x)
         begin
         end
@@ -61,11 +61,11 @@ eltype_RHS = if 5 isa AbstractVector
     else
         typeof(5)
     end
-eltype_LHS = eltype(var"##386"[.!(falses(nrow(var"##386")) .| Missings.replace((var"##386").distance .< 5, false)), "distance"])
+eltype_LHS = eltype(var"##386"[.!(Kezdi.tomask((var"##386").distance .< 5, nrow(var"##386"))), "distance"])
 if eltype_RHS != eltype_LHS
     local var"##390" = Vector{promote_type(eltype_LHS, eltype_RHS)}(undef, nrow(var"##386"))
-    var"##390"[falses(nrow(var"##386")) .| Missings.replace((var"##386").distance .< 5, false)] .= 5
-    var"##390"[.!(falses(nrow(var"##386")) .| Missings.replace((var"##386").distance .< 5, false))] .= var"##386"[.!(falses(nrow(var"##386")) .| Missings.replace((var"##386").distance .< 5, false)), "distance"]
+    var"##390"[Kezdi.tomask((var"##386").distance .< 5, nrow(var"##386"))] .= 5
+    var"##390"[.!(Kezdi.tomask((var"##386").distance .< 5, nrow(var"##386")))] .= var"##386"[.!(Kezdi.tomask((var"##386").distance .< 5, nrow(var"##386"))), "distance"]
     var"##386"[!, "distance"] = var"##390"
 else
     var"##387"[!, "distance"] .= 5

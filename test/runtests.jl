@@ -28,7 +28,7 @@ end
 build_assignment_formula = Kezdi.build_assignment_formula
 replace_column_references = Kezdi.replace_column_references
 vectorize_function_calls = Kezdi.vectorize_function_calls
-parse = Kezdi.parse
+parse_command = Kezdi.parse_command
 rewrite = Kezdi.rewrite
 
 @testset "Kezdi.jl" begin

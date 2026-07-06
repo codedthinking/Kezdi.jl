@@ -30,10 +30,6 @@ struct GeneratedCommand
     options::Vector{Any}
 end
 
-using DataFrames
-using Statistics
-using StatsBase
-
 struct Summarize
     name::Symbol
     N::Int
