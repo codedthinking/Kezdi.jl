@@ -171,6 +171,13 @@ operates_on_vector(@nospecialize(f)) = signature_mentions(f, Vector)
 operates_on_missing(@nospecialize(f)) =
     f === ismissing || f === anymissing || signature_mentions(f, Missing)
 
+# Functions for which an empty collection is meaningful input: counting zero
+# values is 0, the distinct values of nothing are nothing. These keep their
+# empty-input behavior instead of returning `missing` in `apply_function`.
+handles_empty(@nospecialize(f)) =
+    f === rowcount || f === length || f === count || f === isempty ||
+    f === distinct || f === unique || f === keep_only_values
+
 """
     apply_function(f, args...)
 
@@ -178,13 +185,20 @@ Apply `f` the way Kezdi commands need it, deciding at run time whether to
 broadcast or to pass whole columns:
 
 - functions that operate on vectors (like `mean`, `sum`) receive the columns
-  with `missing`/`NaN`/`Inf` removed;
+  with `missing`/`NaN`/`Inf` removed; if no values remain, they return
+  `missing` (as Stata does) instead of `NaN` (`mean`), an additive identity
+  (`sum`), or an error (`minimum`/`maximum`) — except counting functions like
+  `rowcount`, for which an empty input is meaningful;
 - functions that already handle `missing` are broadcast as-is;
 - every other function is broadcast wrapped in `passmissing`.
 """
 function apply_function(f, args...)
     f === getindex && return f.(args...)
-    operates_on_vector(f) && return f(map(keep_only_values, args)...)
+    if operates_on_vector(f)
+        vals = map(keep_only_values, args)
+        any(isempty, vals) && !handles_empty(f) && return missing
+        return f(vals...)
+    end
     operates_on_missing(f) && return f.(args...)
     return passmissing(f).(args...)
 end

@@ -143,6 +143,19 @@ end
         df2 = @with df @generate z = ismissing(x, y)
         @test df2.z == [true, true, false]
     end
+    @testset "@if condition with missing values covers all rows (#170)" begin
+        df = DataFrame(emp=[-1, missing, 2, missing, -3])
+        df2 = @with df @replace emp = 0 @if emp < 0
+        @test all(df2.emp .=== [0, missing, 2, missing, 0])
+        df2 = @with df @replace emp = 1 @if ismissing(emp)
+        @test df2.emp == [-1, 1, 2, 1, -3]
+        df2 = @with df @generate y = 1 @if emp < 0
+        @test all(df2.y .=== [1, missing, missing, missing, 1])
+        df2 = @with df @keep @if emp < 0
+        @test all(df2.emp .=== [-1, -3])
+        df2 = @with df @drop @if emp < 0
+        @test all(df2.emp .=== [missing, 2, missing])
+    end
 end
 
 @testset "Constant string value" begin
@@ -172,6 +185,23 @@ end
         @test df2.y == [2.0]
         df2 = @with DataFrame(x=[1, Inf, 3]) @collapse y = sum(x)
         @test df2.y == [4.0]
+    end
+    @testset "All-missing groups return missing (#233, #190)" begin
+        df = DataFrame(g=[1, 1, 2, 2], y=[1.0, 3.0, missing, missing])
+        df2 = @with df @collapse v = mean(y), by(g)
+        @test all(df2.v .=== [2.0, missing])
+        df2 = @with df @collapse v = sum(y), by(g)
+        @test all(df2.v .=== [4.0, missing])
+        df2 = @with df @collapse v = minimum(y), by(g)
+        @test all(df2.v .=== [1.0, missing])
+        df2 = @with df @collapse v = maximum(y), by(g)
+        @test all(df2.v .=== [3.0, missing])
+        df2 = @with df @collapse v = rowcount(y), by(g)
+        @test df2.v == [2, 0]
+        df2 = @with df @collapse v = rowcount(distinct(y)), by(g)
+        @test df2.v == [2, 0]
+        df2 = @with DataFrame(y=[missing, missing]) @collapse v = mean(y)
+        @test all(df2.v .=== [missing])
     end
     @testset "Vectorized does not collapse" begin
         df = DataFrame(x=1:4, z=5:8)
@@ -235,6 +265,13 @@ end
         df2 = DataFrame(x=[1, missing, 3])
         @test all((@with df2 @egen y = sum(x)).y .== 4)
         @test all((@with df2 @egen y = mean(x)).y .== 2.0)
+    end
+    @testset "All-missing groups return missing (#190)" begin
+        df2 = DataFrame(person_id=[1, 1, 2, 2], birth_year=[1980, missing, missing, missing])
+        df3 = @with df2 @egen byear = minimum(birth_year), by(person_id)
+        @test all(df3.byear .=== [1980, 1980, missing, missing])
+        df3 = @with df2 @egen byear = mean(birth_year), by(person_id)
+        @test all(df3.byear .=== [1980.0, 1980.0, missing, missing])
     end
     @testset "Do not replace special variable names" begin
         df2 = @with df @egen y = missing

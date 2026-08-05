@@ -333,6 +333,8 @@ end
 ```
 returns `mean_A = 2.33`.
 
+When *all* values in a column (or in a group) are missing, aggregators like `mean`, `sum`, `minimum`, and `maximum` return `missing`, just like Stata's `collapse`. Counting functions are the exception: `rowcount` of an all-missing group is 0.
+
 Other functions typically return `missing` if any of the values are missing. If a function does not accept missing values, Kezdi.jl will pass it through `passmissing` to handle missing values.
 
 You can also manually check for missing values with the `ismissing` function.

@@ -11,6 +11,17 @@
     @test isnothing(getdf())
 end
 
+@testset "apply_function on all-missing input (#233, #190)" begin
+    x = [missing, missing]
+    @test Kezdi.apply_function(mean, x) === missing
+    @test Kezdi.apply_function(sum, x) === missing
+    @test Kezdi.apply_function(minimum, x) === missing
+    @test Kezdi.apply_function(maximum, x) === missing
+    @test Kezdi.apply_function(rowcount, x) == 0
+    @test Kezdi.apply_function(distinct, x) == []
+    @test Kezdi.apply_function(mean, [1.0, missing, 3.0]) == 2.0
+end
+
 @testset "_describe" begin
     df = DataFrame(x=1:2, y=[1.0, 2.0], z=["a", "b"], s=[:a, :b])
     @testset for var in [:x, :y, :z, :s]
