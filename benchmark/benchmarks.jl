@@ -2,6 +2,7 @@
 # of the unit-test suite (`@benchmark` is slow and machine-sensitive). Run it
 # manually with:
 #
+#     julia --project=benchmark -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
 #     julia --project=benchmark benchmark/benchmarks.jl
 
 using BenchmarkTools
