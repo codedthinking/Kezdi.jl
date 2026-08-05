@@ -137,10 +137,10 @@ end
 function rewrite(::Val{:collapse}, command::Command)
     gc = generate_command(command; options=[:variables, :ifable, :replace_variables, :vectorize, :assignment], allowed=[:by])
     (; local_copy, target_df, setup, teardown, arguments, options) = gc
-    combine_epxression = Expr(:call, :combine, target_df, build_assignment_formula.(command.arguments)...)
+    combine_expression = Expr(:call, :combine, target_df, build_assignment_formula.(command.arguments)...)
     quote
         $setup
-        $combine_epxression |> $teardown |> setdf
+        $combine_expression |> $teardown |> setdf
     end |> esc
 end
 
