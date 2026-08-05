@@ -50,7 +50,7 @@ getdf() = _global_dataframe
 Set the global data frame.
 """
 setdf(df::Union{AbstractDataFrame,Nothing}) = global _global_dataframe = isnothing(df) ? nothing : copy(df)
-display_and_return(x) = (display(x); x)
+display_and_return(x) = isinteractive() ? (display(x)) : (display(x); x)
 
 """
     distinct(x::AbstractVector) = unique(x)
@@ -115,22 +115,93 @@ counter(gdf::GroupedDataFrame) = [nrow(df) for df in gdf]
 isvalue(x) = true
 isvalue(::Missing) = false
 isvalue(::Nothing) = false
-isvalue(x::Number) = isinf(x) || isnan(x) ? false : true
-isvalue(args...) = all(isvalue.(args))
+isvalue(x::Number) = isfinite(x)
+isvalue(args...) = all(isvalue, args)
 
 """
     keep_only_values(x::AbstractVector) -> AbstractVector
 
-Return a vector with only the values of `x`, excluding any `missing`` values, `nothing`s, `Inf`a and `NaN`s.
+Return a vector with only the values of `x`, excluding any `missing` values, `nothing`s, `Inf`s and `NaN`s.
 """
-keep_only_values(x) = filter(isvalue, collect(skipmissing(x)))
+keep_only_values(x) = collect(Iterators.filter(isvalue, skipmissing(x)))
 
 """
-    ismissing(args...) -> Bool
+    tomask(m, n) -> AbstractVector{Bool}
 
-Return `true` if any of the arguments is `missing`.
+Turn a condition result `m` into a length-`n` boolean row mask: `missing`
+becomes `false`, and a scalar condition (e.g. `@if 2 < 4`) is expanded to a
+full-length vector.
 """
-Base.ismissing(args...) = any(ismissing.(args))
+tomask(m::AbstractVector, n::Int) = coalesce.(m, false)
+tomask(m, n::Int) = fill(coalesce(m, false), n)
+
+"""
+    anymissing(args...) -> Bool
+
+Return `true` if any of the arguments is `missing`. Multi-argument
+`ismissing(x, y)` written inside a Kezdi command is rewritten to this function,
+since `Base.ismissing` has no multi-argument method.
+"""
+anymissing(args...) = any(ismissing, args)
+
+"""
+    signature_mentions(f, T) -> Bool
+
+Return `true` if any method of `f` has an argument annotated with `T` or a
+supertype of `T`, excluding `Any`. This is the world-age-correct, run-time
+replacement for `InteractiveUtils.methodswith(T, f; supertypes=true)`, which the
+package used to call at macro-expansion time via `Main.eval`.
+"""
+function signature_mentions(@nospecialize(f), @nospecialize(T::Type))
+    for m in methods(f)
+        sig = Base.unwrap_unionall(m.sig)
+        sig isa DataType || continue
+        for p in sig.parameters[2:end]
+            p isa Core.TypeofVararg && (p = Base.unwrapva(p))
+            p isa TypeVar && (p = p.ub)
+            p === Any && continue
+            p isa Type || continue
+            T <: p && return true
+        end
+    end
+    return false
+end
+
+operates_on_vector(@nospecialize(f)) = signature_mentions(f, Vector)
+operates_on_missing(@nospecialize(f)) =
+    f === ismissing || f === anymissing || signature_mentions(f, Missing)
+
+# Functions for which an empty collection is meaningful input: counting zero
+# values is 0, the distinct values of nothing are nothing. These keep their
+# empty-input behavior instead of returning `missing` in `apply_function`.
+handles_empty(@nospecialize(f)) =
+    f === rowcount || f === length || f === count || f === isempty ||
+    f === distinct || f === unique || f === keep_only_values
+
+"""
+    apply_function(f, args...)
+
+Apply `f` the way Kezdi commands need it, deciding at run time whether to
+broadcast or to pass whole columns:
+
+- functions that operate on vectors (like `mean`, `sum`) receive the columns
+  with `missing`/`NaN`/`Inf` removed; if no values remain, they return
+  `missing` (as Stata does) instead of `NaN` (`mean`), an additive identity
+  (`sum`), or an error (`minimum`/`maximum`) — except counting functions like
+  `rowcount`, for which an empty input is meaningful;
+- functions that already handle `missing` are broadcast as-is;
+- every other function is broadcast wrapped in `passmissing`.
+"""
+function apply_function(f, args...)
+    f === getindex && return f.(args...)
+    if operates_on_vector(f)
+        vals = map(keep_only_values, args)
+        any(isempty, vals) && !handles_empty(f) && return missing
+        return f(vals...)
+    end
+    operates_on_missing(f) && return f.(args...)
+    return passmissing(f).(args...)
+end
 
 """
     cond(x, y, z)

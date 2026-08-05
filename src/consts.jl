@@ -95,19 +95,6 @@ const SIDE_EFFECTS = (
     Symbol("@count")
 )
 
-const DO_NOT_VECTORIZE = (
-    :sum,
-    :mean,
-    :minimum,
-    :maximum,
-    :rowcount,
-    :distinct
-)
-
-const ALWAYS_VECTORIZE = (
-    :getindex,
-)
-
 const OPTIONS = (
     :ifable,
     :byable,

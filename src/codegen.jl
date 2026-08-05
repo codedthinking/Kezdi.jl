@@ -35,7 +35,7 @@ function generate_command(command::Command; options=[], allowed=[])
     variables_RHS = (:variables in options) ? vcat(extract_column_references.(command.arguments)...) : Symbol[]
     variables = vcat(variables_condition, variables_RHS)
     if :replace_variables in options
-        process(x) = replace_column_references(sdf, x)
+        process = x -> replace_column_references(sdf, x)
     end
     if :vectorize in options
         process = vectorize_function_calls ∘ process
@@ -125,7 +125,7 @@ end
 function build_bitmask(df::Any, condition::Any)::Expr
     condition = condition isa Nothing ? true : condition
     mask = replace_column_references(df, condition) |> vectorize_function_calls
-    :(falses(nrow($(df))) .| Missings.replace($mask, false))
+    :(Kezdi.tomask($mask, nrow($(df))))
 end
 
 build_bitmask(command::Command) = isnothing(command.condition) ? :(trues(nrow($(command.df)))) : build_bitmask(command.df, command.condition)
@@ -163,49 +163,29 @@ function replace_column_references(df::Any, expr::Expr)
     Expr(expr.head, [replace_column_references(df, x) for x in expr.args]...)
 end
 
-tovectorize(::Any) = false
-tovectorize(expr::Symbol) = Base.isoperator(expr) && !is_dotted_operator(expr)
-function tovectorize(expr::Expr)
-    isfunctioncall(expr) || return false
-    fname = expr.args[1]
-    expr.head == Symbol(".") && return false
-    is_dotted_operator(expr.head) && return false
-    is_dotted_operator(fname) && return false
-    fname in DO_NOT_VECTORIZE && return false
-    fname == :~ && return false
-    is_operator(expr.head) && return true
-    is_operator(fname) && return true
-    fname in ALWAYS_VECTORIZE && return true
-    operates_on_vector(fname) && return false
-    return true
-end
-
 vectorize_function_calls(expr::Any) = expr
 function vectorize_function_calls(expr::Expr)
     isfunctioncall(expr) || return Expr(expr.head, vectorize_function_calls.(expr.args)...)
+    # ismissing(x, y, ...) has no multi-argument method in Base; route it to
+    # Kezdi.anymissing, which vectorizes like ismissing (no passmissing wrap).
+    if expr.head == :call && expr.args[1] == :ismissing && length(expr.args) > 2
+        expr = Expr(:call, :anymissing, expr.args[2:end]...)
+    end
     fname = expr.args[1]
-    # x && y is not a function call, becomes x .&& y
-    is_operator(expr.head) && tovectorize(expr) && expr.head in SYNTACTIC_OPERATORS && 
-        return Expr(Symbol("." * String(expr.head)), vectorize_function_calls.(expr.args)...) 
-    # x + y is not a function call, becomes x .+ y
-    is_operator(fname) && tovectorize(expr) &&
-        return Expr(expr.head, Symbol("." * String(fname)), vectorize_function_calls.(expr.args[2:end])...)
-    # f(x) becomes f.(x) or passmissing(f).(x)
-    tovectorize(expr) && return operates_on_missing(fname) ? 
-        Expr(Symbol("."), fname,
-            Expr(:tuple,   
-            vectorize_function_calls.(expr.args[2:end])...)
-        ) :
-        Expr(Symbol("."), :(passmissing($fname)),
-            Expr(:tuple,   
-            vectorize_function_calls.(expr.args[2:end])...)
-        )
-    # ~f(x) becomes f(x), not vectorized
+    # ~f(x) becomes f(x): explicit do-not-vectorize request. Handled before the
+    # operator branches because `~` is itself an operator.
     fname == :~ && return Expr(expr.args[2].head, expr.args[2].args[1], vectorize_function_calls.(expr.args[2].args[2:end])...)
-    # this is already vectorized, do not touch
-    expr.head == Symbol(".") &&     return Expr(expr.head, vectorize_function_calls.(expr.args)...)
-    # remaining function calls are not vectorized
-    return Expr(expr.head, fname, [Expr(:call, :keep_only_values, vectorize_function_calls(arg)) for arg in expr.args[2:end]]...)
+    # x && y is not a function call, becomes x .&& y
+    is_operator(expr.head) && expr.head in SYNTACTIC_OPERATORS &&
+        return Expr(Symbol("." * String(expr.head)), vectorize_function_calls.(expr.args)...)
+    # x + y becomes x .+ y (operators always vectorize, unless already dotted)
+    is_operator(fname) && !is_dotted_operator(fname) &&
+        return Expr(expr.head, Symbol("." * String(fname)), vectorize_function_calls.(expr.args[2:end])...)
+    # already vectorized (broadcast), do not touch
+    expr.head == Symbol(".") && return Expr(expr.head, vectorize_function_calls.(expr.args)...)
+    # every remaining plain call: whether to broadcast over elements or pass the
+    # whole column is decided at run time by Kezdi.apply_function
+    return Expr(:call, :(Kezdi.apply_function), fname, vectorize_function_calls.(expr.args[2:end])...)
 end
 
 get_dot_parts(ex::Symbol) = [ex]
@@ -232,17 +212,6 @@ is_dot_reference(e::Expr) = Base.isexpr(e, :., 2) &&
         e.args[2].value isa Symbol
 
 isassignment(expr::Any) = expr isa Expr && expr.head == :(=) && length(expr.args) == 2
-operates_on_missing(expr::Any) = (expr isa Symbol && expr == :ismissing) || operates_on_type(expr, Missing)
-operates_on_vector(expr::Any) = operates_on_type(expr, Vector)
-
-function operates_on_type(expr::Any, T::Type)
-    try
-        return length(methodswith(T, Main.eval(expr); supertypes=true)) > 0
-    catch ee
-        !isa(ee, UndefVarError) && rethrow(ee)
-        return false
-    end
-end
 
 isvarreference(x::Symbol) = Meta.isidentifier(x) && !in(x, RESERVED_WORDS) && !in(x, TYPES)
 isvarreference(::Any) = false

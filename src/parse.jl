@@ -1,4 +1,3 @@
-global_logger(Logging.ConsoleLogger(stderr, Logging.Info))
 function extract_args(arg)::Node
     if arg isa Expr
         if arg.head == :tuple
@@ -92,7 +91,7 @@ function splitassignment(node::Node)
     end
 end
 
-function parse(exprs::Tuple, command::Symbol)::Command
+function parse_command(exprs::Tuple, command::Symbol)::Command
     ast = scan(exprs)
     @debug "Expressions are $exprs, AST is $ast"
     arguments = Vector{Node}()
@@ -144,4 +143,4 @@ function parse(exprs::Tuple, command::Symbol)::Command
     return Command(command, arguments, condition, options)
 end
 
-parse(exprs::Tuple) = x::Symbol -> parse(exprs, x)
+parse_command(exprs::Tuple) = x::Symbol -> parse_command(exprs, x)

@@ -39,7 +39,7 @@ function rewrite(::Val{:regress}, command::Command)
             display("Dropping $(sum(.!$additional_condition)) row(s) due to missing values.")
         end
         if length($(arguments[2:end])) == 1
-            reg(view($target_df, $additional_condition, :), @formula($(arguments[1]) ~ $(arguments[2])), $vcov) |> $teardown
+            reg(view($target_df, $additional_condition, :), @formula($(arguments[1]) ~ $(arguments[2])), $vcov) |> Kezdi.display_and_return |> $teardown
         else
             reg(view($target_df, $additional_condition, :), @formula($(arguments[1]) ~ $(Expr(:call, :+, arguments[2:end]...))), $vcov) |> Kezdi.display_and_return |> $teardown
         end

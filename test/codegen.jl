@@ -21,23 +21,37 @@ end
 
 @testset "Bitmask" begin
     df = DataFrame(x = [1, 2, missing, 4])
-    @test_expr Kezdi.build_bitmask(:df, :(x < 4)) == :(falses(nrow(df)) .| Missings.replace(df.x .< 4, false))
+    @test_expr Kezdi.build_bitmask(:df, :(x < 4)) == :(Kezdi.tomask(df.x .< 4, nrow(df)))
     @test eval(Kezdi.build_bitmask(:(DataFrame(x = [1, 2, missing, 4])), :(2 < 4))) == [true, true, true, true]
 end
 
 @testset "Vectorize function calls" begin
-    @test_expr vectorize_function_calls(:(log(x))) == :(log.(x))
-    @test_expr vectorize_function_calls(:(x + y)) == :(x .+ y) 
-    @test_expr vectorize_function_calls(:(log(x) + log(z))) == :(log.(x) .+ log.(z))
-    @test_expr vectorize_function_calls(:(div(x, y))) == :(div.(x, y))
-    @test_expr vectorize_function_calls(:(1 + div(x, y, z))) == :(1 .+ div.(x, y, z))
-    @testset "Do not vectorize" begin
-        @test_expr vectorize_function_calls(:(mean(x))) == :(mean(keep_only_values(x)))
-        @test_expr vectorize_function_calls(:(mean(x) + log(y))) == :(mean(keep_only_values(x)) .+ log.(y))
+    # plain function calls are wrapped in Kezdi.apply_function, which decides at
+    # run time whether to broadcast or pass the whole column; operators are still
+    # dotted at expansion time
+    @test_expr vectorize_function_calls(:(log(x))) == :(Kezdi.apply_function(log, x))
+    @test_expr vectorize_function_calls(:(x + y)) == :(x .+ y)
+    @test_expr vectorize_function_calls(:(log(x) + log(z))) == :(Kezdi.apply_function(log, x) .+ Kezdi.apply_function(log, z))
+    @test_expr vectorize_function_calls(:(div(x, y))) == :(Kezdi.apply_function(div, x, y))
+    @test_expr vectorize_function_calls(:(1 + div(x, y, z))) == :(1 .+ Kezdi.apply_function(div, x, y, z))
+    @testset "Aggregating functions also go through apply_function" begin
+        @test_expr vectorize_function_calls(:(mean(x))) == :(Kezdi.apply_function(mean, x))
+        @test_expr vectorize_function_calls(:(mean(x) + log(y))) == :(Kezdi.apply_function(mean, x) .+ Kezdi.apply_function(log, y))
         @test_expr vectorize_function_calls(:(log.(x))) == :(log.(x))
-        @test_expr vectorize_function_calls(:(log(x) + sum(y))) == :(log.(x) .+ sum(keep_only_values(y)))
-        @test_expr vectorize_function_calls(:(wsum(x))) == :(wsum(keep_only_values(x)))
-        @test_expr vectorize_function_calls(:(std(x))) == :(std(keep_only_values(x)))
+        @test_expr vectorize_function_calls(:(log(x) + sum(y))) == :(Kezdi.apply_function(log, x) .+ Kezdi.apply_function(sum, y))
+        @test_expr vectorize_function_calls(:(wsum(x))) == :(Kezdi.apply_function(wsum, x))
+        @test_expr vectorize_function_calls(:(std(x))) == :(Kezdi.apply_function(std, x))
+    end
+
+    @testset "multi-argument ismissing routes to anymissing" begin
+        # multi-arg ismissing is rewritten to anymissing, then (like every plain
+        # call) dispatched through apply_function; anymissing/ismissing broadcast
+        # element-wise at run time (operates_on_missing is true for both)
+        @test_expr vectorize_function_calls(:(ismissing(x, y))) == :(Kezdi.apply_function(anymissing, x, y))
+        @test_expr vectorize_function_calls(:(ismissing(x))) == :(Kezdi.apply_function(ismissing, x))
+        @test Kezdi.anymissing(missing, 2) == true
+        @test Kezdi.anymissing(1, 2) == false
+        @test Kezdi.anymissing(1, missing, 3) == true
     end
 
     @testset "Explicit DNV request" begin
@@ -51,14 +65,14 @@ end
         @test df2.y == Dates.year.(df2.x)
     end
 
-    @testset "Unknown functions are passed through `passmissing`" begin
-        @test_expr vectorize_function_calls(:(y = Dates.year(x))) == :(y = (passmissing(Dates.year)).(x))
+    @testset "Unknown functions go through apply_function" begin
+        @test_expr vectorize_function_calls(:(y = Dates.year(x))) == :(y = Kezdi.apply_function(Dates.year, x))
     end
     @testset "Functions in other modules" begin
         using .MyModule
-        @test vectorize_function_calls(:(MyModule.myfunc(x))) == :((passmissing(MyModule.myfunc)).(x))       
-        @test vectorize_function_calls(:(MyModule.myaggreg(x))) == :(MyModule.myaggreg(keep_only_values(x)))  
-        @test vectorize_function_calls(:(MyModule.mymiss(x))) == :(MyModule.mymiss.(x))     
+        @test vectorize_function_calls(:(MyModule.myfunc(x))) == :(Kezdi.apply_function(MyModule.myfunc, x))
+        @test vectorize_function_calls(:(MyModule.myaggreg(x))) == :(Kezdi.apply_function(MyModule.myaggreg, x))
+        @test vectorize_function_calls(:(MyModule.mymiss(x))) == :(Kezdi.apply_function(MyModule.mymiss, x))
     end
 
     @testset "Functions in other modules with DNV" begin
@@ -70,20 +84,24 @@ end
 end
 
 @testset "Helper functions" begin
-    @testset "operates_on_type" begin
-        @test Kezdi.operates_on_type(:log, Number)
-        @test !Kezdi.operates_on_type(:log, String)
-        @test Kezdi.operates_on_type(:log, Missing)
-        @test !Kezdi.operates_on_type(:sum, Missing)
-        @test !Kezdi.operates_on_type(:sum, Missing)
-        @test !Kezdi.operates_on_type(:log, AbstractVector)
+    @testset "runtime vectorization decisions" begin
+        using .MyModule
+        # decisions are now made on the function VALUE at run time, not on the
+        # symbol at expansion time
+        @test Kezdi.operates_on_vector(mean)
+        @test Kezdi.operates_on_vector(sum)
+        @test Kezdi.operates_on_vector(wsum)
+        @test !Kezdi.operates_on_vector(log)
+        @test Kezdi.operates_on_missing(log)
+        @test !Kezdi.operates_on_missing(sum)
+        @test Kezdi.operates_on_vector(MyModule.myaggreg)
+        @test Kezdi.operates_on_missing(MyModule.mymiss)
+        @test !Kezdi.operates_on_vector(MyModule.myfunc)
 
-        @test_throws Exception Kezdi.operates_on_type(4, Missing)
-
-        @test Kezdi.operates_on_missing(:log)
-        @test !Kezdi.operates_on_missing(:sum)
-        @test Kezdi.operates_on_vector(:mean)
-        @test !Kezdi.operates_on_vector(:log)
+        # apply_function end to end (isequal because comparisons involve missing)
+        @test isequal(Kezdi.apply_function(log, [1.0, missing]), [log(1.0), missing])
+        @test Kezdi.apply_function(mean, [1.0, missing, 3.0]) == 2.0
+        @test isequal(Kezdi.apply_function(Dates.year, [Date(2020, 1, 1), missing]), [2020, missing])
     end
 
     @testset "split_assignment" begin

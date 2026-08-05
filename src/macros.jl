@@ -1,24 +1,28 @@
 macro mockmacro(exprs...)
     command = :mockmacro
-    parse(exprs, command)
+    parse_command(exprs, command)
 end
 
-### Setting and inspectiung the global data frame
+### Setting and inspecting the global data frame
 """
     @use "filename.dta", [clear]
 
 Read the data from the file `filename.dta` and set it as the global data frame. If there is already a global data frame, `@use` will throw an error unless the `clear` option is provided
 """
 macro use(exprs...)
-    command = parse(exprs, :use)
+    command = parse_command(exprs, :use)
     length(command.arguments) == 1 || ArgumentError("@use takes a single file name as an argument:\n@use \"filename.dta\"[, clear]") |> throw
     # clear is the only permissible option
     isempty(filter(x -> x != :clear, command.options)) || ArgumentError("Invalid options $(string.(command.options)). Correct syntax:\n@use \"filename.dta\"[, clear]") |> throw
     fname = command.arguments[1]
     clear = :clear in command.options
-    isnothing(getdf()) || clear || ArgumentError("There is already a global data frame set. If you want to replace it, use the \", clear\" option.") |> throw
-
-    :(println("$(Kezdi.prompt())$($command)\n"); Kezdi.use($fname)) |> esc
+    # the "already have a data frame" check must run when the command runs, not
+    # when the macro expands (expansion may happen at precompile time)
+    quote
+        isnothing(getdf()) || $clear || throw(ArgumentError("There is already a global data frame set. If you want to replace it, use the \", clear\" option."))
+        println("$(Kezdi.prompt())$($command)\n")
+        Kezdi.use($fname)
+    end |> esc
 end
 
 """
@@ -27,13 +31,18 @@ end
 Save the global data frame to the file `filename.dta`. If the file already exists, the `replace` option must be provided.
 """
 macro save(exprs...)
-    command = parse(exprs, :save)
+    command = parse_command(exprs, :save)
     length(command.arguments) == 1 || ArgumentError("@save takes a single file name as an argument:\n@save \"filename.dta\"") |> throw
-    isnothing(getdf()) && ArgumentError("There is no data frame to save.") |> throw
     fname = command.arguments[1]
     replace = :replace in command.options
-    ispath(fname) && !replace && ArgumentError("File $fname already exists.") |> throw
-    :(println("$(Kezdi.prompt())$($command)\n"); Kezdi.save($fname)) |> esc
+    # the "no data frame" and "file exists" checks must run at run time, not at
+    # expansion; moving ispath here also lets fname be a non-literal expression
+    quote
+        isnothing(getdf()) && throw(ArgumentError("There is no data frame to save."))
+        ispath($fname) && !$replace && throw(ArgumentError("File $($fname) already exists."))
+        println("$(Kezdi.prompt())$($command)\n")
+        Kezdi.save($fname)
+    end |> esc
 end
 
 """
@@ -52,7 +61,7 @@ end
 Display the entire data frame or the rows for which the condition is true. If variable names are provided, only the variables in the list are displayed.
 """
 macro list(exprs...)
-    :list |> parse(exprs) |> rewrite
+    :list |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -88,7 +97,7 @@ end
 Show the names and data types of columns of the data frame. If no variable names given, all are shown. 
 """
 macro describe(exprs...)
-    :describe |> parse(exprs) |> rewrite
+    :describe |> parse_command(exprs) |> rewrite
 end
 
 ### Filtering columns and rows
@@ -98,7 +107,7 @@ end
 Keep only the variables `y1`, `y2`, etc. in `df`. If `condition` is provided, only the rows for which the condition is true are kept.  
 """
 macro keep(exprs...)
-    :keep |> parse(exprs) |> rewrite
+    :keep |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -109,7 +118,7 @@ or
 Drop the variables `y1`, `y2`, etc. from `df`. If `condition` is provided, the rows for which the condition is true are dropped.
 """
 macro drop(exprs...)
-    :drop |> parse(exprs) |> rewrite
+    :drop |> parse_command(exprs) |> rewrite
 end
 
 ### Modifying the data
@@ -119,7 +128,7 @@ end
 Rename the variable `oldname` to `newname` in the data frame.
 """
 macro rename(exprs...)
-    :rename |> parse(exprs) |> rewrite
+    :rename |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -128,7 +137,7 @@ end
 Create a new variable `y` in `df` by evaluating `expr`. If `condition` is provided, the operation is executed only on rows for which the condition is true. When the condition is false, the variable will be missing. 
 """
 macro generate(exprs...)
-    :generate |> parse(exprs) |> rewrite
+    :generate |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -137,7 +146,7 @@ end
 Replace the values of `y` in `df` with the result of evaluating `expr`. If `condition` is provided, the operation is executed only on rows for which the condition is true. When the condition is false, the variable will be left unchanged.
 """
 macro replace(exprs...)
-    :replace |> parse(exprs) |> rewrite
+    :replace |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -146,7 +155,7 @@ end
 Encode missing values in the variables `y1`, `y2`, etc. in the data frame. If `condition` is provided, the operation is executed only on rows for which the condition is true. If `mv` is provided, the missing values are encoded with the value `value`. By default value is `missing` making no changes on the dataframe. Using `_all` encodes all variables of the DataFrame.
 """
 macro mvencode(exprs...)
-    :mvencode |> parse(exprs) |> rewrite
+    :mvencode |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -155,7 +164,7 @@ end
 Generate new variables in `df` by evaluating expressions `expr1`, `expr2`, etc. If `condition` is provided, the operation is executed only on rows for which the condition is true. When the condition is false, the variables will be missing. If `by` is provided, the operation is executed by group.
 """
 macro egen(exprs...)
-    :egen |> parse(exprs) |> rewrite
+    :egen |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -164,7 +173,7 @@ end
 Collapse `df` by evaluating expressions `expr1`, `expr2`, etc. If `condition` is provided, the operation is executed only on rows for which the condition is true. If `by` is provided, the operation is executed by group.
 """
 macro collapse(exprs...)
-    :collapse |> parse(exprs) |> rewrite
+    :collapse |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -173,7 +182,7 @@ end
 Sort the data frame by the variables `y1`, `y2`, etc. By default, the variables are sorted in ascending order. If `desc` is provided, the variables are sorted in descending order
 """
 macro sort(exprs...)
-    :sort |> parse(exprs) |> rewrite
+    :sort |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -182,7 +191,7 @@ end
 Reorder the variables `y1`, `y2`, etc. in the data frame. By default, the variables are ordered in the order they are listed. If `desc` is provided, the variables are ordered in descending order. If `last` is provided, the variables are moved to the end of the data frame. If `after` is provided, the variables are moved after the variable `var`. If `before` is provided, the variables are moved before the variable `var`. If `alphabetical` is provided, the variables are ordered alphabetically.
 """
 macro order(exprs...)
-    :order |> parse(exprs) |> rewrite
+    :order |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -195,9 +204,9 @@ The option `i()` may include multiple variables, like `i(var1, var2, var3)`. The
 """
 macro reshape(exprs...)
     if exprs[1] == :long
-        :reshape_long |> parse(exprs[2:end]) |> rewrite
+        :reshape_long |> parse_command(exprs[2:end]) |> rewrite
     elseif exprs[1] == :wide
-        :reshape_wide |> parse(exprs[2:end]) |> rewrite
+        :reshape_wide |> parse_command(exprs[2:end]) |> rewrite
     else
         return quote
             ArgumentError("Invalid option $(exprs[1]). Correct syntax:\n@reshape long y1 y2 ... i(var) j(var)\n@reshape wide y1 y2 ... i(var) j(var)") |> throw
@@ -211,11 +220,14 @@ end
 Append the data from the file `filename.dta` or `df` DataFrame to the global data frame. Columns that are not common filled with missing values.
 """
 macro append(exprs...)
-    command = parse(exprs, :append)
+    command = parse_command(exprs, :append)
     length(command.arguments) == 1 || ArgumentError("@append takes a single file name as an argument:\n@append \"filename.dta\"") |> throw
-    isnothing(getdf()) && ArgumentError("There is no data frame to append to.") |> throw
     fname = command.arguments[1]
-    :(println("$(Kezdi.prompt())$($command)\n"); Kezdi.append($fname)) |> esc
+    quote
+        isnothing(getdf()) && throw(ArgumentError("There is no data frame to append to."))
+        println("$(Kezdi.prompt())$($command)\n")
+        Kezdi.append($fname)
+    end |> esc
 end
 
 ### Summarizing and analyzing data
@@ -225,7 +237,7 @@ end
 Count the number of rows for which the condition is true. If `condition` is not provided, the total number of rows is counted.
 """
 macro count(exprs...)
-    :count |> parse(exprs) |> rewrite
+    :count |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -234,7 +246,7 @@ end
 Create a frequency table for the variables `y1`, `y2`, etc. in `df`. If `condition` is provided, the operation is executed only on rows for which the condition is true.
 """
 macro tabulate(exprs...)
-    :tabulate |> parse(exprs) |> rewrite
+    :tabulate |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -243,7 +255,7 @@ end
 Summarize the variable `y` in `df`. If `condition` is provided, the operation is executed only on rows for which the condition is true.
 """
 macro summarize(exprs...)
-    :summarize |> parse(exprs) |> rewrite
+    :summarize |> parse_command(exprs) |> rewrite
 end
 
 """
@@ -254,5 +266,5 @@ Estimate a regression model in `df` with dependent variable `y` and independent 
 The regression is limited to rows for which all variables are values. Missing values, infinity, and NaN are automatically excluded.
 """
 macro regress(exprs...)
-    :regress |> parse(exprs) |> rewrite
+    :regress |> parse_command(exprs) |> rewrite
 end
