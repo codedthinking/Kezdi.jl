@@ -66,15 +66,49 @@ function rewrite_with_block(block)
     did_first || error("No expressions found in with block.")
 
     # try/finally guarantees the previous DataFrame is restored even if the
-    # body throws; the block still evaluates to the value of its last expression
+    # body throws. But try introduces a scope, and aside assignments like
+    # `s = @summarize x` must stay visible after the block, so their values are
+    # captured inside the try and re-bound in the enclosing scope afterwards.
+    targets = assigned_names(body)
+    captured = gensym()
+    value = gensym()
+    captures = [:(Base.@isdefined($t) ? (true, $t) : (false, nothing)) for t in targets]
+    rebinds = [quote
+            if $captured[$(i + 1)][1]
+                $t = $captured[$(i + 1)][2]
+            end
+        end for (i, t) in enumerate(targets)]
     quote
         $(header...)
-        try
-            $(body...)
+        local $captured = try
+            $([:(local $t) for t in targets]...)
+            $value = begin
+                $(body...)
+            end
+            ($value, $(captures...))
         finally
             setdf($previous_df)
         end
+        $(rebinds...)
+        $captured[1]
     end |> esc
+end
+
+# Names assigned at the top level of a with block's body (`s = @summarize x`,
+# `a, b = f()`), in order of first appearance.
+function assigned_names(body)
+    names = Symbol[]
+    add!(x) = x isa Symbol && !(x in names) && push!(names, x)
+    for expr in body
+        expr isa Expr && expr.head === :(=) || continue
+        lhs = expr.args[1]
+        if lhs isa Symbol
+            add!(lhs)
+        elseif lhs isa Expr && lhs.head === :tuple
+            foreach(add!, lhs.args)
+        end
+    end
+    names
 end
 
 # if a line in a with is a string, it can be parsed as a docstring
